@@ -1,17 +1,27 @@
-<main class="material-smoke-test">
-  <mat-card>
+<main
+  class="grid min-h-screen place-items-center bg-slate-50 p-6"
+  data-testid="app-shell"
+>
+  <mat-card class="w-full max-w-lg">
     <mat-card-header>
       <mat-card-title>{{ title }}</mat-card-title>
 
       <mat-card-subtitle>
-        Angular Material configurado correctamente
+        Angular Material + Tailwind CSS
       </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
-      <p>
+      <p class="mt-4 text-slate-600">
         Base visual del nuevo sistema PCR.
       </p>
+
+      <div
+        class="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        data-testid="tailwind-verification"
+      >
+        Tailwind está listo para layout, responsive y utilidades.
+      </div>
     </mat-card-content>
 
     <mat-card-actions>
