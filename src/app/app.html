@@ -1,35 +1,71 @@
 <main
-  class="grid min-h-screen place-items-center bg-slate-50 p-6"
-  data-testid="app-shell"
->
-  <mat-card class="w-full max-w-lg">
-    <mat-card-header>
-      <mat-card-title>{{ title }}</mat-card-title>
+  class="    grid    min-h-screen    place-items-center    bg-[var(--mat-sys-surface)]    p-6    text-[var(--mat-sys-on-surface)]    transition-colors  ">
+  <mat-card class="w-full max-w-xl">
 
-      <mat-card-subtitle>
-        Angular Material + Tailwind CSS
-      </mat-card-subtitle>
+    <mat-card-header>
+      <mat-card-title> {{ title }} </mat-card-title>
+      <mat-card-subtitle> PCR Design System </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
-      <p class="mt-4 text-slate-600">
-        Base visual del nuevo sistema PCR.
-      </p>
+      <p class="mt-5"> Angular Material + Tailwind CSS </p>
 
       <div
-        class="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-        data-testid="tailwind-verification"
-      >
-        Tailwind está listo para layout, responsive y utilidades.
+        class="          mt-6          rounded-xl          border          border-[var(--mat-sys-outline-variant)]          bg-[var(--mat-sys-surface-container-low)]          p-5        ">
+
+        <p class="font-medium">
+          Preferencia:
+          {{ theme.preference() }}
+        </p>
+
+        <p class="mt-1 text-sm opacity-70">
+          Tema aplicado:
+          {{ theme.resolvedTheme() }}
+        </p>
+
       </div>
+
+
+      <div class="
+          mt-6
+          flex
+          flex-wrap
+          gap-3
+        ">
+
+        <button mat-stroked-button type="button" data-testid="theme-light" (click)="theme.setPreference('light')">
+          Claro
+        </button>
+
+
+        <button mat-stroked-button type="button" data-testid="theme-dark" (click)="theme.setPreference('dark')">
+          Oscuro
+        </button>
+
+
+        <button mat-flat-button type="button" data-testid="theme-system" (click)="theme.setPreference('system')">
+          Sistema
+        </button>
+
+      </div>
+
+
+      <div class="
+          mt-6
+          rounded-xl
+          bg-slate-100
+          p-4
+          text-slate-800
+
+          dark:bg-slate-800
+          dark:text-slate-100
+        " data-testid="tailwind-dark-test">
+        Material y Tailwind utilizan el mismo tema.
+      </div>
+
     </mat-card-content>
 
-    <mat-card-actions>
-      <button mat-flat-button>
-        Material listo
-      </button>
-    </mat-card-actions>
   </mat-card>
 </main>
 
-<router-outlet />
+<router-outlet></router-outlet>

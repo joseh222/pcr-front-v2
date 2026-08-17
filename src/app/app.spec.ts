@@ -1,13 +1,42 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { vi } from 'vitest';
 
 import { App } from './app';
+import { ThemePreference } from './core/theme/theme.model';
+import { ThemeService } from './core/theme/theme.service';
 
 describe('App', () => {
+  const preference = signal<ThemePreference>('system');
+  const resolvedTheme = signal<'light' | 'dark'>('light');
+
+  const themeServiceMock = {
+    preference: preference.asReadonly(),
+    resolvedTheme: resolvedTheme.asReadonly(),
+    setPreference: vi.fn((value: ThemePreference) => {
+      preference.set(value);
+
+      if (value !== 'system') {
+        resolvedTheme.set(value);
+      }
+    })
+  };
+
   beforeEach(async () => {
+    preference.set('system');
+    resolvedTheme.set('light');
+    themeServiceMock.setPreference.mockClear();
+
     await TestBed.configureTestingModule({
-      imports: [App]
+      imports: [App],
+      providers: [
+        {
+          provide: ThemeService,
+          useValue: themeServiceMock
+        }
+      ]
     }).compileComponents();
   });
 
@@ -19,60 +48,36 @@ describe('App', () => {
 
   it('should render the application title', () => {
     const fixture = TestBed.createComponent(App);
-
     fixture.detectChanges();
 
     const element: HTMLElement = fixture.nativeElement;
 
     expect(element.textContent).toContain('PCR Front V2');
+    expect(element.textContent).toContain('PCR Design System');
   });
 
-  it('should render the Angular Material verification button', async () => {
+  it('should render the theme controls with Angular Material', async () => {
     const fixture = TestBed.createComponent(App);
-
     fixture.detectChanges();
 
-    const loader =
-      TestbedHarnessEnvironment.loader(fixture);
+    const loader = TestbedHarnessEnvironment.loader(fixture);
+    const buttons = await loader.getAllHarnesses(MatButtonHarness);
+    const buttonTexts = await Promise.all(buttons.map(button => button.getText()));
 
-    const button =
-      await loader.getHarness(
-        MatButtonHarness.with({
-          text: 'Material listo'
-        })
-      );
-
-    expect(await button.getText())
-      .toBe('Material listo');
+    expect(buttonTexts).toContain('Claro');
+    expect(buttonTexts).toContain('Oscuro');
+    expect(buttonTexts).toContain('Sistema');
   });
 
-  it('should render the Tailwind layout utilities', () => {
+  it('should request the dark theme when the dark button is clicked', async () => {
     const fixture = TestBed.createComponent(App);
-
     fixture.detectChanges();
 
-    const element: HTMLElement = fixture.nativeElement;
+    const loader = TestbedHarnessEnvironment.loader(fixture);
+    const darkButton = await loader.getHarness(MatButtonHarness.with({ text: 'Oscuro' }));
 
-    const shell =
-      element.querySelector<HTMLElement>(
-        '[data-testid="app-shell"]'
-      );
+    await darkButton.click();
 
-    const verification =
-      element.querySelector<HTMLElement>(
-        '[data-testid="tailwind-verification"]'
-      );
-
-    expect(shell).not.toBeNull();
-    expect(verification).not.toBeNull();
-
-    expect(shell?.classList.contains('min-h-screen'))
-      .toBe(true);
-
-    expect(shell?.classList.contains('grid'))
-      .toBe(true);
-
-    expect(verification?.classList.contains('rounded-xl'))
-      .toBe(true);
+    expect(themeServiceMock.setPreference).toHaveBeenCalledWith('dark');
   });
 });
