@@ -45,4 +45,34 @@ describe('App', () => {
     expect(await button.getText())
       .toBe('Material listo');
   });
+
+  it('should render the Tailwind layout utilities', () => {
+    const fixture = TestBed.createComponent(App);
+
+    fixture.detectChanges();
+
+    const element: HTMLElement = fixture.nativeElement;
+
+    const shell =
+      element.querySelector<HTMLElement>(
+        '[data-testid="app-shell"]'
+      );
+
+    const verification =
+      element.querySelector<HTMLElement>(
+        '[data-testid="tailwind-verification"]'
+      );
+
+    expect(shell).not.toBeNull();
+    expect(verification).not.toBeNull();
+
+    expect(shell?.classList.contains('min-h-screen'))
+      .toBe(true);
+
+    expect(shell?.classList.contains('grid'))
+      .toBe(true);
+
+    expect(verification?.classList.contains('rounded-xl'))
+      .toBe(true);
+  });
 });
