@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, catchError, map, of, switchMap, tap } from 'rxjs';
+import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { MisaApiService } from '../misa-api.service';
+import { MisaEstado, MisaModalidad, MisaTipo } from './misa-catalog.models';
 import { MisaListFilters, MisaListQuery, MisaPagedResponse } from './misa-read.models';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -47,12 +48,41 @@ export class MisaListStore {
     private readonly loadingSignal = signal(false);
     private readonly errorSignal = signal<string | null>(null);
 
+    private readonly modalidadesSignal =
+        signal<readonly MisaModalidad[]>([]);
+
+    private readonly tiposSignal =
+        signal<readonly MisaTipo[]>([]);
+
+    private readonly estadosSignal =
+        signal<readonly MisaEstado[]>([]);
+
+    private readonly catalogsLoadingSignal = signal(false);
+    private readonly catalogsLoadedSignal = signal(false);
+    private readonly catalogsErrorSignal =
+        signal<string | null>(null);
+
     private readonly loadRequests =
         new Subject<MisaListQuery>();
 
     readonly query = this.querySignal.asReadonly();
     readonly loading = this.loadingSignal.asReadonly();
     readonly error = this.errorSignal.asReadonly();
+
+    readonly modalidades =
+        this.modalidadesSignal.asReadonly();
+
+    readonly tipos =
+        this.tiposSignal.asReadonly();
+
+    readonly estados =
+        this.estadosSignal.asReadonly();
+
+    readonly catalogsLoading =
+        this.catalogsLoadingSignal.asReadonly();
+
+    readonly catalogsError =
+        this.catalogsErrorSignal.asReadonly();
 
     readonly items = computed(
         () => this.responseSignal().items
@@ -113,6 +143,51 @@ export class MisaListStore {
                 }
 
                 this.errorSignal.set(result.error);
+            });
+    }
+
+    loadCatalogs(): void {
+        if (
+            this.catalogsLoadedSignal() ||
+            this.catalogsLoadingSignal()
+        ) {
+            return;
+        }
+
+        this.catalogsLoadingSignal.set(true);
+        this.catalogsErrorSignal.set(null);
+
+        forkJoin({
+            modalidades: this.api.getModalidades(),
+            tipos: this.api.getTipos(),
+            estados: this.api.getEstados()
+        })
+            .pipe(
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe({
+                next: result => {
+                    this.modalidadesSignal.set(
+                        result.modalidades
+                    );
+
+                    this.tiposSignal.set(
+                        result.tipos
+                    );
+
+                    this.estadosSignal.set(
+                        result.estados
+                    );
+
+                    this.catalogsLoadedSignal.set(true);
+                    this.catalogsLoadingSignal.set(false);
+                },
+                error: error => {
+                    this.catalogsLoadingSignal.set(false);
+                    this.catalogsErrorSignal.set(
+                        this.getErrorMessage(error)
+                    );
+                }
             });
     }
 
@@ -181,7 +256,9 @@ export class MisaListStore {
     }
 
     private requestLoad(): void {
-        this.loadRequests.next(this.querySignal());
+        this.loadRequests.next(
+            this.querySignal()
+        );
     }
 
     private normalizeFilters(
@@ -220,6 +297,6 @@ export class MisaListStore {
             }
         }
 
-        return 'No se pudo cargar la lista de misas.';
+        return 'No se pudo completar la operación.';
     }
 }

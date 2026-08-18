@@ -1,15 +1,383 @@
 <section class="misa-list-page" data-testid="misa-list-page">
-    <header>
-        <p class="text-sm font-medium text-[var(--mat-sys-primary)]">
-            Gestión
-        </p>
 
-        <h1 class="mt-1 text-2xl font-semibold">
-            Misas
-        </h1>
+    <header class="page-header">
+        <div>
+            <p class="page-eyebrow">Gestión</p>
 
-        <p class="mt-2 text-sm opacity-60">
-            Gestión de misas e intenciones parroquiales.
-        </p>
+            <h1 class="page-title">
+                Misas
+            </h1>
+
+            <p class="page-description">
+                Consulta y administra las misas e intenciones parroquiales.
+            </p>
+        </div>
+
+        <button mat-icon-button type="button" aria-label="Recargar misas" data-testid="reload-misas" (click)="reload()">
+
+            <mat-icon>refresh</mat-icon>
+        </button>
     </header>
+
+    <form class="filters-card" data-testid="misa-filters" [formGroup]="filterForm" (ngSubmit)="search()">
+
+        <div class="filters-grid">
+
+            <mat-form-field class="filter-search" appearance="outline">
+
+                <mat-label>Buscar</mat-label>
+
+                <mat-icon matPrefix>
+                    search
+                </mat-icon>
+
+                <input matInput formControlName="texto" placeholder="Código, solicitante, documento o intención">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Desde</mat-label>
+
+                <input matInput type="date" formControlName="fechaInicio">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Hasta</mat-label>
+
+                <input matInput type="date" formControlName="fechaFin">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Modalidad</mat-label>
+
+                <mat-select formControlName="idModalidad">
+
+                    <mat-option [value]="null">
+                        Todas
+                    </mat-option>
+
+                    @for (
+                    modalidad of store.modalidades();
+                    track modalidad.idModalidad
+                    ) {
+                    <mat-option [value]="modalidad.idModalidad">
+
+                        {{ modalidad.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Tipo</mat-label>
+
+                <mat-select formControlName="idTipo">
+
+                    <mat-option [value]="null">
+                        Todos
+                    </mat-option>
+
+                    @for (
+                    tipo of store.tipos();
+                    track tipo.idTipo
+                    ) {
+                    <mat-option [value]="tipo.idTipo">
+
+                        {{ tipo.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Estado</mat-label>
+
+                <mat-select formControlName="idEstado">
+
+                    <mat-option [value]="null">
+                        Todos
+                    </mat-option>
+
+                    @for (
+                    estado of store.estados();
+                    track estado.idEstado
+                    ) {
+                    <mat-option [value]="estado.idEstado">
+
+                        {{ estado.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Estado de pago</mat-label>
+
+                <mat-select formControlName="estadoPago">
+
+                    <mat-option [value]="null">
+                        Todos
+                    </mat-option>
+
+                    @for (
+                    estado of paymentStatuses;
+                    track estado.value
+                    ) {
+                    <mat-option [value]="estado.value">
+
+                        {{ estado.label }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+        </div>
+
+        @if (store.catalogsError()) {
+        <div class="catalog-error">
+            <mat-icon>warning</mat-icon>
+
+            <span>
+                No se pudieron cargar algunos filtros.
+            </span>
+        </div>
+        }
+
+        <div class="filter-actions">
+            <button mat-stroked-button type="button" data-testid="clear-filters" (click)="clearFilters()">
+
+                <mat-icon>filter_alt_off</mat-icon>
+                Limpiar
+            </button>
+
+            <button mat-flat-button type="submit" data-testid="search-misas">
+
+                <mat-icon>search</mat-icon>
+                Buscar
+            </button>
+        </div>
+    </form>
+
+    <section class="table-card">
+
+        <div class="table-header">
+            <div>
+                <h2>Resultados</h2>
+
+                <p>
+                    {{ store.totalRegistros() }}
+                    registro{{ store.totalRegistros() === 1 ? '' : 's' }}
+                </p>
+            </div>
+        </div>
+
+        @if (
+        store.loading() ||
+        store.catalogsLoading()
+        ) {
+        <mat-progress-bar mode="indeterminate" data-testid="misa-loading">
+        </mat-progress-bar>
+        }
+
+        @if (store.error()) {
+        <div class="message-state error-state" data-testid="misa-error">
+
+            <mat-icon>error_outline</mat-icon>
+
+            <div>
+                <strong>
+                    No pudimos cargar las misas
+                </strong>
+
+                <p>
+                    {{ store.error() }}
+                </p>
+            </div>
+
+            <button mat-stroked-button type="button" (click)="reload()">
+
+                Reintentar
+            </button>
+        </div>
+        } @else if (store.isEmpty()) {
+        <div class="message-state empty-state" data-testid="misa-empty">
+
+            <mat-icon>event_busy</mat-icon>
+
+            <div>
+                <strong>
+                    No se encontraron misas
+                </strong>
+
+                <p>
+                    Prueba modificando los filtros de búsqueda.
+                </p>
+            </div>
+        </div>
+        } @else if (store.items().length > 0) {
+
+        <div class="table-wrapper" data-testid="misa-table">
+
+            <table mat-table class="misa-table" [dataSource]="store.items()">
+
+                <ng-container matColumnDef="codigo">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Código
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        <strong>
+                            {{ misa.codMisa || '#' + misa.idMisa }}
+                        </strong>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="fecha">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Fecha / hora
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        <div class="cell-primary">
+                            {{ formatDate(misa.fecha) }}
+                        </div>
+
+                        <div class="cell-secondary">
+                            {{ formatTime(misa.hora) }}
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tipo">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Misa
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        <div class="cell-primary">
+                            {{ misa.tipo?.nombre || '—' }}
+                        </div>
+
+                        <div class="cell-secondary">
+                            {{ misa.modalidad?.nombre || '—' }}
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="solicitante">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Solicitante
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        <div class="cell-primary">
+                            {{ misa.solicitante?.nombre || '—' }}
+                        </div>
+
+                        @if (
+                        misa.solicitante?.numeroDocumento
+                        ) {
+                        <div class="cell-secondary">
+                            {{ misa.solicitante?.codigoTipoDocumento }}
+                            {{ misa.solicitante?.numeroDocumento }}
+                        </div>
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Estado
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        <span class="status-badge">
+                            {{ misa.estado?.nombre || 'Sin estado' }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="pago">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Pago
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        <span class="status-badge" [class.status-badge-paid]="
+                                    misa.solicitudServicio?.estadoPago === 'PAGADO'
+                                " [class.status-badge-pending]="
+                                    misa.solicitudServicio?.estadoPago === 'PENDIENTE'
+                                ">
+
+                            {{
+                            paymentLabel(
+                            misa.solicitudServicio?.estadoPago ?? null
+                            )
+                            }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="importe">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Importe
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        @if (misa.solicitudServicio) {
+                        {{
+                        misa.solicitudServicio.importe
+                        | currency:'PEN':'symbol':'1.2-2'
+                        }}
+                        } @else {
+                        —
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="intenciones">
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        Intenciones
+                    </th>
+
+                    <td mat-cell *matCellDef="let misa">
+
+                        {{ misa.cantidadIntenciones }}
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns">
+                </tr>
+
+                <tr mat-row *matRowDef="
+                            let row;
+                            columns: displayedColumns
+                        ">
+                </tr>
+
+            </table>
+        </div>
+
+        <mat-paginator class="misa-paginator" [length]="store.totalRegistros()" [pageIndex]="store.pagina() - 1"
+            [pageSize]="store.tamanoPagina()" [pageSizeOptions]="[10, 20, 50, 100]" [showFirstLastButtons]="true"
+            aria-label="Paginación de misas" (page)="onPage($event)">
+        </mat-paginator>
+        }
+
+    </section>
+
 </section>

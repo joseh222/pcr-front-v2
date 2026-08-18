@@ -17,13 +17,26 @@ describe('MisaListStore', () => {
     let store: MisaListStore;
 
     const getListMock = vi.fn();
+    const getModalidadesMock = vi.fn();
+    const getTiposMock = vi.fn();
+    const getEstadosMock = vi.fn();
 
     const apiMock = {
-        getList: getListMock
+        getList: getListMock,
+        getModalidades: getModalidadesMock,
+        getTipos: getTiposMock,
+        getEstados: getEstadosMock
     };
 
     beforeEach(() => {
         getListMock.mockReset();
+        getModalidadesMock.mockReset();
+        getTiposMock.mockReset();
+        getEstadosMock.mockReset();
+
+        getModalidadesMock.mockReturnValue(of([]));
+        getTiposMock.mockReturnValue(of([]));
+        getEstadosMock.mockReturnValue(of([]));
 
         TestBed.configureTestingModule({
             providers: [
@@ -226,6 +239,59 @@ describe('MisaListStore', () => {
         );
 
         expect(store.items()[0].idMisa).toBe(2);
+    });
+
+    it('should load filter catalogs only once', () => {
+        getModalidadesMock.mockReturnValue(
+            of([
+                {
+                    idModalidad: 1,
+                    nombre: 'Personal'
+                }
+            ])
+        );
+
+        getTiposMock.mockReturnValue(
+            of([
+                {
+                    idTipo: 2,
+                    codigo: 'DIFUNTO',
+                    nombre: 'Difunto'
+                }
+            ])
+        );
+
+        getEstadosMock.mockReturnValue(
+            of([
+                {
+                    idEstado: 3,
+                    categoria: 'MISA',
+                    nombre: 'REGISTRADO'
+                }
+            ])
+        );
+
+        store.loadCatalogs();
+        store.loadCatalogs();
+
+        expect(
+            getModalidadesMock
+        ).toHaveBeenCalledTimes(1);
+
+        expect(
+            getTiposMock
+        ).toHaveBeenCalledTimes(1);
+
+        expect(
+            getEstadosMock
+        ).toHaveBeenCalledTimes(1);
+
+        expect(store.modalidades()).toHaveLength(1);
+        expect(store.tipos()).toHaveLength(1);
+        expect(store.estados()).toHaveLength(1);
+
+        expect(store.catalogsLoading()).toBe(false);
+        expect(store.catalogsError()).toBeNull();
     });
 
     function response(

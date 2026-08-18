@@ -13,6 +13,8 @@ import { NotFound } from './shared/pages/not-found/not-found';
 import { AuthStore } from './features/auth/data-access/auth.store';
 import { ChangePasswordPage } from './features/auth/pages/change-password/change-password';
 import { DashboardPage } from './features/dashboard/pages/dashboard';
+import { of } from 'rxjs';
+import { MisaApiService } from './features/misas/data-access/misa-api.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -45,8 +47,27 @@ describe('Application routes', () => {
         resolvedTheme: resolvedTheme.asReadonly(),
         setPreference: vi.fn()
     };
+    const misaApiMock = {
+        getModalidades: vi.fn(() => of([])),
+        getTipos: vi.fn(() => of([])),
+        getEstados: vi.fn(() => of([])),
+
+        getList: vi.fn(() =>
+            of({
+                pagina: 1,
+                tamanoPagina: 20,
+                totalRegistros: 0,
+                totalPaginas: 0,
+                items: []
+            })
+        )
+    };
 
     beforeEach(() => {
+        misaApiMock.getModalidades.mockClear();
+        misaApiMock.getTipos.mockClear();
+        misaApiMock.getEstados.mockClear();
+        misaApiMock.getList.mockClear();
         isAuthenticated.set(true);
         preference.set('system');
         resolvedTheme.set('light');
@@ -59,7 +80,8 @@ describe('Application routes', () => {
                     provide: ThemeService,
                     useValue: themeServiceMock
                 },
-                { provide: AuthStore, useValue: authStoreMock }
+                { provide: AuthStore, useValue: authStoreMock },
+                { provide: MisaApiService, useValue: misaApiMock }
             ]
         });
     });
@@ -100,7 +122,7 @@ describe('Application routes', () => {
 
         expect(harness.routeNativeElement?.textContent).toContain('Misas');
         expect(harness.routeNativeElement?.textContent).toContain(
-            'Gestión de misas e intenciones parroquiales.'
+            'Consulta y administra las misas e intenciones parroquiales.'
         );
     });
 });
