@@ -27,7 +27,8 @@ export interface LogoutResponse {
 export interface ApiErrorResponse {
     readonly success: false;
     readonly code: number;
-    readonly messages: readonly string[];
+    readonly messages?: readonly string[];
+    readonly message?: readonly string[];
     readonly traceId?: string | null;
     readonly error?: unknown;
 }

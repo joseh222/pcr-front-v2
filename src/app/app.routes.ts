@@ -2,6 +2,10 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
     {
+        path: 'login',
+        loadChildren: () => import('./features/auth/auth.routes').then(module => module.AUTH_ROUTES)
+    },
+    {
         path: '',
         pathMatch: 'full',
         title: 'PCR Front V2',
