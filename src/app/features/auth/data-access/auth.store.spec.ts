@@ -295,6 +295,20 @@ describe('AuthStore', () => {
         expect(storage.accessToken).toBe(accessToken);
         expect(storage.refreshToken).toBe('refresh-token');
     });
+
+    it('should expose null for an unsupported role', async () => {
+        storage.setTokens({
+            accessToken: createAccessToken('TEST', 'UNKNOWN', 'session-10'),
+            refreshToken: 'refresh-token'
+        });
+
+        const store = TestBed.inject(AuthStore);
+        await store.initialize();
+
+        expect(store.roleCode()).toBeNull();
+        expect(store.isAdmin()).toBe(false);
+        expect(store.isUser()).toBe(false);
+    });
 });
 
 function createAuthenticationResponse(accessToken: string, refreshToken: string, sessionId: string): AuthenticationResponse {

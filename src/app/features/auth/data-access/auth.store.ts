@@ -27,7 +27,10 @@ export class AuthStore {
     readonly currentUser = this.userSignal.asReadonly();
     readonly isAuthenticated = computed(() => this.statusSignal() === 'authenticated' && this.userSignal() !== null);
     readonly isAuthenticating = computed(() => this.statusSignal() === 'authenticating');
-    readonly roleCode = computed(() => this.userSignal()?.roleCode ?? null);
+    readonly roleCode = computed<AuthRole | null>(() => {
+        const role = this.userSignal()?.roleCode;
+        return role === AUTH_ROLE.ADMIN || role === AUTH_ROLE.USER ? role : null;
+    });
     readonly isAdmin = computed(() => this.roleCode() === AUTH_ROLE.ADMIN);
     readonly isUser = computed(() => this.roleCode() === AUTH_ROLE.USER);
     readonly mustChangePassword = computed(() => this.userSignal()?.mustChangePassword ?? false);
