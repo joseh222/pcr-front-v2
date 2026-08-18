@@ -1,0 +1,30 @@
+<aside class="app-sidebar" [class.app-sidebar-open]="open()" [class.app-sidebar-collapsed]="collapsed()"
+    data-testid="app-sidebar">
+
+    <div class="flex h-16 items-center gap-3 border-b border-[var(--mat-sys-outline-variant)] px-5">
+        <div
+            class="grid size-10 place-items-center rounded-xl bg-[var(--mat-sys-primary)] text-[var(--mat-sys-on-primary)]">
+            <mat-icon>church</mat-icon>
+        </div>
+
+        <div>
+            <p class="font-semibold leading-tight">PCR</p>
+            <p class="text-xs opacity-60">Sistema Parroquial</p>
+        </div>
+    </div>
+
+    <nav class="flex-1 p-3" aria-label="Menú principal">
+        <p class="px-3 pb-2 pt-3 text-xs font-medium uppercase tracking-wider opacity-50">
+            Navegación
+        </p>
+
+        <button class="sidebar-item sidebar-item-active" type="button">
+            <mat-icon>dashboard</mat-icon>
+            <span>Inicio</span>
+        </button>
+    </nav>
+
+    <div class="border-t border-[var(--mat-sys-outline-variant)] p-4">
+        <p class="text-xs opacity-50">Parroquia Cristo Rey</p>
+    </div>
+</aside>

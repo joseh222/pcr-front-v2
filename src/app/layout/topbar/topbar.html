@@ -1,0 +1,24 @@
+<header class="app-topbar" data-testid="app-topbar">
+    <div class="flex min-w-0 items-center gap-2">
+        <button mat-icon-button type="button" class="mobile-sidebar-toggle" aria-label="Abrir menú"
+            data-testid="mobile-sidebar-toggle" (click)="mobileMenuRequested.emit()">
+            <mat-icon>menu</mat-icon>
+        </button>
+
+        <button mat-icon-button type="button" class="desktop-sidebar-toggle"
+            [attr.aria-label]="sidebarCollapsed() ? 'Mostrar menú' : 'Ocultar menú'"
+            data-testid="desktop-sidebar-toggle" (click)="desktopMenuRequested.emit()">
+            <mat-icon>{{ sidebarCollapsed() ? 'menu_open' : 'menu' }}</mat-icon>
+        </button>
+
+        <div class="min-w-0">
+            <p class="truncate text-sm font-semibold sm:text-base">Sistema de Gestión Parroquial</p>
+            <p class="hidden truncate text-xs opacity-60 sm:block">Parroquia Cristo Rey</p>
+        </div>
+    </div>
+
+    <div class="flex shrink-0 items-center">
+        <pcr-theme-menu />
+        <pcr-user-menu />
+    </div>
+</header>
