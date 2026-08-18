@@ -1,9 +1,0 @@
-{
-  "apiBaseUrl": "https://localhost:9001/api",
-  "applicationName": "PCR Front V2",
-  "environmentName": "DEV",
-  "locale": "es-PE",
-  "currency": "PEN",
-  "defaultPageSize": 10,
-  "featureFlags": {}
-}
