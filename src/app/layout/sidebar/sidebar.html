@@ -16,7 +16,7 @@
 
     <nav class="sidebar-navigation" aria-label="Menú principal">
 
-        @for (section of navigationSections; track section.id) {
+        @for (section of navigationSections(); track section.id) {
         <section class="sidebar-section" [attr.data-testid]="'nav-section-' + section.id">
 
             <p class="sidebar-section-title">

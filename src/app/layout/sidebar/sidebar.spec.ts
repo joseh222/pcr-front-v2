@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
 import { Sidebar } from './sidebar';
+import { AUTH_ROLE } from '../../core/auth/auth-role.model';
+import { AuthStore } from '../../features/auth/data-access/auth.store';
 
 @Component({
     standalone: true,
@@ -14,8 +16,13 @@ class DashboardTestPage { }
 describe('Sidebar', () => {
     let fixture: ComponentFixture<Sidebar>;
     let router: Router;
+    const roleCode = signal(AUTH_ROLE.ADMIN);
 
+    const authStoreMock = {
+        roleCode: roleCode.asReadonly()
+    };
     beforeEach(async () => {
+        roleCode.set(AUTH_ROLE.ADMIN);
         await TestBed.configureTestingModule({
             imports: [Sidebar],
             providers: [
@@ -23,8 +30,9 @@ describe('Sidebar', () => {
                     {
                         path: 'dashboard',
                         component: DashboardTestPage
-                    }
-                ])
+                    },
+                ]),
+                { provide: AuthStore, useValue: authStoreMock }
             ]
         }).compileComponents();
 
@@ -106,12 +114,12 @@ describe('Sidebar', () => {
     });
 
     it('should render the navigation sections', () => {
-    const principal = fixture.nativeElement.querySelector(
-        '[data-testid="nav-section-principal"]'
-    ) as HTMLElement;
+        const principal = fixture.nativeElement.querySelector(
+            '[data-testid="nav-section-principal"]'
+        ) as HTMLElement;
 
-    expect(principal).toBeTruthy();
-    expect(principal.textContent).toContain('Principal');
-    expect(principal.textContent).toContain('Dashboard');
-});
+        expect(principal).toBeTruthy();
+        expect(principal.textContent).toContain('Principal');
+        expect(principal.textContent).toContain('Dashboard');
+    });
 });
