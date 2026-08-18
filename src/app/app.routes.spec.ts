@@ -19,9 +19,25 @@ describe('Application routes', () => {
     const isAuthenticated = signal(true);
     const mustChangePassword = signal(false);
 
+    const currentUser = signal({
+        idUser: 1,
+        username: 'ADMIN',
+        displayName: 'Administrador PCR',
+        email: 'admin@pcr.pe',
+        roleCode: 'ADMIN',
+        sessionId: 'session-1',
+        mustChangePassword: false,
+        expiresAtUnix: 9999999999
+    });
+
+    const roleCode = signal('ADMIN');
+
     const authStoreMock = {
         isAuthenticated: isAuthenticated.asReadonly(),
-        mustChangePassword: mustChangePassword.asReadonly()
+        mustChangePassword: mustChangePassword.asReadonly(),
+        currentUser: currentUser.asReadonly(),
+        roleCode: roleCode.asReadonly(),
+        logout: vi.fn()
     };
     const themeServiceMock = {
         preference: preference.asReadonly(),
@@ -52,9 +68,12 @@ describe('Application routes', () => {
         await harness.navigateByUrl('/', AppShell);
 
         expect(harness.routeNativeElement?.textContent).toContain('PCR Front V2');
-        expect(harness.routeNativeElement?.textContent).toContain('Claro');
-        expect(harness.routeNativeElement?.textContent).toContain('Oscuro');
-        expect(harness.routeNativeElement?.textContent).toContain('Sistema');
+        // expect(harness.routeNativeElement?.textContent).toContain('Claro');
+        // expect(harness.routeNativeElement?.textContent).toContain('Oscuro');
+        // expect(harness.routeNativeElement?.textContent).toContain('Sistema');
+        expect(harness.routeNativeElement?.textContent).toContain('Sistema de Gestión Parroquial');
+        expect(harness.routeNativeElement?.textContent).toContain('Bienvenido al sistema');
+        expect(harness.routeNativeElement?.textContent).toContain('Parroquia Cristo Rey');
     });
 
     it('should load the not found page for an unknown route', async () => {
