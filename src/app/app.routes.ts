@@ -19,10 +19,24 @@ export const routes: Routes = [
     },
     {
         path: '',
-        pathMatch: 'full',
-        title: 'PCR Front V2',
         canActivate: [authGuard, passwordChangeRequiredGuard],
-        loadComponent: () => import('./layout/app-shell/app-shell').then(module => module.AppShell)
+        loadComponent: () =>
+            import('./layout/app-shell/app-shell')
+                .then(module => module.AppShell),
+
+        children: [
+            {
+                path: 'dashboard',
+                title: 'Dashboard | PCR Front V2',
+                loadComponent: () =>
+                    import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
+            },
+            {
+                path: '',
+                pathMatch: 'full',
+                redirectTo: 'dashboard'
+            }
+        ]
     },
     {
         path: '**',
