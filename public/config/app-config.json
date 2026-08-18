@@ -4,6 +4,6 @@
   "environmentName": "DEV",
   "locale": "es-PE",
   "currency": "PEN",
-  "defaultPageSize": 0,
+  "defaultPageSize": 10,
   "featureFlags": {}
 }
