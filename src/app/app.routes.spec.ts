@@ -11,14 +11,17 @@ import { ThemeService } from './core/theme/theme.service';
 import { AppShell } from './layout/app-shell/app-shell';
 import { NotFound } from './shared/pages/not-found/not-found';
 import { AuthStore } from './features/auth/data-access/auth.store';
+import { ChangePasswordPage } from './features/auth/pages/change-password/change-password';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
     const resolvedTheme = signal<'light' | 'dark'>('light');
     const isAuthenticated = signal(true);
+    const mustChangePassword = signal(false);
 
     const authStoreMock = {
-        isAuthenticated: isAuthenticated.asReadonly()
+        isAuthenticated: isAuthenticated.asReadonly(),
+        mustChangePassword: mustChangePassword.asReadonly()
     };
     const themeServiceMock = {
         preference: preference.asReadonly(),
@@ -30,6 +33,7 @@ describe('Application routes', () => {
         isAuthenticated.set(true);
         preference.set('system');
         resolvedTheme.set('light');
+        mustChangePassword.set(false);
         themeServiceMock.setPreference.mockClear();
         TestBed.configureTestingModule({
             providers: [
@@ -59,5 +63,14 @@ describe('Application routes', () => {
 
         expect(harness.routeNativeElement?.textContent).toContain('Página no encontrada');
         expect(harness.routeNativeElement?.textContent).toContain('ERROR 404');
+    });
+
+    it('should redirect to password change when it is required', async () => {
+        mustChangePassword.set(true);
+
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/', ChangePasswordPage);
+
+        expect(harness.routeNativeElement?.textContent).toContain('Cambiar contraseña');
     });
 });

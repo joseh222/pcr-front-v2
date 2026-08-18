@@ -139,22 +139,27 @@ describe('LoginPage', () => {
         expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
     });
 
-    it('should not enter the application when password change is required', async () => {
-        authStoreMock.login.mockResolvedValue(undefined);
+    it('should redirect to change-password when password change is required', async () => {
         mustChangePassword.set(true);
+        authStoreMock.login.mockResolvedValue(undefined);
 
-        setInput('login-username', 'ADMIN');
+        setInput('login-username', 'USUARIO');
         setInput('login-password', 'Temporal123!');
 
         submitForm();
 
         await fixture.whenStable();
-        fixture.detectChanges();
 
-        const error = fixture.nativeElement.querySelector('[data-testid="login-error"]');
+        expect(authStoreMock.login).toHaveBeenCalledWith({
+            username: 'USUARIO',
+            password: 'Temporal123!',
+            deviceId: null,
+            deviceLabel: 'PCR Front V2'
+        });
 
-        expect(error?.textContent).toContain('Debes cambiar tu contraseña temporal antes de continuar.');
-        expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+        expect(routerMock.navigateByUrl).toHaveBeenCalledWith('/change-password', {
+            replaceUrl: true
+        });
     });
 
     function setInput(testId: string, value: string): void {

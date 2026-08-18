@@ -8,6 +8,7 @@ import { AuthenticationResponse } from './auth-api.models';
 import { AuthApiService } from './auth-api.service';
 import { AuthStore } from './auth.store';
 import { AUTH_ROLE } from '../../../core/auth/auth-role.model';
+import { AccountApiService } from './account-api.service';
 
 class MemoryTokenStorage implements TokenStorage {
     accessToken: string | null = null;
@@ -40,12 +41,16 @@ describe('AuthStore', () => {
         refreshSession: vi.fn(),
         logout: vi.fn()
     };
+    const accountApiMock = {
+        changePassword: vi.fn()
+    };
 
     beforeEach(() => {
         storage = new MemoryTokenStorage();
         authApiMock.login.mockReset();
         authApiMock.refreshSession.mockReset();
         authApiMock.logout.mockReset();
+        accountApiMock.changePassword.mockReset();
 
         TestBed.configureTestingModule({
             providers: [
@@ -57,7 +62,8 @@ describe('AuthStore', () => {
                 {
                     provide: TOKEN_STORAGE,
                     useValue: storage
-                }
+                },
+                { provide: AccountApiService, useValue: accountApiMock }
             ]
         });
     });
@@ -232,6 +238,62 @@ describe('AuthStore', () => {
         expect(store.currentUser()).toBeNull();
         expect(storage.accessToken).toBeNull();
         expect(storage.refreshToken).toBeNull();
+    });
+
+    it('should clear the session when password change requires a new login', async () => {
+        storage.setTokens({
+            accessToken: createAccessToken('ADMIN', 'ADMIN', 'session-8'),
+            refreshToken: 'refresh-token'
+        });
+
+        accountApiMock.changePassword.mockReturnValue(of({
+            mensaje: 'Contraseña actualizada correctamente.',
+            requiresNewLogin: true
+        }));
+
+        const store = TestBed.inject(AuthStore);
+        await store.initialize();
+
+        const request = {
+            currentPassword: 'Temporal123!',
+            newPassword: 'NuevaPassword123!',
+            confirmPassword: 'NuevaPassword123!'
+        };
+
+        const response = await store.changePassword(request);
+
+        expect(accountApiMock.changePassword).toHaveBeenCalledWith(request);
+        expect(response.requiresNewLogin).toBe(true);
+        expect(store.isAuthenticated()).toBe(false);
+        expect(store.currentUser()).toBeNull();
+        expect(storage.accessToken).toBeNull();
+        expect(storage.refreshToken).toBeNull();
+    });
+
+    it('should keep the session when password change fails', async () => {
+        const accessToken = createAccessToken('ADMIN', 'ADMIN', 'session-9');
+
+        storage.setTokens({
+            accessToken,
+            refreshToken: 'refresh-token'
+        });
+
+        accountApiMock.changePassword.mockReturnValue(
+            throwError(() => new Error('La contraseña actual no es correcta.'))
+        );
+
+        const store = TestBed.inject(AuthStore);
+        await store.initialize();
+
+        await expect(store.changePassword({
+            currentPassword: 'Incorrecta123!',
+            newPassword: 'NuevaPassword123!',
+            confirmPassword: 'NuevaPassword123!'
+        })).rejects.toThrow('La contraseña actual no es correcta.');
+
+        expect(store.isAuthenticated()).toBe(true);
+        expect(storage.accessToken).toBe(accessToken);
+        expect(storage.refreshToken).toBe('refresh-token');
     });
 });
 
