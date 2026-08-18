@@ -61,7 +61,7 @@ export class LoginPage {
             });
 
             if (this.authStore.mustChangePassword()) {
-                this.errorMessage.set('Debes cambiar tu contraseña temporal antes de continuar.');
+                await this.router.navigateByUrl('/change-password', { replaceUrl: true });
                 return;
             }
 

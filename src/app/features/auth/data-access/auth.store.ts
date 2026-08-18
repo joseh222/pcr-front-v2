@@ -7,6 +7,8 @@ import { TOKEN_STORAGE } from '../../../core/auth/token-storage';
 import { AuthenticationResponse, LoginRequest } from './auth-api.models';
 import { AuthApiService } from './auth-api.service';
 import { AUTH_ROLE, AuthRole } from '../../../core/auth/auth-role.model';
+import { AccountApiService } from './account-api.service';
+import { ChangePasswordRequest, ChangePasswordResponse } from './account-api.models';
 
 export type AuthStatus = 'anonymous' | 'authenticating' | 'authenticated';
 
@@ -15,6 +17,7 @@ export type AuthStatus = 'anonymous' | 'authenticating' | 'authenticated';
 })
 export class AuthStore {
     private readonly authApi = inject(AuthApiService);
+    private readonly accountApi = inject(AccountApiService);
     private readonly tokenStorage = inject(TOKEN_STORAGE);
     private readonly statusSignal = signal<AuthStatus>('anonymous');
     private readonly userSignal = signal<AuthenticatedUser | null>(null);
@@ -75,6 +78,16 @@ export class AuthStore {
         } finally {
             this.clearSession();
         }
+    }
+
+    async changePassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+        const response = await firstValueFrom(this.accountApi.changePassword(request));
+
+        if (response.requiresNewLogin) {
+            this.clearSession();
+        }
+
+        return response;
     }
 
     async refreshAccessToken(): Promise<string> {
