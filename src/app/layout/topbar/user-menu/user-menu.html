@@ -1,0 +1,56 @@
+<div class="user-menu" data-testid="user-area">
+    <button mat-button type="button" class="user-menu-trigger" [matMenuTriggerFor]="userMenu"
+        aria-label="Abrir menú de usuario" data-testid="user-menu-trigger">
+
+        <span class="flex min-w-0 items-center gap-2">
+            <mat-icon class="shrink-0">account_circle</mat-icon>
+
+            <span class="hidden min-w-0 text-left sm:block">
+                <span class="block max-w-40 truncate text-sm font-medium" data-testid="user-display-name">
+                    {{ authStore.currentUser()?.displayName || authStore.currentUser()?.username }}
+                </span>
+
+                <span class="block text-xs opacity-60" data-testid="user-role">
+                    {{ authStore.roleCode() }}
+                </span>
+            </span>
+
+            <mat-icon class="hidden shrink-0 sm:inline-flex">
+                arrow_drop_down
+            </mat-icon>
+        </span>
+    </button>
+
+    <mat-menu #userMenu="matMenu" xPosition="before">
+        <div class="user-menu-info" data-testid="user-menu-info">
+            <p class="truncate text-sm font-semibold">
+                {{ authStore.currentUser()?.displayName || authStore.currentUser()?.username }}
+            </p>
+
+            <p class="mt-1 truncate text-xs opacity-60">
+                {{ authStore.currentUser()?.username }}
+            </p>
+
+            @if (authStore.currentUser()?.email) {
+            <p class="mt-1 truncate text-xs opacity-60">
+                {{ authStore.currentUser()?.email }}
+            </p>
+            }
+
+            <p class="mt-2 text-xs font-medium text-[var(--mat-sys-primary)]">
+                {{ authStore.roleCode() }}
+            </p>
+        </div>
+
+        <div class="menu-divider"></div>
+
+        <button mat-menu-item type="button" [disabled]="isLoggingOut()" data-testid="logout-button" (click)="logout()">
+
+            <mat-icon>logout</mat-icon>
+
+            <span>
+                {{ isLoggingOut() ? 'Cerrando sesión...' : 'Cerrar sesión' }}
+            </span>
+        </button>
+    </mat-menu>
+</div>
