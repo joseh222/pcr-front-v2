@@ -1,114 +1,15 @@
 <div class="app-layout" [class.app-layout-sidebar-collapsed]="sidebarCollapsed()" data-testid="app-shell">
-
     @if (sidebarOpen()) {
-    <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" data-testid="sidebar-backdrop"
-        (click)="closeSidebar()">
-    </button>
+        <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" data-testid="sidebar-backdrop"
+            (click)="closeSidebar()">
+        </button>
     }
 
-    <aside class="app-sidebar" [class.app-sidebar-open]="sidebarOpen()"
-        [class.app-sidebar-collapsed]="sidebarCollapsed()" data-testid="app-sidebar">
-        <div class="flex h-16 items-center gap-3 border-b border-[var(--mat-sys-outline-variant)] px-5">
-            <div
-                class="grid size-10 place-items-center rounded-xl bg-[var(--mat-sys-primary)] text-[var(--mat-sys-on-primary)]">
-                <mat-icon>church</mat-icon>
-            </div>
-
-            <div>
-                <p class="font-semibold leading-tight">PCR</p>
-                <p class="text-xs opacity-60">Sistema Parroquial</p>
-            </div>
-        </div>
-
-        <nav class="flex-1 p-3" aria-label="Menú principal">
-            <p class="px-3 pb-2 pt-3 text-xs font-medium uppercase tracking-wider opacity-50">
-                Navegación
-            </p>
-
-            <button class="sidebar-item sidebar-item-active" type="button">
-                <mat-icon>dashboard</mat-icon>
-                <span>Inicio</span>
-            </button>
-        </nav>
-
-        <div class="border-t border-[var(--mat-sys-outline-variant)] p-4">
-            <p class="text-xs opacity-50">
-                Parroquia Cristo Rey
-            </p>
-        </div>
-    </aside>
+    <pcr-sidebar [open]="sidebarOpen()" [collapsed]="sidebarCollapsed()" />
 
     <div class="app-content">
-
-        <header class="app-topbar" data-testid="app-topbar">
-            <div class="flex items-center gap-2">
-                <button mat-icon-button type="button" class="mobile-sidebar-toggle" aria-label="Abrir menú"
-                    data-testid="mobile-sidebar-toggle" (click)="toggleSidebar()">
-                    <mat-icon>menu</mat-icon>
-                </button>
-
-                <button mat-icon-button type="button" class="desktop-sidebar-toggle"
-                    [attr.aria-label]="sidebarCollapsed() ? 'Mostrar menú' : 'Ocultar menú'"
-                    data-testid="desktop-sidebar-toggle" (click)="toggleDesktopSidebar()">
-                    <mat-icon>{{ sidebarCollapsed() ? 'menu_open' : 'menu' }}</mat-icon>
-                </button>
-
-                <div>
-                    <p class="text-sm font-semibold sm:text-base">Sistema de Gestión Parroquial</p>
-                    <p class="hidden text-xs opacity-60 sm:block">Parroquia Cristo Rey</p>
-                </div>
-            </div>
-
-            <div class="flex items-center" data-testid="user-area">
-                <button mat-button type="button" class="user-menu-button" [matMenuTriggerFor]="userMenu"
-                    data-testid="user-menu-trigger">
-
-                    <span class="flex items-center gap-2">
-                        <mat-icon>account_circle</mat-icon>
-
-                        <span class="hidden text-left sm:block">
-                            <span class="block max-w-40 truncate text-sm font-medium" data-testid="user-display-name">
-                                {{ authStore.currentUser()?.displayName }}
-                            </span>
-
-                            <span class="block text-xs opacity-60" data-testid="user-role">
-                                {{ authStore.roleCode() }}
-                            </span>
-                        </span>
-
-                        <mat-icon class="hidden sm:inline-flex">arrow_drop_down</mat-icon>
-                    </span>
-                </button>
-
-                <mat-menu #userMenu="matMenu" xPosition="before">
-                    <div class="min-w-56 px-4 py-3" data-testid="user-menu-info">
-                        <p class="text-sm font-medium">
-                            {{ authStore.currentUser()?.displayName }}
-                        </p>
-
-                        <p class="mt-1 text-xs opacity-60">
-                            {{ authStore.currentUser()?.username }}
-                        </p>
-
-                        @if (authStore.currentUser()?.email) {
-                        <p class="mt-1 max-w-48 truncate text-xs opacity-60">
-                            {{ authStore.currentUser()?.email }}
-                        </p>
-                        }
-                    </div>
-
-                    <button mat-menu-item type="button" [disabled]="isLoggingOut()" data-testid="logout-button"
-                        (click)="logout()">
-
-                        <mat-icon>logout</mat-icon>
-
-                        <span>
-                            {{ isLoggingOut() ? 'Cerrando sesión...' : 'Cerrar sesión' }}
-                        </span>
-                    </button>
-                </mat-menu>
-            </div>
-        </header>
+        <pcr-topbar [sidebarCollapsed]="sidebarCollapsed()" (mobileMenuRequested)="toggleSidebar()"
+            (desktopMenuRequested)="toggleDesktopSidebar()" />
 
         <div class="app-page">
             <main class="app-main" data-testid="app-main">
@@ -125,12 +26,7 @@
                 </section>
             </main>
 
-            <footer class="app-footer" data-testid="app-footer">
-                <span>Parroquia Cristo Rey</span>
-                <span class="hidden sm:inline">·</span>
-                <span class="hidden sm:inline">Sistema de Gestión Parroquial</span>
-            </footer>
+            <pcr-footer />
         </div>
-
     </div>
 </div>
