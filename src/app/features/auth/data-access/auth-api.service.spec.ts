@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { AuthApiService } from './auth-api.service';
-
+import { SKIP_AUTH } from '../../../core/auth/auth-http-context';
 describe('AuthApiService', () => {
     let service: AuthApiService;
     let httpTesting: HttpTestingController;
@@ -50,6 +50,7 @@ describe('AuthApiService', () => {
 
         expect(request.request.method).toBe('POST');
         expect(request.request.body).toEqual(requestBody);
+        expect(request.request.context.get(SKIP_AUTH)).toBe(true);
 
         request.flush({
             succeeded: true,
@@ -67,6 +68,7 @@ describe('AuthApiService', () => {
         const request = httpTesting.expectOne('https://localhost:7002/api/Seguridad/RefreshSession');
 
         expect(request.request.method).toBe('POST');
+        expect(request.request.context.get(SKIP_AUTH)).toBe(true);
         expect(request.request.body).toEqual({
             refreshToken: 'refresh-token'
         });
@@ -87,6 +89,7 @@ describe('AuthApiService', () => {
         const request = httpTesting.expectOne('https://localhost:7002/api/Seguridad/Logout');
 
         expect(request.request.method).toBe('POST');
+        expect(request.request.context.get(SKIP_AUTH)).toBe(false);
 
         request.flush({
             exito: true,
