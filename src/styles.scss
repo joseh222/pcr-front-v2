@@ -1,1 +1,54 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+/*
+ * PCR DESIGN SYSTEM
+ * -----------------
+ * Angular Material genera los design tokens que utilizarán
+ * todos sus componentes.
+ *
+ * Por ahora usamos Azure + Blue como base.
+ * Más adelante podremos definir los colores oficiales de PCR
+ * sin modificar los componentes.
+ */
+html {
+  color-scheme: light dark;
+
+  @include mat.theme((color: (primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    ));
+
+  /*
+   * Indicadores de foco más visibles para navegación
+   * mediante teclado.
+   */
+  @include mat.strong-focus-indicators();
+}
+
+
+/*
+ * La preferencia resuelta por ThemeService se guarda
+ * en el elemento <html>.
+ */
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
