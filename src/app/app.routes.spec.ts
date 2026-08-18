@@ -10,11 +10,16 @@ import { ThemePreference } from './core/theme/theme.model';
 import { ThemeService } from './core/theme/theme.service';
 import { AppShell } from './layout/app-shell/app-shell';
 import { NotFound } from './shared/pages/not-found/not-found';
+import { AuthStore } from './features/auth/data-access/auth.store';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
     const resolvedTheme = signal<'light' | 'dark'>('light');
+    const isAuthenticated = signal(true);
 
+    const authStoreMock = {
+        isAuthenticated: isAuthenticated.asReadonly()
+    };
     const themeServiceMock = {
         preference: preference.asReadonly(),
         resolvedTheme: resolvedTheme.asReadonly(),
@@ -22,17 +27,18 @@ describe('Application routes', () => {
     };
 
     beforeEach(() => {
+        isAuthenticated.set(true);
         preference.set('system');
         resolvedTheme.set('light');
         themeServiceMock.setPreference.mockClear();
-
         TestBed.configureTestingModule({
             providers: [
                 provideRouter(routes),
                 {
                     provide: ThemeService,
                     useValue: themeServiceMock
-                }
+                },
+                { provide: AuthStore, useValue: authStoreMock }
             ]
         });
     });

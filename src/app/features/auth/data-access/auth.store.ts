@@ -6,6 +6,7 @@ import { isAccessTokenExpired, parseAuthenticatedUser } from '../../../core/auth
 import { TOKEN_STORAGE } from '../../../core/auth/token-storage';
 import { AuthenticationResponse, LoginRequest } from './auth-api.models';
 import { AuthApiService } from './auth-api.service';
+import { AUTH_ROLE, AuthRole } from '../../../core/auth/auth-role.model';
 
 export type AuthStatus = 'anonymous' | 'authenticating' | 'authenticated';
 
@@ -17,18 +18,43 @@ export class AuthStore {
     private readonly tokenStorage = inject(TOKEN_STORAGE);
     private readonly statusSignal = signal<AuthStatus>('anonymous');
     private readonly userSignal = signal<AuthenticatedUser | null>(null);
+    private refreshPromise: Promise<string> | null = null;
 
     readonly status = this.statusSignal.asReadonly();
     readonly currentUser = this.userSignal.asReadonly();
-
     readonly isAuthenticated = computed(() => this.statusSignal() === 'authenticated' && this.userSignal() !== null);
     readonly isAuthenticating = computed(() => this.statusSignal() === 'authenticating');
     readonly roleCode = computed(() => this.userSignal()?.roleCode ?? null);
-    readonly isAdmin = computed(() => this.roleCode() === 'ADMIN');
+    readonly isAdmin = computed(() => this.roleCode() === AUTH_ROLE.ADMIN);
+    readonly isUser = computed(() => this.roleCode() === AUTH_ROLE.USER);
     readonly mustChangePassword = computed(() => this.userSignal()?.mustChangePassword ?? false);
 
-    constructor() {
-        this.restoreSession();
+    hasRole(role: AuthRole): boolean {
+        return this.roleCode() === role;
+    }
+
+    async initialize(): Promise<void> {
+        const accessToken = this.tokenStorage.getAccessToken();
+        const refreshToken = this.tokenStorage.getRefreshToken();
+
+        if (!refreshToken) {
+            this.clearSession();
+            return;
+        }
+
+        const user = accessToken ? parseAuthenticatedUser(accessToken) : null;
+
+        if (user && !isAccessTokenExpired(user)) {
+            this.userSignal.set(user);
+            this.statusSignal.set('authenticated');
+            return;
+        }
+
+        try {
+            await this.refreshAccessToken();
+        } catch {
+            this.clearSession();
+        }
     }
 
     async login(request: LoginRequest): Promise<void> {
@@ -38,11 +64,30 @@ export class AuthStore {
             const response = await firstValueFrom(this.authApi.login(request));
             this.applyAuthentication(response);
         } catch (error) {
-            this.tokenStorage.clear();
-            this.userSignal.set(null);
-            this.statusSignal.set('anonymous');
-
+            this.clearSession();
             throw error;
+        }
+    }
+
+    async logout(): Promise<void> {
+        try {
+            await firstValueFrom(this.authApi.logout());
+        } finally {
+            this.clearSession();
+        }
+    }
+
+    async refreshAccessToken(): Promise<string> {
+        if (this.refreshPromise) {
+            return this.refreshPromise;
+        }
+
+        this.refreshPromise = this.performRefresh();
+
+        try {
+            return await this.refreshPromise;
+        } finally {
+            this.refreshPromise = null;
         }
     }
 
@@ -50,6 +95,25 @@ export class AuthStore {
         this.tokenStorage.clear();
         this.userSignal.set(null);
         this.statusSignal.set('anonymous');
+    }
+
+    private async performRefresh(): Promise<string> {
+        const refreshToken = this.tokenStorage.getRefreshToken();
+
+        if (!refreshToken) {
+            this.clearSession();
+            throw new Error('No hay un refresh token disponible.');
+        }
+
+        try {
+            const response = await firstValueFrom(this.authApi.refreshSession({ refreshToken }));
+            this.applyAuthentication(response);
+
+            return response.accessToken;
+        } catch (error) {
+            this.clearSession();
+            throw error;
+        }
     }
 
     private applyAuthentication(response: AuthenticationResponse): void {
@@ -75,26 +139,6 @@ export class AuthStore {
             accessToken: response.accessToken,
             refreshToken: response.refreshToken
         });
-
-        this.userSignal.set(user);
-        this.statusSignal.set('authenticated');
-    }
-
-    private restoreSession(): void {
-        const accessToken = this.tokenStorage.getAccessToken();
-        const refreshToken = this.tokenStorage.getRefreshToken();
-
-        if (!accessToken || !refreshToken) {
-            this.tokenStorage.clear();
-            return;
-        }
-
-        const user = parseAuthenticatedUser(accessToken);
-
-        if (!user || isAccessTokenExpired(user)) {
-            this.tokenStorage.clear();
-            return;
-        }
 
         this.userSignal.set(user);
         this.statusSignal.set('authenticated');

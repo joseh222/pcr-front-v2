@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { SKIP_AUTH } from '../../../core/auth/auth-http-context';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { AuthenticationResponse, LoginRequest, LogoutResponse, RefreshSessionRequest } from './auth-api.models';
 
@@ -13,11 +14,13 @@ export class AuthApiService {
     private readonly runtimeConfig = inject(RuntimeConfigService);
 
     login(request: LoginRequest): Observable<AuthenticationResponse> {
-        return this.http.post<AuthenticationResponse>(`${this.apiUrl}/Login`, request);
+        const context = new HttpContext().set(SKIP_AUTH, true);
+        return this.http.post<AuthenticationResponse>(`${this.apiUrl}/Login`, request, { context });
     }
 
     refreshSession(request: RefreshSessionRequest): Observable<AuthenticationResponse> {
-        return this.http.post<AuthenticationResponse>(`${this.apiUrl}/RefreshSession`, request);
+        const context = new HttpContext().set(SKIP_AUTH, true);
+        return this.http.post<AuthenticationResponse>(`${this.apiUrl}/RefreshSession`, request, { context });
     }
 
     logout(): Observable<LogoutResponse> {
