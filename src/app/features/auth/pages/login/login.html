@@ -1,0 +1,137 @@
+<main class="min-h-screen bg-[var(--mat-sys-surface)] text-[var(--mat-sys-on-surface)]">
+    <div class="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[1.1fr_0.9fr]">
+
+        <section
+            class="hidden flex-col justify-between bg-[var(--mat-sys-primary-container)] p-12 text-[var(--mat-sys-on-primary-container)] lg:flex">
+            <div>
+                <p class="text-sm font-semibold tracking-[0.18em] opacity-70">
+                    PARROQUIA CRISTO REY
+                </p>
+
+                <h1 class="mt-6 max-w-xl text-4xl font-semibold leading-tight">
+                    Gestión parroquial en un solo lugar.
+                </h1>
+
+                <p class="mt-5 max-w-lg text-lg leading-relaxed opacity-80">
+                    Administración de misas, personas, servicios, productos, inventario y ventas.
+                </p>
+            </div>
+
+            <p class="text-sm opacity-60">
+                PCR Front V2
+            </p>
+        </section>
+
+        <section class="flex items-center justify-center p-5 sm:p-8 lg:p-12">
+            <mat-card class="w-full max-w-md">
+                <mat-card-content class="p-6 sm:p-8">
+
+                    <div class="mb-7">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-[var(--mat-sys-primary)]">
+                                    {{ runtimeConfig.applicationName }}
+                                </p>
+
+                                <h2 class="mt-2 text-3xl font-semibold">
+                                    Iniciar sesión
+                                </h2>
+
+                                <p class="mt-2 text-sm opacity-70">
+                                    Ingresa tus credenciales para continuar.
+                                </p>
+                            </div>
+
+                            <span
+                                class="rounded-full bg-[var(--mat-sys-secondary-container)] px-3 py-1 text-xs font-medium text-[var(--mat-sys-on-secondary-container)]">
+                                {{ runtimeConfig.environmentName }}
+                            </span>
+                        </div>
+
+                        <div class="mt-5 flex flex-wrap gap-1">
+                            <button mat-button type="button" [disabled]="theme.preference() === 'light'"
+                                (click)="theme.setPreference('light')">
+                                Claro
+                            </button>
+
+                            <button mat-button type="button" [disabled]="theme.preference() === 'dark'"
+                                (click)="theme.setPreference('dark')">
+                                Oscuro
+                            </button>
+
+                            <button mat-button type="button" [disabled]="theme.preference() === 'system'"
+                                (click)="theme.setPreference('system')">
+                                Sistema
+                            </button>
+                        </div>
+                    </div>
+
+                    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+                        <mat-form-field appearance="outline" class="w-full">
+                            <mat-label>Usuario</mat-label>
+
+                            <input matInput type="text" formControlName="username" autocomplete="username"
+                                maxlength="100" data-testid="login-username">
+
+                            @if (form.controls.username.hasError('required')) {
+                            <mat-error>
+                                El usuario es obligatorio.
+                            </mat-error>
+                            }
+
+                            @if (form.controls.username.hasError('maxlength')) {
+                            <mat-error>
+                                El usuario no puede superar 100 caracteres.
+                            </mat-error>
+                            }
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="mt-2 w-full">
+                            <mat-label>Contraseña</mat-label>
+
+                            <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                                autocomplete="current-password" maxlength="256" data-testid="login-password">
+
+                            @if (form.controls.password.hasError('required')) {
+                            <mat-error>
+                                La contraseña es obligatoria.
+                            </mat-error>
+                            }
+
+                            @if (form.controls.password.hasError('maxlength')) {
+                            <mat-error>
+                                La contraseña no tiene un formato válido.
+                            </mat-error>
+                            }
+                        </mat-form-field>
+
+                        <div class="-mt-2 mb-5 flex justify-end">
+                            <button mat-button type="button" data-testid="toggle-password"
+                                (click)="togglePasswordVisibility()">
+                                {{ showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}
+                            </button>
+                        </div>
+
+                        @if (errorMessage()) {
+                        <div class="mb-5 rounded-xl border border-[var(--mat-sys-error)] bg-[var(--mat-sys-error-container)] p-4 text-sm text-[var(--mat-sys-on-error-container)]"
+                            role="alert" data-testid="login-error">
+                            {{ errorMessage() }}
+                        </div>
+                        }
+
+                        <button mat-flat-button type="submit" class="w-full" [disabled]="authStore.isAuthenticating()"
+                            [attr.aria-busy]="authStore.isAuthenticating()" data-testid="login-submit">
+                            @if (authStore.isAuthenticating()) {
+                            Ingresando...
+                            } @else {
+                            Ingresar
+                            }
+                        </button>
+                    </form>
+
+                </mat-card-content>
+            </mat-card>
+        </section>
+
+    </div>
+</main>

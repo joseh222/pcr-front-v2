@@ -3,12 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
-import {
-    AuthenticationResponse,
-    LoginRequest,
-    LogoutResponse,
-    RefreshSessionRequest
-} from './auth-api.models';
+import { AuthenticationResponse, LoginRequest, LogoutResponse, RefreshSessionRequest } from './auth-api.models';
 
 @Injectable({
     providedIn: 'root'
