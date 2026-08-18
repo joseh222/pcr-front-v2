@@ -1,3 +1,4 @@
+import { AUTH_ROLE } from '../../core/auth/auth-role.model';
 import { APP_NAVIGATION } from './app-navigation.config';
 
 describe('APP_NAVIGATION', () => {
@@ -46,7 +47,25 @@ describe('APP_NAVIGATION', () => {
             label: 'Dashboard',
             icon: 'dashboard',
             route: '/dashboard',
-            exact: true
+            exact: true,
+            roles: [AUTH_ROLE.ADMIN]
+        });
+    });
+
+    it('should contain misas in the gestion section', () => {
+        const gestion = APP_NAVIGATION.find(
+            section => section.id === 'gestion'
+        );
+
+        expect(gestion).toBeTruthy();
+
+        expect(gestion?.items).toContainEqual({
+            id: 'misas',
+            label: 'Misas',
+            icon: 'church',
+            route: '/misas',
+            exact: true,
+            roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
         });
     });
 });

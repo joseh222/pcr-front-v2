@@ -13,23 +13,23 @@ export const routes: Routes = [
         path: 'change-password',
         title: 'Cambiar contraseña | PCR Front V2',
         canActivate: [authGuard],
-        loadComponent: () =>
-            import('./features/auth/pages/change-password/change-password')
-                .then(module => module.ChangePasswordPage)
+        loadComponent: () => import('./features/auth/pages/change-password/change-password').then(module => module.ChangePasswordPage)
     },
     {
         path: '',
         canActivate: [authGuard, passwordChangeRequiredGuard],
-        loadComponent: () =>
-            import('./layout/app-shell/app-shell')
-                .then(module => module.AppShell),
+        loadComponent: () => import('./layout/app-shell/app-shell').then(module => module.AppShell),
 
         children: [
             {
                 path: 'dashboard',
                 title: 'Dashboard | PCR Front V2',
-                loadComponent: () =>
-                    import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
+                loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
+            },
+            {
+                path: 'misas',
+                title: 'Misas | PCR Front V2',
+                loadComponent: () => import('./features/misas/pages/misa-list/misa-list').then(module => module.MisaListPage)
             },
             {
                 path: '',

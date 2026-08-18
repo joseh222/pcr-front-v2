@@ -92,4 +92,15 @@ describe('Application routes', () => {
 
         expect(harness.routeNativeElement?.textContent).toContain('Cambiar contraseña');
     });
+
+    it('should load misas inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+
+        await harness.navigateByUrl('/misas', AppShell);
+
+        expect(harness.routeNativeElement?.textContent).toContain('Misas');
+        expect(harness.routeNativeElement?.textContent).toContain(
+            'Gestión de misas e intenciones parroquiales.'
+        );
+    });
 });
