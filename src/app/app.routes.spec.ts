@@ -125,4 +125,18 @@ describe('Application routes', () => {
             'Consulta y administra las misas e intenciones parroquiales.'
         );
     });
+
+    it('should load the new misa page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/misas/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva misa');
+        expect(harness.routeNativeElement?.textContent).toContain('Registra una nueva misa e intenciones parroquiales.');
+    });
+
+    it('should load the edit misa page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/misas/15/editar', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Editar misa');
+        expect(harness.routeNativeElement?.textContent).toContain('Misa #15');
+    });
 });

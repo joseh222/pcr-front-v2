@@ -12,6 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 
 import { MisaListStore } from '../../data-access/models/misa-list.store';
 import { MisaListFilters } from '../../data-access/models/misa-read.models';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'pcr-misa-list',
@@ -25,7 +26,8 @@ import { MisaListFilters } from '../../data-access/models/misa-read.models';
         MatPaginatorModule,
         MatProgressBarModule,
         MatSelectModule,
-        MatTableModule
+        MatTableModule,
+        RouterLink
     ],
     providers: [MisaListStore],
     templateUrl: './misa-list.html',
@@ -56,7 +58,8 @@ export class MisaListPage implements OnInit {
         'estado',
         'pago',
         'importe',
-        'intenciones'
+        'intenciones',
+        'acciones'
     ];
 
     protected readonly paymentStatuses = [

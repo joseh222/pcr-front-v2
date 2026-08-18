@@ -1,0 +1,63 @@
+<section class="misa-form-page" data-testid="misa-form-page">
+
+    <header class="page-header">
+
+        <div class="page-heading">
+
+            <a mat-button routerLink="/misas" data-testid="back-to-misas">
+
+                <mat-icon>arrow_back</mat-icon>
+                Volver a misas
+            </a>
+
+            <div class="page-title-row">
+
+                <div>
+                    <p class="page-eyebrow">
+                        Gestión / Misas
+                    </p>
+
+                    <h1 class="page-title">
+                        {{ pageTitle() }}
+                    </h1>
+
+                    <p class="page-description">
+                        {{ pageDescription() }}
+                    </p>
+                </div>
+
+                @if (isEditMode()) {
+                <span class="misa-id-badge" data-testid="misa-edit-id">
+
+                    Misa #{{ idMisa() }}
+                </span>
+                }
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <section class="form-card" data-testid="misa-form-content">
+
+        <header class="form-section-header">
+
+            <div class="form-section-icon">
+                <mat-icon>church</mat-icon>
+            </div>
+
+            <div>
+                <h2>Datos de la misa</h2>
+
+                <p>
+                    Modalidad, tipo, fecha, hora y datos relacionados
+                    con la celebración.
+                </p>
+            </div>
+
+        </header>
+
+    </section>
+
+</section>

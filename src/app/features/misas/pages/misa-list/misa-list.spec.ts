@@ -10,6 +10,7 @@ import {
 import { MisaListStore } from '../../data-access/models/misa-list.store';
 import { MisaListItem } from '../../data-access/models/misa-read.models';
 import { MisaListPage } from './misa-list';
+import { provideRouter } from '@angular/router';
 
 describe('MisaListPage', () => {
     let fixture: ComponentFixture<MisaListPage>;
@@ -99,7 +100,10 @@ describe('MisaListPage', () => {
         catalogsError.set(null);
 
         TestBed.configureTestingModule({
-            imports: [MisaListPage]
+            imports: [MisaListPage],
+            providers: [
+                provideRouter([])
+            ]
         });
 
         TestBed.overrideComponent(
@@ -246,16 +250,21 @@ describe('MisaListPage', () => {
     });
 
     it('should reload the list', () => {
-        const button =
-            fixture.nativeElement.querySelector(
-                '[data-testid="reload-misas"]'
-            ) as HTMLButtonElement;
-
+        const button = fixture.nativeElement.querySelector('[data-testid="reload-misas"]') as HTMLButtonElement;
         button.click();
+        expect(storeMock.reload).toHaveBeenCalledOnce();
+    });
 
-        expect(
-            storeMock.reload
-        ).toHaveBeenCalledOnce();
+    it('should expose the new misa navigation', () => {
+        const button = fixture.nativeElement.querySelector('[data-testid="new-misa"]');
+        expect(button).toBeTruthy();
+    });
+
+    it('should expose edit for an editable misa', () => {
+        items.set([misa()]);
+        totalRegistros.set(1);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[data-testid="edit-misa-1"]')).toBeTruthy();
     });
 
     function misa(): MisaListItem {

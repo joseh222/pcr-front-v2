@@ -27,6 +27,16 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
             },
             {
+                path: 'misas/nueva',
+                title: 'Nueva misa | PCR Front V2',
+                loadComponent: () => import('./features/misas/pages/misa-form/misa-form').then(module => module.MisaFormPage)
+            },
+            {
+                path: 'misas/:id/editar',
+                title: 'Editar misa | PCR Front V2',
+                loadComponent: () => import('./features/misas/pages/misa-form/misa-form').then(module => module.MisaFormPage)
+            },
+            {
                 path: 'misas',
                 title: 'Misas | PCR Front V2',
                 loadComponent: () => import('./features/misas/pages/misa-list/misa-list').then(module => module.MisaListPage)
