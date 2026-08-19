@@ -41,22 +41,68 @@
 
     <section class="form-card" data-testid="misa-form-content">
 
+        @if (store.loading()) {
+        <mat-progress-bar mode="indeterminate" data-testid="misa-form-loading"></mat-progress-bar>
+        }
+
+        @if (store.error()) {
+        <div class="form-error" data-testid="misa-form-error"><mat-icon>error_outline</mat-icon><span>{{ store.error()
+                }}</span></div>
+        } @else {
         <header class="form-section-header">
-
-            <div class="form-section-icon">
-                <mat-icon>church</mat-icon>
-            </div>
-
+            <div class="form-section-icon"><mat-icon>church</mat-icon></div>
             <div>
                 <h2>Datos de la misa</h2>
-
-                <p>
-                    Modalidad, tipo, fecha, hora y datos relacionados
-                    con la celebración.
-                </p>
+                <p>Modalidad, tipo, fecha y hora de la celebración.</p>
             </div>
-
         </header>
+
+        <form class="misa-form" [formGroup]="form">
+            <div class="form-grid">
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Modalidad</mat-label>
+                    <mat-select formControlName="idModalidad">
+                        @for (modalidad of store.modalidades(); track modalidad.idModalidad) {
+                        <mat-option [value]="modalidad.idModalidad">{{ modalidad.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (form.controls.idModalidad.touched && form.controls.idModalidad.hasError('required')) {
+                    <mat-error>Selecciona una modalidad.</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Tipo de misa</mat-label>
+                    <mat-select formControlName="idTipo">
+                        @for (tipo of store.tipos(); track tipo.idTipo) {
+                        <mat-option [value]="tipo.idTipo">{{ tipo.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                    @if (form.controls.idTipo.touched && form.controls.idTipo.hasError('required')) {
+                    <mat-error>Selecciona un tipo de misa.</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Fecha</mat-label>
+                    <input matInput type="date" formControlName="fecha">
+                    @if (form.controls.fecha.touched && form.controls.fecha.hasError('required')) {
+                    <mat-error>Selecciona una fecha.</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Hora</mat-label>
+                    <input matInput type="time" formControlName="hora">
+                    @if (form.controls.hora.touched && form.controls.hora.hasError('required')) {
+                    <mat-error>Selecciona una hora.</mat-error>
+                    }
+                </mat-form-field>
+
+            </div>
+        </form>
+        }
 
     </section>
 

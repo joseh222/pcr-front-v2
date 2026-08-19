@@ -60,7 +60,30 @@ describe('Application routes', () => {
                 totalPaginas: 0,
                 items: []
             })
-        )
+        ),
+
+        getById: vi.fn(() => of({
+            idMisa: 15,
+            codMisa: 'M2026-00015',
+            modalidad: { idModalidad: 1, nombre: 'Personal' },
+            tipo: { idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' },
+            solicitante: null,
+            estado: null,
+            santo: null,
+            intenciones: [],
+            fecha: '2026-08-30T00:00:00',
+            hora: '18:00:00',
+            fechaHora: '2026-08-30T18:00:00',
+            observaciones: null,
+            motivo: null,
+            ofrecen: null,
+            celular: null,
+            devotos: null,
+            solicitudServicio: null,
+            puedeEditar: true,
+            puedeEliminar: true,
+            puedeCobrar: false
+        }))
     };
 
     beforeEach(() => {
@@ -68,6 +91,7 @@ describe('Application routes', () => {
         misaApiMock.getTipos.mockClear();
         misaApiMock.getEstados.mockClear();
         misaApiMock.getList.mockClear();
+        misaApiMock.getById.mockClear();
         isAuthenticated.set(true);
         preference.set('system');
         resolvedTheme.set('light');
