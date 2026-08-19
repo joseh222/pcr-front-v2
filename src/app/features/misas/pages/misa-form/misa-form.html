@@ -159,9 +159,32 @@
                 <div class="form-grid">
                     <mat-form-field appearance="outline">
                         <mat-label>Nombre completo</mat-label>
-                        <input matInput formControlName="nombre" maxlength="250">
+
+                        <input matInput formControlName="nombre" maxlength="250" [matAutocomplete]="personAutocomplete"
+                            autocomplete="off">
+
+                        @if (store.personSearchLoading()) {
+                        <mat-icon matSuffix>hourglass_top</mat-icon>
+                        }
+
+                        <mat-autocomplete #personAutocomplete="matAutocomplete">
+                            @for (person of store.personSearchResults(); track person.idPersona) {
+                            <mat-option [value]="person.nombreCompleto ?? ''"
+                                (onSelectionChange)="$event.source.selected && selectPerson(person)">
+                                <div class="person-option">
+                                    <strong>{{ person.nombreCompleto || 'Sin nombre' }}</strong>
+
+                                    @if (person.numeroDocumento) {
+                                    <span>{{ person.codigoTipoDocumento }} {{ person.numeroDocumento }}</span>
+                                    }
+                                </div>
+                            </mat-option>
+                            }
+                        </mat-autocomplete>
+
                         @if (form.controls.nombre.touched && form.controls.nombre.hasError('required')) {
-                        <mat-error>Ingresa el nombre del solicitante.</mat-error> }
+                        <mat-error>Ingresa el nombre del solicitante.</mat-error>
+                        }
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">

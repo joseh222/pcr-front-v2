@@ -7,7 +7,7 @@ import { MisaApiService } from '../misa-api.service';
 import { MisaModalidad, MisaTipo } from './misa-catalog.models';
 import { MisaDetail } from './misa-read.models';
 import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
-import { PersonaLookup, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
+import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
 
 @Injectable()
 export class MisaFormStore {
@@ -39,6 +39,15 @@ export class MisaFormStore {
     readonly documentLookupLoading = this.documentLookupLoadingSignal.asReadonly();
     readonly documentLookupState = this.documentLookupStateSignal.asReadonly();
     readonly documentLookupError = this.documentLookupErrorSignal.asReadonly();
+
+    private readonly personSearchResultsSignal = signal<readonly PersonaSearchItem[]>([]);
+    private readonly personSearchLoadingSignal = signal(false);
+    private readonly personSearchErrorSignal = signal<string | null>(null);
+    private personSearchVersion = 0;
+
+    readonly personSearchResults = this.personSearchResultsSignal.asReadonly();
+    readonly personSearchLoading = this.personSearchLoadingSignal.asReadonly();
+    readonly personSearchError = this.personSearchErrorSignal.asReadonly();
 
     initialize(idMisa: number | null): void {
         this.loadingSignal.set(true);
@@ -110,5 +119,41 @@ export class MisaFormStore {
         this.documentLookupLoadingSignal.set(false);
         this.documentLookupStateSignal.set('idle');
         this.documentLookupErrorSignal.set(null);
+    }
+
+    searchPersons(search: string): void {
+        const term = search.trim();
+
+        if (term.length < 3) {
+            this.clearPersonSearch();
+            return;
+        }
+
+        const version = ++this.personSearchVersion;
+        this.personSearchLoadingSignal.set(true);
+        this.personSearchErrorSignal.set(null);
+
+        this.personaApi.search(term, 10)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: result => {
+                    if (version !== this.personSearchVersion) return;
+                    this.personSearchResultsSignal.set(result);
+                    this.personSearchLoadingSignal.set(false);
+                },
+                error: error => {
+                    if (version !== this.personSearchVersion) return;
+                    this.personSearchResultsSignal.set([]);
+                    this.personSearchLoadingSignal.set(false);
+                    this.personSearchErrorSignal.set(this.getErrorMessage(error));
+                }
+            });
+    }
+
+    clearPersonSearch(): void {
+        this.personSearchVersion++;
+        this.personSearchResultsSignal.set([]);
+        this.personSearchLoadingSignal.set(false);
+        this.personSearchErrorSignal.set(null);
     }
 }

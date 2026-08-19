@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,10 +9,23 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MisaFormStore } from '../../data-access/models/misa-form.store';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 
 @Component({
     selector: 'pcr-misa-form',
-    imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule, RouterLink],
+    imports: [
+        ReactiveFormsModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatProgressBarModule,
+        MatSelectModule,
+        MatAutocompleteModule,
+        RouterLink],
     providers: [MisaFormStore],
     templateUrl: './misa-form.html',
     styleUrl: './misa-form.scss'
@@ -21,6 +34,7 @@ export class MisaFormPage implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
+    private readonly destroyRef = inject(DestroyRef);
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
@@ -82,6 +96,7 @@ export class MisaFormPage implements OnInit {
     });
 
     ngOnInit(): void {
+        this.setupPersonSearch();
         const rawId = this.route.snapshot.paramMap.get('id');
 
         if (rawId === null) {
@@ -151,5 +166,37 @@ export class MisaFormPage implements OnInit {
 
         control.setValidators(validators);
         control.updateValueAndValidity({ emitEvent: false });
+    }
+
+    private setupPersonSearch(): void {
+        this.form.controls.nombre.valueChanges
+            .pipe(
+                map(value => value.trim()),
+                debounceTime(300),
+                distinctUntilChanged(),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(value => {
+                if (this.form.controls.idPersona.value !== null) {
+                    this.form.controls.idPersona.setValue(null, { emitEvent: false });
+                    this.store.clearDocumentPerson();
+                }
+
+                this.store.searchPersons(value);
+            });
+    }
+    
+    protected selectPerson(person: PersonaSearchItem): void {
+        this.form.patchValue({
+            idPersona: person.idPersona,
+            idTipoDocumento: person.idTipoDocumento,
+            numeroDocumento: person.numeroDocumento ?? '',
+            nombre: person.nombreCompleto ?? '',
+            telefono: person.telefono ?? ''
+        }, { emitEvent: false });
+
+        this.updateDocumentRules();
+        this.store.clearDocumentPerson();
+        this.store.clearPersonSearch();
     }
 }

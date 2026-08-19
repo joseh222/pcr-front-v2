@@ -101,10 +101,6 @@
     opacity: 0.65;
 }
 
-.misa-form {
-    padding: 0 1rem 1rem;
-}
-
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -169,4 +165,20 @@
     .form-grid {
         grid-template-columns: 1fr;
     }
+}
+
+.person-option {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.person-option strong {
+    font-size: 0.875rem;
+}
+
+.person-option span {
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    opacity: 0.65;
 }

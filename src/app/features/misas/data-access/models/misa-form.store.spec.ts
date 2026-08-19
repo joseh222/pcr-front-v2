@@ -6,6 +6,7 @@ import { MisaFormStore } from './misa-form.store';
 import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 
 describe('MisaFormStore', () => {
+
     let store: MisaFormStore;
 
     const getModalidadesMock = vi.fn();
@@ -13,6 +14,7 @@ describe('MisaFormStore', () => {
     const getByIdMock = vi.fn();
     const getTiposDocumentoMock = vi.fn();
     const getByDocumentMock = vi.fn();
+    const searchPersonsMock = vi.fn();
 
     beforeEach(() => {
         getModalidadesMock.mockReset();
@@ -21,9 +23,10 @@ describe('MisaFormStore', () => {
         getTiposDocumentoMock.mockReset();
         getByDocumentMock.mockReset();
         getTiposDocumentoMock.mockReturnValue(of([{ idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }]));
-
         getModalidadesMock.mockReturnValue(of([{ idModalidad: 1, nombre: 'Personal' }]));
         getTiposMock.mockReturnValue(of([{ idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' }]));
+        searchPersonsMock.mockReset();
+        searchPersonsMock.mockReturnValue(of([]));
 
         TestBed.configureTestingModule({
             providers: [
@@ -32,7 +35,7 @@ describe('MisaFormStore', () => {
                     provide: MisaApiService,
                     useValue: { getModalidades: getModalidadesMock, getTipos: getTiposMock, getById: getByIdMock }
                 },
-                { provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock } }
+                { provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock, search: searchPersonsMock } }
             ]
         });
 
@@ -105,5 +108,27 @@ describe('MisaFormStore', () => {
         store.findPersonByDocument(1, '12345678');
         expect(store.documentPerson()).toBeNull();
         expect(store.documentLookupState()).toBe('not-found');
+    });
+
+    it('should not search persons with fewer than three characters', () => {
+        store.searchPersons('JO');
+        expect(searchPersonsMock).not.toHaveBeenCalled();
+        expect(store.personSearchResults()).toEqual([]);
+    });
+
+    it('should search persons by text', () => {
+        searchPersonsMock.mockReturnValue(of([
+            {
+                idPersona: 15, codPersona: 'PER-15', idTipoDocumento: 1, codigoTipoDocumento: 'DNI',
+                numeroDocumento: '12345678', nombreCompleto: 'JOSE HUAMAN', fechaNacimiento: null,
+                telefono: '999999999', email: null, rolesPersona: 'FELIGRES'
+            }
+        ]));
+
+        store.searchPersons('JOSE');
+
+        expect(searchPersonsMock).toHaveBeenCalledWith('JOSE', 10);
+        expect(store.personSearchResults()).toHaveLength(1);
+        expect(store.personSearchResults()[0].idPersona).toBe(15);
     });
 });

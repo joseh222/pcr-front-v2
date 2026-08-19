@@ -19,6 +19,10 @@ describe('MisaFormPage', () => {
     const documentLookupState = signal<'idle' | 'found' | 'not-found' | 'error'>('idle');
     const documentLookupError = signal<string | null>(null);
 
+    const personSearchResults = signal<any[]>([]);
+    const personSearchLoading = signal(false);
+    const personSearchError = signal<string | null>(null);
+
     const storeMock = {
         modalidades: modalidades.asReadonly(),
         tipos: tipos.asReadonly(),
@@ -35,6 +39,12 @@ describe('MisaFormPage', () => {
         findPersonByDocument: vi.fn(),
         clearDocumentPerson: vi.fn(),
 
+        personSearchResults: personSearchResults.asReadonly(),
+        personSearchLoading: personSearchLoading.asReadonly(),
+        personSearchError: personSearchError.asReadonly(),
+        searchPersons: vi.fn(),
+        clearPersonSearch: vi.fn(),
+
     };
 
     beforeEach(() => {
@@ -48,6 +58,11 @@ describe('MisaFormPage', () => {
         documentLookupError.set(null);
         storeMock.findPersonByDocument.mockClear();
         storeMock.clearDocumentPerson.mockClear();
+        personSearchResults.set([]);
+        personSearchLoading.set(false);
+        personSearchError.set(null);
+        storeMock.searchPersons.mockClear();
+        storeMock.clearPersonSearch.mockClear();
     });
 
     it('should initialize create mode', async () => {
@@ -85,28 +100,50 @@ describe('MisaFormPage', () => {
         component.form.patchValue({ idTipoDocumento: 1, numeroDocumento: '12345678' });
         fixture.detectChanges();
 
-        const button = fixture.nativeElement.querySelector('[data-testid="search-person-document"]') as HTMLButtonElement;
-
-        expect(button).toBeTruthy();
-        expect(button.disabled).toBe(false);
-
-        button.dispatchEvent(new Event('click'));
-        fixture.detectChanges();
-
-        expect(storeMock.findPersonByDocument).toHaveBeenCalledWith(1, '12345678');
-    });
-
-    it('should request a person by document', async () => {
-        const fixture = await createFixture({});
-        const component = fixture.componentInstance;
-
-        component.form.patchValue({ idTipoDocumento: 1, numeroDocumento: '12345678' });
-        fixture.detectChanges();
-
         const button = fixture.debugElement.query(By.css('[data-testid="search-person-document"]'));
         button.triggerEventHandler('click');
 
         expect(storeMock.findPersonByDocument).toHaveBeenCalledWith(1, '12345678');
+    });
+
+    it('should patch an existing person returned by document', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        documentPerson.set({
+            idPersona: 15, idTipoDocumento: 1, numeroDocumento: '12345678',
+            nombreCompleto: 'MARIA PEREZ', telefono: '987654321'
+        });
+
+        fixture.detectChanges();
+
+        expect(component.form.controls.idPersona.value).toBe(15);
+        expect(component.form.controls.nombre.value).toBe('MARIA PEREZ');
+        expect(component.form.controls.telefono.value).toBe('987654321');
+    });
+
+    it('should fill requester data when selecting a person', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        component['selectPerson']({
+            idPersona: 25,
+            codPersona: 'PER-25',
+            idTipoDocumento: 1,
+            codigoTipoDocumento: 'DNI',
+            numeroDocumento: '87654321',
+            nombreCompleto: 'CARLOS PEREZ',
+            fechaNacimiento: null,
+            telefono: '955555555',
+            email: null,
+            rolesPersona: null
+        });
+
+        expect(component.form.controls.idPersona.value).toBe(25);
+        expect(component.form.controls.idTipoDocumento.value).toBe(1);
+        expect(component.form.controls.numeroDocumento.value).toBe('87654321');
+        expect(component.form.controls.nombre.value).toBe('CARLOS PEREZ');
+        expect(component.form.controls.telefono.value).toBe('955555555');
     });
 
     async function createFixture(params: Record<string, string>) {
