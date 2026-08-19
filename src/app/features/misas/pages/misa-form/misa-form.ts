@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,6 +13,9 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
+import { EMPTY_MISA_INTENTION_RULE, MisaIntentionRule, resolveMisaIntentionRule } from '../../domain/misa-intention.rules';
+
+type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nombre: FormControl<string>; observacion: FormControl<string>; }>;
 
 @Component({
     selector: 'pcr-misa-form',
@@ -38,6 +41,8 @@ export class MisaFormPage implements OnInit {
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
+    protected readonly intentionRule = signal<MisaIntentionRule>(EMPTY_MISA_INTENTION_RULE);
+    protected get intenciones(): FormArray<MisaIntentionFormGroup> { return this.form.controls.intenciones; }
 
     readonly form = this.fb.group({
         idModalidad: this.fb.control<number | null>(null, Validators.required),
@@ -50,6 +55,8 @@ export class MisaFormPage implements OnInit {
         numeroDocumento: this.fb.nonNullable.control('', Validators.maxLength(20)),
         nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(250)]),
         telefono: this.fb.nonNullable.control('', Validators.maxLength(20)),
+
+        intenciones: this.fb.array<MisaIntentionFormGroup>([]),
 
         observaciones: this.fb.nonNullable.control('')
     });
@@ -78,6 +85,9 @@ export class MisaFormPage implements OnInit {
         }, { emitEvent: false });
 
         this.updateDocumentRules();
+
+        this.setIntentions(detail.intenciones ?? []);
+        this.applyIntentionRules(false);
     });
 
     private readonly syncDocumentPerson = effect(() => {
@@ -113,6 +123,55 @@ export class MisaFormPage implements OnInit {
 
         this.idMisa.set(idMisa);
         this.store.initialize(idMisa);
+    }
+
+    private setIntentions(intenciones: readonly { idIntencion: number; nombre: string | null; observacion: string | null; }[]): void {
+        this.intenciones.clear();
+        intenciones.forEach(item => this.intenciones.push(this.createIntentionGroup(item.idIntencion, item.nombre ?? '', item.observacion ?? '')));
+    }
+
+    protected addIntention(): void {
+        const max = this.intentionRule().max;
+        if (max !== null && this.intenciones.length >= max) return;
+        this.intenciones.push(this.createIntentionGroup());
+    }
+    protected removeIntention(index: number): void {
+        if (this.intenciones.length <= this.intentionRule().min) return;
+        this.intenciones.removeAt(index);
+    }
+    protected canAddIntention(): boolean {
+        const max = this.intentionRule().max;
+        return max === null || this.intenciones.length < max;
+    }
+    protected canRemoveIntention(): boolean {
+        return this.intenciones.length > this.intentionRule().min;
+    }
+
+    private createIntentionGroup(idIntencion = 0, nombre = '', observacion = ''): MisaIntentionFormGroup {
+        return this.fb.group({
+            idIntencion: this.fb.nonNullable.control(idIntencion),
+            nombre: this.fb.nonNullable.control(nombre, [Validators.required, Validators.maxLength(100)]),
+            observacion: this.fb.nonNullable.control(observacion, Validators.maxLength(200))
+        });
+    }
+    protected onMisaContextChanged(): void {
+        this.applyIntentionRules(true);
+    }
+    private applyIntentionRules(reset: boolean): void {
+        const idModalidad = this.form.controls.idModalidad.value;
+        const idTipo = this.form.controls.idTipo.value;
+        const codigoTipo = this.store.tipos().find(tipo => tipo.idTipo === idTipo)?.codigo ?? null;
+        const rule = resolveMisaIntentionRule(idModalidad, codigoTipo);
+
+        this.intentionRule.set(rule);
+
+        if (reset) this.intenciones.clear();
+
+        if (rule.max !== null) {
+            while (this.intenciones.length > rule.max) this.intenciones.removeAt(this.intenciones.length - 1);
+        }
+
+        while (this.intenciones.length < rule.min) this.intenciones.push(this.createIntentionGroup());
     }
 
     private toDateInput(value: string | null): string { return value?.slice(0, 10) ?? ''; }
@@ -185,7 +244,7 @@ export class MisaFormPage implements OnInit {
                 this.store.searchPersons(value);
             });
     }
-    
+
     protected selectPerson(person: PersonaSearchItem): void {
         this.form.patchValue({
             idPersona: person.idPersona,

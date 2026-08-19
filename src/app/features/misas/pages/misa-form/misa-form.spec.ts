@@ -8,7 +8,10 @@ import { By } from '@angular/platform-browser';
 
 describe('MisaFormPage', () => {
     const modalidades = signal([{ idModalidad: 1, nombre: 'Personal' }]);
-    const tipos = signal([{ idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' }]);
+    const tipos = signal([
+        { idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' },
+        { idTipo: 4, codigo: 'MATRIMONIO', nombre: 'Aniversario Matrimonial' }
+    ]);
     const detail = signal<any>(null);
     const loading = signal(false);
     const error = signal<string | null>(null);
@@ -79,6 +82,9 @@ describe('MisaFormPage', () => {
             hora: '18:00:00',
             solicitante: { idPersona: 10, idSolicitante: 20, idTipoDocumento: 1, codigoTipoDocumento: 'DNI', nombreTipoDocumento: 'DNI', numeroDocumento: '12345678', nombre: 'JOSE HUAMAN', telefono: '999999999' },
             observaciones: 'OBSERVACION DE PRUEBA',
+            intenciones: [
+                { idIntencion: 70, nombre: 'CARLOS PEREZ', observacion: null }
+            ],
         });
 
         const fixture = await createFixture({ id: '25' });
@@ -88,8 +94,12 @@ describe('MisaFormPage', () => {
         expect(component.form.getRawValue()).toEqual({
             idModalidad: 1, idTipo: 2, fecha: '2026-08-30', hora: '18:00',
             idPersona: 10, idTipoDocumento: 1, numeroDocumento: '12345678',
-            nombre: 'JOSE HUAMAN', telefono: '999999999', observaciones: 'OBSERVACION DE PRUEBA'
+            nombre: 'JOSE HUAMAN', telefono: '999999999', observaciones: 'OBSERVACION DE PRUEBA',
+            intenciones: [{ idIntencion: 70, nombre: "CARLOS PEREZ", observacion: "" }]
         });
+        expect(component.form.controls.intenciones.length).toBe(1);
+        expect(component.form.controls.intenciones.at(0).controls.idIntencion.value).toBe(70);
+        expect(component.form.controls.intenciones.at(0).controls.nombre.value).toBe('CARLOS PEREZ');
         expect(fixture.nativeElement.textContent).toContain('Editar misa');
     });
 
@@ -144,6 +154,45 @@ describe('MisaFormPage', () => {
         expect(component.form.controls.numeroDocumento.value).toBe('87654321');
         expect(component.form.controls.nombre.value).toBe('CARLOS PEREZ');
         expect(component.form.controls.telefono.value).toBe('955555555');
+    });
+
+    it('should configure one intention for a personal misa', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        component.form.patchValue({ idModalidad: 1, idTipo: 2 });
+        component['onMisaContextChanged']();
+
+        expect(component.form.controls.intenciones.length).toBe(1);
+    });
+
+    it('should configure exactly two intentions for marriage', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        component.form.patchValue({ idModalidad: 2, idTipo: 4 });
+        component['onMisaContextChanged']();
+
+        expect(component.form.controls.intenciones.length).toBe(2);
+
+        component['addIntention']();
+
+        expect(component.form.controls.intenciones.length).toBe(2);
+    });
+
+    it('should allow multiple intentions for a community misa', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        component.form.patchValue({ idModalidad: 2, idTipo: 2 });
+        component['onMisaContextChanged']();
+
+        expect(component.form.controls.intenciones.length).toBe(1);
+
+        component['addIntention']();
+        component['addIntention']();
+
+        expect(component.form.controls.intenciones.length).toBe(3);
     });
 
     async function createFixture(params: Record<string, string>) {

@@ -62,7 +62,7 @@
 
                     <mat-form-field appearance="outline">
                         <mat-label>Modalidad</mat-label>
-                        <mat-select formControlName="idModalidad">
+                        <mat-select formControlName="idModalidad" (selectionChange)="onMisaContextChanged()">
                             @for (modalidad of store.modalidades(); track modalidad.idModalidad) {
                             <mat-option [value]="modalidad.idModalidad">{{ modalidad.nombre }}</mat-option>
                             }
@@ -71,7 +71,7 @@
 
                     <mat-form-field appearance="outline">
                         <mat-label>Tipo de misa</mat-label>
-                        <mat-select formControlName="idTipo">
+                        <mat-select formControlName="idTipo" (selectionChange)="onMisaContextChanged()">
                             @for (tipo of store.tipos(); track tipo.idTipo) {
                             <mat-option [value]="tipo.idTipo">{{ tipo.nombre }}</mat-option>
                             }
@@ -192,6 +192,93 @@
                         <input matInput formControlName="telefono" maxlength="20">
                     </mat-form-field>
                 </div>
+            </div>
+        </section>
+
+        <section class="form-card" data-testid="misa-intentions">
+            <header class="form-section-header">
+                <div class="form-section-icon"><mat-icon>format_list_bulleted</mat-icon></div>
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Intenciones</h2>
+                        <p>Personas o intenciones asociadas a esta misa.</p>
+                    </div>
+
+                    @if (canAddIntention()) {
+                    <button mat-stroked-button type="button" data-testid="add-intention" (click)="addIntention()">
+                        <mat-icon>add</mat-icon>
+                        Agregar
+                    </button>
+                    }
+                </div>
+            </header>
+
+            <div class="form-section-body">
+
+                @if (!form.controls.idModalidad.value || !form.controls.idTipo.value) {
+                <div class="intention-message"><mat-icon>info</mat-icon><span>Selecciona modalidad y tipo de misa para
+                        configurar las intenciones.</span></div>
+                } @else {
+
+                @if (intentionRule().max === 1) {
+                <div class="intention-message"><mat-icon>info</mat-icon><span>Esta combinación admite exactamente una
+                        intención.</span></div>
+                }
+
+                @if (intentionRule().min === 2 && intentionRule().max === 2) {
+                <div class="intention-message"><mat-icon>favorite</mat-icon><span>La misa de matrimonio requiere
+                        exactamente dos personas.</span></div>
+                }
+
+                @if (intentionRule().max === null) {
+                <div class="intention-message"><mat-icon>groups</mat-icon><span>Puedes registrar varias intenciones para
+                        esta misa comunitaria.</span></div>
+                }
+
+                <div formArrayName="intenciones" class="intentions-list">
+
+                    @for (intention of intenciones.controls; track intention; let i = $index) {
+
+                    <div [formGroupName]="i" class="intention-row"
+                        [class.intention-row-simple]="!intentionRule().showObservation">
+
+                        <span class="intention-number">{{ i + 1 }}</span>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>{{ intentionRule().min === 2 && intentionRule().max === 2 ? 'Persona ' + (i + 1)
+                                : 'Nombre' }}</mat-label>
+                            <input matInput formControlName="nombre" maxlength="100">
+
+                            @if (intention.controls.nombre.touched && intention.controls.nombre.hasError('required')) {
+                            <mat-error>Ingresa el nombre.</mat-error>
+                            }
+                            @if (intention.controls.nombre.hasError('maxlength')) {
+                            <mat-error>Máximo 100 caracteres.</mat-error>
+                            }
+                        </mat-form-field>
+
+                        @if (intentionRule().showObservation) {
+                        <mat-form-field appearance="outline">
+                            <mat-label>Observación</mat-label>
+                            <textarea matInput formControlName="observacion" rows="1" maxlength="200"></textarea>
+                            @if (intention.controls.observacion.hasError('maxlength')) {
+                            <mat-error>Máximo 200 caracteres.</mat-error>
+                            }
+                        </mat-form-field>
+                        }
+
+                        <button mat-icon-button type="button" aria-label="Eliminar intención"
+                            [disabled]="!canRemoveIntention()" (click)="removeIntention(i)">
+                            <mat-icon>delete_outline</mat-icon>
+                        </button>
+
+                    </div>
+                    }
+
+                </div>
+                }
+
             </div>
         </section>
 
