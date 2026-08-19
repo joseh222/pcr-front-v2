@@ -38,72 +38,157 @@
         </div>
 
     </header>
+    @if (store.loading()) {
+    <mat-progress-bar mode="indeterminate" data-testid="misa-form-loading"></mat-progress-bar>
+    }
 
-    <section class="form-card" data-testid="misa-form-content">
+    @if (store.error()) {
+    <div class="form-error" data-testid="misa-form-error"><mat-icon>error_outline</mat-icon><span>{{ store.error()
+            }}</span></div>
+    } @else {
+    <form class="misa-form-layout" [formGroup]="form">
 
-        @if (store.loading()) {
-        <mat-progress-bar mode="indeterminate" data-testid="misa-form-loading"></mat-progress-bar>
-        }
+        <section class="form-card" data-testid="misa-form-content">
+            <header class="form-section-header">
+                <div class="form-section-icon"><mat-icon>church</mat-icon></div>
+                <div>
+                    <h2>Datos de la misa</h2>
+                    <p>Modalidad, tipo, fecha y hora de la celebración.</p>
+                </div>
+            </header>
 
-        @if (store.error()) {
-        <div class="form-error" data-testid="misa-form-error"><mat-icon>error_outline</mat-icon><span>{{ store.error()
-                }}</span></div>
-        } @else {
-        <header class="form-section-header">
-            <div class="form-section-icon"><mat-icon>church</mat-icon></div>
-            <div>
-                <h2>Datos de la misa</h2>
-                <p>Modalidad, tipo, fecha y hora de la celebración.</p>
+            <div class="form-section-body">
+                <div class="form-grid">
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Modalidad</mat-label>
+                        <mat-select formControlName="idModalidad">
+                            @for (modalidad of store.modalidades(); track modalidad.idModalidad) {
+                            <mat-option [value]="modalidad.idModalidad">{{ modalidad.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de misa</mat-label>
+                        <mat-select formControlName="idTipo">
+                            @for (tipo of store.tipos(); track tipo.idTipo) {
+                            <mat-option [value]="tipo.idTipo">{{ tipo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Fecha</mat-label>
+                        <input matInput type="date" formControlName="fecha">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Hora</mat-label>
+                        <input matInput type="time" formControlName="hora">
+                    </mat-form-field>
+
+                </div>
             </div>
-        </header>
+        </section>
 
-        <form class="misa-form" [formGroup]="form">
-            <div class="form-grid">
+        <section class="form-card">
+            <header class="form-section-header">
+                <div class="form-section-icon"><mat-icon>person</mat-icon></div>
+                <div>
+                    <h2>Solicitante</h2>
+                    <p>Identifica a la persona que solicita la misa.</p>
+                </div>
+            </header>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Modalidad</mat-label>
-                    <mat-select formControlName="idModalidad">
-                        @for (modalidad of store.modalidades(); track modalidad.idModalidad) {
-                        <mat-option [value]="modalidad.idModalidad">{{ modalidad.nombre }}</mat-option>
-                        }
-                    </mat-select>
-                    @if (form.controls.idModalidad.touched && form.controls.idModalidad.hasError('required')) {
-                    <mat-error>Selecciona una modalidad.</mat-error>
-                    }
-                </mat-form-field>
+            <div class="form-section-body">
+                <div class="form-grid">
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Tipo de misa</mat-label>
-                    <mat-select formControlName="idTipo">
-                        @for (tipo of store.tipos(); track tipo.idTipo) {
-                        <mat-option [value]="tipo.idTipo">{{ tipo.nombre }}</mat-option>
-                        }
-                    </mat-select>
-                    @if (form.controls.idTipo.touched && form.controls.idTipo.hasError('required')) {
-                    <mat-error>Selecciona un tipo de misa.</mat-error>
-                    }
-                </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de documento</mat-label>
+                        <mat-select formControlName="idTipoDocumento" (selectionChange)="onDocumentTypeChange()">
+                            <mat-option [value]="null">Sin documento</mat-option>
+                            @for (tipo of store.tiposDocumento(); track tipo.idTipoDocumento) {
+                            <mat-option [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Fecha</mat-label>
-                    <input matInput type="date" formControlName="fecha">
-                    @if (form.controls.fecha.touched && form.controls.fecha.hasError('required')) {
-                    <mat-error>Selecciona una fecha.</mat-error>
-                    }
-                </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Número de documento</mat-label>
+                        <input matInput formControlName="numeroDocumento" (input)="onDocumentChanged()"
+                            (keydown.enter)="$event.preventDefault(); searchDocument()">
 
-                <mat-form-field appearance="outline">
-                    <mat-label>Hora</mat-label>
-                    <input matInput type="time" formControlName="hora">
-                    @if (form.controls.hora.touched && form.controls.hora.hasError('required')) {
-                    <mat-error>Selecciona una hora.</mat-error>
-                    }
-                </mat-form-field>
+                        <button mat-icon-button matSuffix type="button" aria-label="Buscar persona por documento"
+                            data-testid="search-person-document"
+                            [disabled]="!form.controls.idTipoDocumento.value || store.documentLookupLoading()"
+                            (click)="searchDocument()">
+                            <mat-icon>search</mat-icon>
+                        </button>
 
+                        @if (form.controls.numeroDocumento.hasError('required')) { <mat-error>Ingresa el
+                            documento.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('minlength')) { <mat-error>El documento es demasiado
+                            corto.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('maxlength')) { <mat-error>El documento es demasiado
+                            largo.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('pattern')) { <mat-error>Este documento solo admite
+                            números.</mat-error> }
+                    </mat-form-field>
+
+                </div>
+
+                @if (store.documentLookupState() === 'found') {
+                <div class="person-message person-found" data-testid="person-found">
+                    <mat-icon>check_circle</mat-icon><span>Persona encontrada y vinculada al registro.</span>
+                </div>
+                }
+
+                @if (store.documentLookupState() === 'not-found') {
+                <div class="person-message person-not-found" data-testid="person-not-found">
+                    <mat-icon>person_add</mat-icon><span>No existe una persona con este documento. Completa sus datos
+                        para registrarla con la misa.</span>
+                </div>
+                }
+
+                @if (store.documentLookupState() === 'error') {
+                <div class="person-message person-error"><mat-icon>error_outline</mat-icon><span>{{
+                        store.documentLookupError() }}</span></div>
+                }
+
+                <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Nombre completo</mat-label>
+                        <input matInput formControlName="nombre" maxlength="250">
+                        @if (form.controls.nombre.touched && form.controls.nombre.hasError('required')) {
+                        <mat-error>Ingresa el nombre del solicitante.</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Teléfono</mat-label>
+                        <input matInput formControlName="telefono" maxlength="20">
+                    </mat-form-field>
+                </div>
             </div>
-        </form>
-        }
+        </section>
 
-    </section>
+        <section class="form-card">
+            <header class="form-section-header">
+                <div class="form-section-icon"><mat-icon>notes</mat-icon></div>
+                <div>
+                    <h2>Observaciones</h2>
+                    <p>Información adicional relacionada con esta misa.</p>
+                </div>
+            </header>
 
+            <div class="form-section-body">
+                <mat-form-field class="full-width" appearance="outline">
+                    <mat-label>Observaciones generales</mat-label>
+                    <textarea matInput formControlName="observaciones" rows="3"></textarea>
+                </mat-form-field>
+            </div>
+        </section>
+
+    </form>
+    }
 </section>

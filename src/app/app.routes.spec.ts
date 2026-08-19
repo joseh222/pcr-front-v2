@@ -15,6 +15,7 @@ import { ChangePasswordPage } from './features/auth/pages/change-password/change
 import { DashboardPage } from './features/dashboard/pages/dashboard';
 import { of } from 'rxjs';
 import { MisaApiService } from './features/misas/data-access/misa-api.service';
+import { PersonaApiService } from './features/personas/data-access/persona-api.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -46,6 +47,11 @@ describe('Application routes', () => {
         preference: preference.asReadonly(),
         resolvedTheme: resolvedTheme.asReadonly(),
         setPreference: vi.fn()
+    };
+    const personaApiMock = {
+        getTiposDocumento: vi.fn(() => of([
+            { idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }
+        ]))
     };
     const misaApiMock = {
         getModalidades: vi.fn(() => of([])),
@@ -97,6 +103,7 @@ describe('Application routes', () => {
         resolvedTheme.set('light');
         mustChangePassword.set(false);
         themeServiceMock.setPreference.mockClear();
+        personaApiMock.getTiposDocumento.mockClear();
         TestBed.configureTestingModule({
             providers: [
                 provideRouter(routes),
@@ -105,7 +112,8 @@ describe('Application routes', () => {
                     useValue: themeServiceMock
                 },
                 { provide: AuthStore, useValue: authStoreMock },
-                { provide: MisaApiService, useValue: misaApiMock }
+                { provide: MisaApiService, useValue: misaApiMock },
+                { provide: PersonaApiService, useValue: personaApiMock }
             ]
         });
     });

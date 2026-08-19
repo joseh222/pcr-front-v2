@@ -29,7 +29,15 @@ export class MisaFormPage implements OnInit {
         idModalidad: this.fb.control<number | null>(null, Validators.required),
         idTipo: this.fb.control<number | null>(null, Validators.required),
         fecha: this.fb.nonNullable.control('', Validators.required),
-        hora: this.fb.nonNullable.control('', Validators.required)
+        hora: this.fb.nonNullable.control('', Validators.required),
+
+        idPersona: this.fb.control<number | null>(null),
+        idTipoDocumento: this.fb.control<number | null>(null),
+        numeroDocumento: this.fb.nonNullable.control('', Validators.maxLength(20)),
+        nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(250)]),
+        telefono: this.fb.nonNullable.control('', Validators.maxLength(20)),
+
+        observaciones: this.fb.nonNullable.control('')
     });
 
     protected readonly isEditMode = computed(() => this.idMisa() !== null);
@@ -44,8 +52,33 @@ export class MisaFormPage implements OnInit {
             idModalidad: detail.modalidad?.idModalidad ?? null,
             idTipo: detail.tipo?.idTipo ?? null,
             fecha: this.toDateInput(detail.fecha),
-            hora: this.toTimeInput(detail.hora)
-        });
+            hora: this.toTimeInput(detail.hora),
+
+            idPersona: detail.solicitante?.idPersona ?? null,
+            idTipoDocumento: detail.solicitante?.idTipoDocumento ?? null,
+            numeroDocumento: detail.solicitante?.numeroDocumento ?? '',
+            nombre: detail.solicitante?.nombre ?? '',
+            telefono: detail.solicitante?.telefono ?? '',
+
+            observaciones: detail.observaciones ?? ''
+        }, { emitEvent: false });
+
+        this.updateDocumentRules();
+    });
+
+    private readonly syncDocumentPerson = effect(() => {
+        const person = this.store.documentPerson();
+        if (!person) return;
+
+        this.form.patchValue({
+            idPersona: person.idPersona,
+            idTipoDocumento: person.idTipoDocumento,
+            numeroDocumento: person.numeroDocumento ?? '',
+            nombre: person.nombreCompleto ?? '',
+            telefono: person.telefono ?? ''
+        }, { emitEvent: false });
+
+        this.updateDocumentRules();
     });
 
     ngOnInit(): void {
@@ -69,4 +102,54 @@ export class MisaFormPage implements OnInit {
 
     private toDateInput(value: string | null): string { return value?.slice(0, 10) ?? ''; }
     private toTimeInput(value: string | null): string { return value?.slice(0, 5) ?? ''; }
+
+    protected onDocumentTypeChange(): void {
+        const wasLinked = this.form.controls.idPersona.value !== null;
+        this.form.controls.numeroDocumento.setValue('', { emitEvent: false });
+        this.unlinkPerson(wasLinked);
+        this.updateDocumentRules();
+    }
+    protected onDocumentChanged(): void {
+        const wasLinked = this.form.controls.idPersona.value !== null;
+        this.unlinkPerson(wasLinked);
+    }
+
+    protected searchDocument(): void {
+        const idTipoDocumento = this.form.controls.idTipoDocumento.value;
+        const numeroDocumento = this.form.controls.numeroDocumento.value.trim();
+
+        this.updateDocumentRules();
+        this.form.controls.numeroDocumento.markAsTouched();
+
+        if (!idTipoDocumento || this.form.controls.numeroDocumento.invalid) return;
+
+        this.form.controls.idPersona.setValue(null, { emitEvent: false });
+        this.store.findPersonByDocument(idTipoDocumento, numeroDocumento);
+    }
+    private unlinkPerson(clearData: boolean): void {
+        this.form.controls.idPersona.setValue(null, { emitEvent: false });
+        this.store.clearDocumentPerson();
+        if (clearData) this.form.patchValue({ nombre: '', telefono: '' }, { emitEvent: false });
+    }
+    private updateDocumentRules(): void {
+        const control = this.form.controls.numeroDocumento;
+        const idTipoDocumento = this.form.controls.idTipoDocumento.value;
+        const tipo = this.store.tiposDocumento().find(item => item.idTipoDocumento === idTipoDocumento);
+
+        if (!tipo) {
+            control.setValidators(Validators.maxLength(20));
+            control.updateValueAndValidity({ emitEvent: false });
+            return;
+        }
+
+        const validators = [Validators.required];
+
+        if (tipo.longitudMinima) validators.push(Validators.minLength(tipo.longitudMinima));
+        if (tipo.longitudMaxima) validators.push(Validators.maxLength(tipo.longitudMaxima));
+        else validators.push(Validators.maxLength(20));
+        if (tipo.soloNumeros) validators.push(Validators.pattern(/^\d+$/));
+
+        control.setValidators(validators);
+        control.updateValueAndValidity({ emitEvent: false });
+    }
 }

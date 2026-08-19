@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 
 import { MisaApiService } from '../misa-api.service';
 import { MisaFormStore } from './misa-form.store';
+import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 
 describe('MisaFormStore', () => {
     let store: MisaFormStore;
@@ -10,11 +11,16 @@ describe('MisaFormStore', () => {
     const getModalidadesMock = vi.fn();
     const getTiposMock = vi.fn();
     const getByIdMock = vi.fn();
+    const getTiposDocumentoMock = vi.fn();
+    const getByDocumentMock = vi.fn();
 
     beforeEach(() => {
         getModalidadesMock.mockReset();
         getTiposMock.mockReset();
         getByIdMock.mockReset();
+        getTiposDocumentoMock.mockReset();
+        getByDocumentMock.mockReset();
+        getTiposDocumentoMock.mockReturnValue(of([{ idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }]));
 
         getModalidadesMock.mockReturnValue(of([{ idModalidad: 1, nombre: 'Personal' }]));
         getTiposMock.mockReturnValue(of([{ idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' }]));
@@ -25,7 +31,8 @@ describe('MisaFormStore', () => {
                 {
                     provide: MisaApiService,
                     useValue: { getModalidades: getModalidadesMock, getTipos: getTiposMock, getById: getByIdMock }
-                }
+                },
+                { provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock } }
             ]
         });
 
@@ -71,5 +78,32 @@ describe('MisaFormStore', () => {
         expect(getByIdMock).toHaveBeenCalledWith(25);
         expect(store.detail()?.idMisa).toBe(25);
         expect(store.loading()).toBe(false);
+    });
+
+    it('should load document types during initialization', () => {
+        store.initialize(null);
+        expect(getTiposDocumentoMock).toHaveBeenCalledOnce();
+        expect(store.tiposDocumento()).toHaveLength(1);
+    });
+
+    it('should find an existing person by document', () => {
+        getByDocumentMock.mockReturnValue(of({
+            idPersona: 10, codPersona: 'PER-10', idTipoDocumento: 1, codigoTipoDocumento: 'DNI', nombreTipoDocumento: 'DNI',
+            numeroDocumento: '12345678', nombreCompleto: 'JOSE HUAMAN', fechaNacimiento: null, telefono: '999999999',
+            email: null, direccion: null, isActive: true, rowVersion: 'abc'
+        }));
+
+        store.findPersonByDocument(1, '12345678');
+
+        expect(getByDocumentMock).toHaveBeenCalledWith(1, '12345678');
+        expect(store.documentLookupState()).toBe('found');
+        expect(store.documentPerson()?.idPersona).toBe(10);
+    });
+
+    it('should allow a new person when document does not exist', () => {
+        getByDocumentMock.mockReturnValue(of(null));
+        store.findPersonByDocument(1, '12345678');
+        expect(store.documentPerson()).toBeNull();
+        expect(store.documentLookupState()).toBe('not-found');
     });
 });
