@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { MisaFormStore } from '../../data-access/models/misa-form.store';
 import { MisaFormPage } from './misa-form';
 import { By } from '@angular/platform-browser';
+import { FeedbackService } from '../../../../core/feedback/feedback.service';
 
 describe('MisaFormPage', () => {
     const modalidades = signal([{ idModalidad: 1, nombre: 'Personal' }]);
@@ -32,6 +33,13 @@ describe('MisaFormPage', () => {
     const saving = signal(false);
     const saveError = signal<string | null>(null);
     const saveResult = signal<any>(null);
+
+    const feedbackMock = {
+        success: vi.fn(),
+        error: vi.fn(),
+        warning: vi.fn(),
+        info: vi.fn()
+    };
 
     const storeMock = {
         modalidades: modalidades.asReadonly(),
@@ -89,6 +97,11 @@ describe('MisaFormPage', () => {
         storeMock.create.mockClear();
         storeMock.update.mockClear();
         storeMock.clearSaveResult.mockClear();
+
+        feedbackMock.success.mockClear();
+        feedbackMock.error.mockClear();
+        feedbackMock.warning.mockClear();
+        feedbackMock.info.mockClear();
     });
 
     it('should initialize create mode', async () => {
@@ -284,6 +297,58 @@ describe('MisaFormPage', () => {
         expect(request.motivoNoPago).toBeNull();
     });
 
+    it('should show backend save error as feedback', async () => {
+        const fixture = await createFixture({});
+
+        saveError.set(
+            'La misa de matrimonio debe contener exactamente dos personas.'
+        );
+
+        fixture.detectChanges();
+
+        expect(feedbackMock.error).toHaveBeenCalledWith(
+            'La misa de matrimonio debe contener exactamente dos personas.'
+        );
+    });
+
+    it('should indicate pending payment after creating a payable misa', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        const message = component['getSaveSuccessMessage']({
+            idMisa: 25,
+            codMisa: 'M2026-00025',
+            idSolicitudServicio: 100,
+            codSolicitudServicio: 'SOL-000100',
+            requierePago: true,
+            importe: 30,
+            estadoPago: 'PENDIENTE',
+            mensaje: 'Misa registrada correctamente.'
+        }, false);
+
+        expect(message).toBe(
+            'Misa registrada correctamente. Pago pendiente.'
+        );
+    });
+    
+    it('should use backend update success message', async () => {
+        const fixture = await createFixture({ id: '25' });
+        const component = fixture.componentInstance;
+
+        const message = component['getSaveSuccessMessage']({
+            idMisa: 25,
+            codMisa: 'M2026-00025',
+            idSolicitudServicio: 100,
+            codSolicitudServicio: 'SOL-000100',
+            requierePago: true,
+            importe: 30,
+            estadoPago: 'PENDIENTE',
+            mensaje: 'Misa actualizada correctamente.'
+        }, true);
+
+        expect(message).toBe('Misa actualizada correctamente.');
+    });
+
     async function createFixture(params: Record<string, string>) {
         TestBed.resetTestingModule();
 
@@ -291,7 +356,12 @@ describe('MisaFormPage', () => {
             imports: [MisaFormPage],
             providers: [
                 provideRouter([]),
-                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } }
+                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
+                ,
+                {
+                    provide: FeedbackService,
+                    useValue: feedbackMock
+                }
             ]
         });
 
