@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
@@ -9,6 +8,7 @@ import { MisaDetail } from './misa-read.models';
 import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
 import { MisaCreateRequest, MisaUpdateRequest, MisaWriteResponse } from './misa-write.models';
+import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 
 @Injectable()
 export class MisaFormStore {
@@ -84,20 +84,13 @@ export class MisaFormStore {
                 },
                 error: error => {
                     this.loadingSignal.set(false);
-                    this.errorSignal.set(this.getErrorMessage(error));
+                    this.errorSignal.set(this.getErrorMessage(error, 'No se pudo cargar la información de la misa.'));
                 }
             });
     }
 
     private getErrorMessage(error: unknown, fallback = 'No se pudo cargar la información de la misa.'): string {
-        if (error instanceof HttpErrorResponse) {
-            const detail = error.error?.detail;
-            const message = error.error?.message;
-            if (typeof detail === 'string' && detail.trim()) return detail.trim();
-            if (typeof message === 'string' && message.trim()) return message.trim();
-        }
-
-        return fallback;
+        return getApiErrorMessage(error, fallback);
     }
 
     findPersonByDocument(idTipoDocumento: number, numeroDocumento: string): void {
@@ -122,7 +115,7 @@ export class MisaFormStore {
                     this.documentLookupLoadingSignal.set(false);
                     this.documentPersonSignal.set(null);
                     this.documentLookupStateSignal.set('error');
-                    this.documentLookupErrorSignal.set(this.getErrorMessage(error));
+                    this.documentLookupErrorSignal.set(this.getErrorMessage(error, 'No se pudo consultar la persona.'));
                 }
             });
     }
@@ -159,7 +152,7 @@ export class MisaFormStore {
                     if (version !== this.personSearchVersion) return;
                     this.personSearchResultsSignal.set([]);
                     this.personSearchLoadingSignal.set(false);
-                    this.personSearchErrorSignal.set(this.getErrorMessage(error));
+                    this.personSearchErrorSignal.set(this.getErrorMessage(this.getErrorMessage(error, 'No se pudo buscar personas.')));
                 }
             });
     }

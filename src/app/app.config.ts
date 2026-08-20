@@ -1,4 +1,4 @@
-import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -9,11 +9,15 @@ import { BrowserTokenStorage } from './core/auth/browser-token-storage';
 import { authTokenInterceptor } from './core/auth/interceptors/auth-token.interceptor';
 import { AuthStore } from './features/auth/data-access/auth.store';
 import { authRefreshInterceptor } from './features/auth/data-access/auth-refresh.interceptor';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
+    
+    importProvidersFrom(MatSnackBarModule),
+    
     provideRouter(routes),
     provideHttpClient(withInterceptors([
       authTokenInterceptor,

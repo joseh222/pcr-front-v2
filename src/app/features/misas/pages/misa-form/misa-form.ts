@@ -15,7 +15,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 import { EMPTY_MISA_INTENTION_RULE, MisaIntentionRule, resolveMisaIntentionRule } from '../../domain/misa-intention.rules';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MisaCreateRequest, MisaUpdateRequest } from '../../data-access/models/misa-write.models';
+import { MisaCreateRequest, MisaUpdateRequest, MisaWriteResponse } from '../../data-access/models/misa-write.models';
+import { FeedbackService } from '../../../../core/feedback/feedback.service';
 
 type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nombre: FormControl<string>; observacion: FormControl<string>; }>;
 
@@ -41,6 +42,7 @@ export class MisaFormPage implements OnInit {
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly feedback = inject(FeedbackService);
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
@@ -404,9 +406,36 @@ export class MisaFormPage implements OnInit {
 
     private readonly syncSaveResult = effect(() => {
         const result = this.store.saveResult();
+
         if (!result) return;
 
+        const wasEditMode = this.isEditMode();
+        const message = this.getSaveSuccessMessage(result, wasEditMode);
+
         this.store.clearSaveResult();
-        void this.router.navigate(['/misas']);
+
+        void this.router.navigate(['/misas']).then(() => {
+            this.feedback.success(message);
+        });
     });
+
+    private readonly syncSaveError = effect(() => {
+        const message = this.store.saveError();
+
+        if (!message) return;
+
+        this.feedback.error(message);
+    });
+
+    private getSaveSuccessMessage(result: MisaWriteResponse, wasEditMode: boolean): string {
+        const backendMessage = result.mensaje?.trim();
+
+        if (wasEditMode) {
+            return backendMessage || 'Misa actualizada correctamente.';
+        }
+
+        const message = backendMessage || 'Misa registrada correctamente.';
+
+        return result.requierePago ? `${message} Pago pendiente.` : message;
+    }
 }
