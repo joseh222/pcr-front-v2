@@ -15,6 +15,7 @@ describe('MisaFormStore', () => {
     const getTiposDocumentoMock = vi.fn();
     const getByDocumentMock = vi.fn();
     const searchPersonsMock = vi.fn();
+    const getSantosMock = vi.fn();
 
     beforeEach(() => {
         getModalidadesMock.mockReset();
@@ -27,13 +28,16 @@ describe('MisaFormStore', () => {
         getTiposMock.mockReturnValue(of([{ idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' }]));
         searchPersonsMock.mockReset();
         searchPersonsMock.mockReturnValue(of([]));
-
+        getSantosMock.mockReset();
+        getSantosMock.mockReturnValue(of([
+            { idSanto: 1, nombre: 'San Judas Tadeo' }
+        ]));
         TestBed.configureTestingModule({
             providers: [
                 MisaFormStore,
                 {
                     provide: MisaApiService,
-                    useValue: { getModalidades: getModalidadesMock, getTipos: getTiposMock, getById: getByIdMock }
+                    useValue: { getModalidades: getModalidadesMock, getTipos: getTiposMock, getById: getByIdMock, getSantos: getSantosMock }
                 },
                 { provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock, search: searchPersonsMock } }
             ]
@@ -73,7 +77,7 @@ describe('MisaFormStore', () => {
             solicitudServicio: null,
             puedeEditar: true,
             puedeEliminar: true,
-            puedeCobrar: false
+            puedeCobrar: false,
         }));
 
         store.initialize(25);
@@ -130,5 +134,14 @@ describe('MisaFormStore', () => {
         expect(searchPersonsMock).toHaveBeenCalledWith('JOSE', 10);
         expect(store.personSearchResults()).toHaveLength(1);
         expect(store.personSearchResults()[0].idPersona).toBe(15);
+    });
+
+    it('should load santos during initialization', () => {
+        store.initialize(null);
+
+        expect(getSantosMock).toHaveBeenCalledOnce();
+        expect(store.santos()).toEqual([
+            { idSanto: 1, nombre: 'San Judas Tadeo' }
+        ]);
     });
 });

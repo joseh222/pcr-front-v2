@@ -25,7 +25,9 @@ describe('MisaFormPage', () => {
     const personSearchResults = signal<any[]>([]);
     const personSearchLoading = signal(false);
     const personSearchError = signal<string | null>(null);
-
+    const santos = signal([
+        { idSanto: 1, nombre: 'San Judas Tadeo' }
+    ]);
     const storeMock = {
         modalidades: modalidades.asReadonly(),
         tipos: tipos.asReadonly(),
@@ -47,7 +49,7 @@ describe('MisaFormPage', () => {
         personSearchError: personSearchError.asReadonly(),
         searchPersons: vi.fn(),
         clearPersonSearch: vi.fn(),
-
+        santos: santos.asReadonly(),
     };
 
     beforeEach(() => {
@@ -82,6 +84,11 @@ describe('MisaFormPage', () => {
             hora: '18:00:00',
             solicitante: { idPersona: 10, idSolicitante: 20, idTipoDocumento: 1, codigoTipoDocumento: 'DNI', nombreTipoDocumento: 'DNI', numeroDocumento: '12345678', nombre: 'JOSE HUAMAN', telefono: '999999999' },
             observaciones: 'OBSERVACION DE PRUEBA',
+            santo: null,
+            motivo: 'POR SU PRONTA RECUPERACION',
+            ofrecen: 'FAMILIA HUAMAN',
+            celular: '999999999',
+            devotos: null,
             intenciones: [
                 { idIntencion: 70, nombre: 'CARLOS PEREZ', observacion: null }
             ],
@@ -95,6 +102,11 @@ describe('MisaFormPage', () => {
             idModalidad: 1, idTipo: 2, fecha: '2026-08-30', hora: '18:00',
             idPersona: 10, idTipoDocumento: 1, numeroDocumento: '12345678',
             nombre: 'JOSE HUAMAN', telefono: '999999999', observaciones: 'OBSERVACION DE PRUEBA',
+            idSanto: null,
+            motivo: 'POR SU PRONTA RECUPERACION',
+            ofrecen: 'FAMILIA HUAMAN',
+            celular: '999999999',
+            devotos: '',
             intenciones: [{ idIntencion: 70, nombre: "CARLOS PEREZ", observacion: "" }]
         });
         expect(component.form.controls.intenciones.length).toBe(1);

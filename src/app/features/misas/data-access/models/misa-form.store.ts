@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
 
 import { MisaApiService } from '../misa-api.service';
-import { MisaModalidad, MisaTipo } from './misa-catalog.models';
+import { MisaModalidad, MisaSanto, MisaTipo } from './misa-catalog.models';
 import { MisaDetail } from './misa-read.models';
 import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
@@ -49,6 +49,9 @@ export class MisaFormStore {
     readonly personSearchLoading = this.personSearchLoadingSignal.asReadonly();
     readonly personSearchError = this.personSearchErrorSignal.asReadonly();
 
+    private readonly santosSignal = signal<readonly MisaSanto[]>([]);
+    readonly santos = this.santosSignal.asReadonly();
+
     initialize(idMisa: number | null): void {
         this.loadingSignal.set(true);
         this.errorSignal.set(null);
@@ -56,6 +59,7 @@ export class MisaFormStore {
         forkJoin({
             modalidades: this.api.getModalidades(),
             tipos: this.api.getTipos(),
+            santos: this.api.getSantos(),
             tiposDocumento: this.personaApi.getTiposDocumento(),
             detail: idMisa === null ? of(null) : this.api.getById(idMisa)
         })
@@ -67,6 +71,7 @@ export class MisaFormStore {
                     this.tiposSignal.set(result.tipos);
                     this.detailSignal.set(result.detail);
                     this.loadingSignal.set(false);
+                    this.santosSignal.set(result.santos);
                 },
                 error: error => {
                     this.loadingSignal.set(false);

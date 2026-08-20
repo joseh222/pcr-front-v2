@@ -44,6 +44,7 @@ export class MisaFormPage implements OnInit {
     protected readonly intentionRule = signal<MisaIntentionRule>(EMPTY_MISA_INTENTION_RULE);
     protected get intenciones(): FormArray<MisaIntentionFormGroup> { return this.form.controls.intenciones; }
 
+
     readonly form = this.fb.group({
         idModalidad: this.fb.control<number | null>(null, Validators.required),
         idTipo: this.fb.control<number | null>(null, Validators.required),
@@ -57,6 +58,12 @@ export class MisaFormPage implements OnInit {
         telefono: this.fb.nonNullable.control('', Validators.maxLength(20)),
 
         intenciones: this.fb.array<MisaIntentionFormGroup>([]),
+
+        idSanto: this.fb.control<number | null>(null),
+        motivo: this.fb.nonNullable.control('', Validators.maxLength(500)),
+        ofrecen: this.fb.nonNullable.control('', Validators.maxLength(500)),
+        celular: this.fb.nonNullable.control('', Validators.maxLength(20)),
+        devotos: this.fb.nonNullable.control('', Validators.maxLength(500)),
 
         observaciones: this.fb.nonNullable.control('')
     });
@@ -81,6 +88,11 @@ export class MisaFormPage implements OnInit {
             nombre: detail.solicitante?.nombre ?? '',
             telefono: detail.solicitante?.telefono ?? '',
 
+            idSanto: detail.santo?.idSanto ?? null,
+            motivo: detail.motivo ?? '',
+            ofrecen: detail.ofrecen ?? '',
+            celular: detail.celular ?? '',
+            devotos: detail.devotos ?? '',
             observaciones: detail.observaciones ?? ''
         }, { emitEvent: false });
 
@@ -166,6 +178,17 @@ export class MisaFormPage implements OnInit {
         this.intentionRule.set(rule);
 
         if (reset) this.intenciones.clear();
+
+        if (!rule.showSanto) this.form.controls.idSanto.setValue(null, { emitEvent: false });
+        if (!rule.showMotivo) this.form.controls.motivo.setValue('', { emitEvent: false });
+        if (!rule.showOfrecen) this.form.controls.ofrecen.setValue('', { emitEvent: false });
+        if (!rule.showCelular) this.form.controls.celular.setValue('', { emitEvent: false });
+        if (!rule.showDevotos) this.form.controls.devotos.setValue('', { emitEvent: false });
+
+        if (!rule.showIntentions) {
+            this.intenciones.clear();
+            return;
+        }
 
         if (rule.max !== null) {
             while (this.intenciones.length > rule.max) this.intenciones.removeAt(this.intenciones.length - 1);

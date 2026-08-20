@@ -57,7 +57,7 @@ describe('Application routes', () => {
         getModalidades: vi.fn(() => of([])),
         getTipos: vi.fn(() => of([])),
         getEstados: vi.fn(() => of([])),
-
+        getSantos: vi.fn(() => of([])),
         getList: vi.fn(() =>
             of({
                 pagina: 1,
@@ -98,6 +98,7 @@ describe('Application routes', () => {
         misaApiMock.getEstados.mockClear();
         misaApiMock.getList.mockClear();
         misaApiMock.getById.mockClear();
+        misaApiMock.getSantos.mockClear();
         isAuthenticated.set(true);
         preference.set('system');
         resolvedTheme.set('light');

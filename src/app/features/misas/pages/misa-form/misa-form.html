@@ -219,6 +219,11 @@
                 @if (!form.controls.idModalidad.value || !form.controls.idTipo.value) {
                 <div class="intention-message"><mat-icon>info</mat-icon><span>Selecciona modalidad y tipo de misa para
                         configurar las intenciones.</span></div>
+                } @else if (!intentionRule().showIntentions) {
+                <div class="intention-message">
+                    <mat-icon>info</mat-icon>
+                    <span>Este tipo de misa no utiliza una lista de intenciones.</span>
+                </div>
                 } @else {
 
                 @if (intentionRule().max === 1) {
@@ -261,11 +266,15 @@
                         @if (intentionRule().showObservation) {
                         <mat-form-field appearance="outline">
                             <mat-label>Observación</mat-label>
-                            <textarea matInput formControlName="observacion" rows="1" maxlength="200"></textarea>
-                            @if (intention.controls.observacion.hasError('maxlength')) {
-                            <mat-error>Máximo 200 caracteres.</mat-error>
-                            }
+                            <input matInput formControlName="observacion" maxlength="200"
+                                placeholder="Ej. POR SU PRONTA RECUPERACIÓN" (keydown.enter)="$event.preventDefault()">
+                            <mat-hint>Ej. POR SU ONOMÁSTICO, POR SU PRONTA RECUPERACIÓN</mat-hint>
+                            @if (intention.controls.observacion.hasError('maxlength')) { <mat-error>Máximo 200
+                                caracteres.</mat-error> }
                         </mat-form-field>
+                        @if (intention.controls.observacion.hasError('maxlength')) {
+                        <mat-error>Máximo 200 caracteres.</mat-error>
+                        }
                         }
 
                         <button mat-icon-button type="button" aria-label="Eliminar intención"
@@ -281,7 +290,74 @@
 
             </div>
         </section>
+        @if (
+        intentionRule().showMotivo ||
+        intentionRule().showSanto ||
+        intentionRule().showOfrecen ||
+        intentionRule().showCelular ||
+        intentionRule().showDevotos
+        ) {
+        <section class="form-card" data-testid="misa-specific-fields">
 
+            <header class="form-section-header">
+                <div class="form-section-icon"><mat-icon>description</mat-icon></div>
+                <div>
+                    <h2>Datos específicos</h2>
+                    <p>Información correspondiente al tipo y modalidad de misa.</p>
+                </div>
+            </header>
+
+            <div class="form-section-body">
+                <div class="form-grid">
+
+                    @if (intentionRule().showSanto) {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Santo / Advocación</mat-label>
+                        <mat-select formControlName="idSanto">
+                            <mat-option [value]="null">Sin seleccionar</mat-option>
+                            @for (santo of store.santos(); track santo.idSanto) {
+                            <mat-option [value]="santo.idSanto">{{ santo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    }
+
+                    @if (intentionRule().showMotivo) {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Motivo</mat-label>
+                        <input matInput formControlName="motivo" maxlength="500"
+                            placeholder="Ej. POR LOS 25 AÑOS DE ANIVERSARIO - BODA DE PLATA">
+                    </mat-form-field>
+                    }
+
+                    @if (intentionRule().showOfrecen) {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Ofrecen</mat-label>
+                        <input matInput formControlName="ofrecen" maxlength="500"
+                            placeholder="Persona, familia o comunidad que ofrece la misa">
+                    </mat-form-field>
+                    }
+
+                    @if (intentionRule().showCelular) {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Nro. de celular de quien ofrece</mat-label>
+                        <input matInput formControlName="celular" maxlength="20">
+                    </mat-form-field>
+                    }
+
+                    @if (intentionRule().showDevotos) {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Devotos</mat-label>
+                        <input matInput formControlName="devotos" maxlength="500"
+                            placeholder="Ej. FAMILIA TIPIÁN VALENTÍN">
+                    </mat-form-field>
+                    }
+
+                </div>
+            </div>
+
+        </section>
+        }
         <section class="form-card">
             <header class="form-section-header">
                 <div class="form-section-icon"><mat-icon>notes</mat-icon></div>
