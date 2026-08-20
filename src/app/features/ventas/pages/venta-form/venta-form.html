@@ -1,0 +1,297 @@
+<div class="page-shell">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">VENTAS</p>
+            <h1>Nueva venta</h1>
+            <p>Registra productos y servicios pendientes en una sola operación.</p>
+        </div>
+        <a mat-stroked-button routerLink="/ventas"><mat-icon>arrow_back</mat-icon>Volver</a>
+    </header>
+
+    @if (store.loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    <form [formGroup]="form" class="venta-form">
+        <section class="form-card">
+            <header class="section-header">
+                <div class="section-icon"><mat-icon>person</mat-icon></div>
+                <div>
+                    <h2>Cliente</h2>
+                    <p>La venta se asociará a una Persona registrada.</p>
+                </div>
+            </header>
+
+            <div class="section-body">
+                @if (form.controls.idPersona.value) {
+                <div class="linked-client">
+                    <div>
+                        <strong>{{ form.controls.nombre.value }}</strong>
+                        <span>{{ form.controls.numeroDocumento.value || 'Sin documento' }} · {{
+                            form.controls.telefono.value || 'Sin teléfono' }}</span>
+                    </div>
+                    <button mat-stroked-button type="button" (click)="clearClient()">Cambiar cliente</button>
+                </div>
+                } @else {
+                <div class="form-grid client-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de documento</mat-label>
+                        <mat-select formControlName="idTipoDocumento">
+                            <mat-option [value]="null">Sin documento</mat-option>
+                            @for (tipo of store.tiposDocumento(); track tipo.idTipoDocumento) {
+                            <mat-option [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <div class="document-search">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Número de documento</mat-label>
+                            <input matInput formControlName="numeroDocumento" maxlength="20">
+                        </mat-form-field>
+                        <button mat-stroked-button type="button" [disabled]="store.documentLoading()"
+                            (click)="searchDocument()">
+                            <mat-icon>search</mat-icon>Buscar
+                        </button>
+                    </div>
+
+                    <mat-form-field appearance="outline" class="client-name">
+                        <mat-label>Nombre completo</mat-label>
+                        <input matInput formControlName="nombre" maxlength="250"
+                            placeholder="Busca o escribe el nombre">
+                        @if (form.controls.nombre.touched && form.controls.nombre.hasError('required')) { <mat-error>El
+                            nombre es obligatorio.</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Teléfono</mat-label>
+                        <input matInput formControlName="telefono" maxlength="20">
+                    </mat-form-field>
+                </div>
+
+                @if (store.personResults().length > 0) {
+                <div class="search-results">
+                    @for (person of store.personResults(); track person.idPersona) {
+                    <button type="button" class="search-result" (click)="selectPerson(person)">
+                        <span><strong>{{ person.nombreCompleto }}</strong><small>{{ person.numeroDocumento || 'Sin
+                                documento' }} · {{ person.telefono || 'Sin teléfono' }}</small></span>
+                        <mat-icon>add_circle_outline</mat-icon>
+                    </button>
+                    }
+                </div>
+                }
+
+                @if (form.controls.nombre.value.trim() && !form.controls.idPersona.value) {
+                <div class="new-person-action">
+                    <span>¿No está registrada?</span>
+                    <button mat-stroked-button type="button" [disabled]="store.creatingPerson()"
+                        (click)="registerPerson()">
+                        <mat-icon>person_add</mat-icon>{{ store.creatingPerson() ? 'Registrando...' : 'Registrar
+                        persona' }}
+                    </button>
+                </div>
+                }
+                }
+            </div>
+        </section>
+
+        <section class="form-card">
+            <header class="section-header">
+                <div class="section-icon"><mat-icon>add_shopping_cart</mat-icon></div>
+                <div>
+                    <h2>Agregar a la venta</h2>
+                    <p>Busca productos o solicitudes de servicio pendientes.</p>
+                </div>
+            </header>
+
+            <div class="section-body lookup-grid">
+                <div class="lookup-panel">
+                    <h3>Producto</h3>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Código, nombre o SKU</mat-label>
+                        <input matInput formControlName="productoSearch" placeholder="Ej. vela">
+                        <mat-icon matSuffix>inventory_2</mat-icon>
+                    </mat-form-field>
+                    @if (store.productLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+                    @if (store.productResults().length > 0) {
+                    <div class="search-results compact">
+                        @for (product of store.productResults(); track product.idProducto) {
+                        <button type="button" class="search-result" (click)="selectProduct(product)">
+                            <span><strong>{{ product.codProducto }} · {{ product.nombre }}</strong><small>Stock {{
+                                    product.stockActual }} · S/ {{ product.precioVenta.toFixed(2) }}</small></span>
+                            <mat-icon>add_circle_outline</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+
+                <div class="lookup-panel">
+                    <h3>Servicio pendiente</h3>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Solicitud, servicio, nombre o documento</mat-label>
+                        <input matInput formControlName="servicioSearch" placeholder="Ej. SS2026-00025">
+                        <mat-icon matSuffix>church</mat-icon>
+                    </mat-form-field>
+                    @if (store.serviceLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+                    @if (store.serviceResults().length > 0) {
+                    <div class="search-results compact">
+                        @for (service of store.serviceResults(); track service.idSolicitudServicio) {
+                        <button type="button" class="search-result" (click)="selectService(service)">
+                            <span><strong>{{ service.codSolicitudServicio }} · {{ service.nombreServicio
+                                    }}</strong><small>{{ service.nombreCompleto || 'Sin persona' }} · S/ {{
+                                    service.importe.toFixed(2) }}</small></span>
+                            <mat-icon>add_circle_outline</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="form-card">
+            <header class="section-header">
+                <div class="section-icon"><mat-icon>receipt_long</mat-icon></div>
+                <div>
+                    <h2>Detalle de venta</h2>
+                    <p>Revisa cantidades e importes antes de registrar.</p>
+                </div>
+            </header>
+
+            <div class="section-body">
+                @if (store.items().length === 0) {
+                <div class="empty-detail"><mat-icon>shopping_basket</mat-icon><span>Aún no has agregado productos o
+                        servicios.</span></div>
+                } @else {
+                <div class="detail-table-wrap">
+                    <table class="detail-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Solicitante</th>
+                                <th>Cant.</th>
+                                <th>Precio</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (item of store.items(); track item.key) {
+                            <tr>
+                                <td><span class="type-chip">{{ item.tipoItem === 'PRODUCTO' ? 'Producto' : 'Servicio'
+                                        }}</span></td>
+                                <td><strong>{{ item.codigo }}</strong></td>
+                                <td>{{ item.descripcion }}</td>
+                                <td>{{ item.solicitante || '—' }}</td>
+                                <td>
+                                    @if (item.tipoItem === 'PRODUCTO') {
+                                    <div class="qty-field">
+
+                                        <input class="qty-input" [class.qty-input-invalid]="item.cantidadError"
+                                            type="number" min="1" [max]="item.stockActual ?? 999999"
+                                            [value]="item.cantidad"
+                                            (change)="updateQuantity(item.idProducto!,$any($event.target).value)">
+
+                                        @if (item.cantidadError) {
+                                        <small class="qty-error">
+                                            {{ item.cantidadError }}
+                                        </small>
+                                        }
+
+                                    </div>
+                                    } @else { 1 }
+                                </td>
+                                <td>S/ {{ item.precioUnitario.toFixed(2) }}</td>
+                                <td>
+                                    @if (item.cantidadError) {
+                                    <strong>—</strong>
+                                    } @else {
+                                    <strong> S/ {{ item.subtotal.toFixed(2) }} </strong>
+                                    }
+                                </td>
+                                <td><button mat-icon-button type="button" aria-label="Eliminar"
+                                        (click)="removeItem(item.key)"><mat-icon>delete_outline</mat-icon></button></td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="detail-total"><span>Total</span><strong>S/ {{ store.total().toFixed(2) }}</strong></div>
+                }
+            </div>
+        </section>
+
+        <section class="form-card">
+            <header class="section-header">
+                <div class="section-icon"><mat-icon>payments</mat-icon></div>
+                <div>
+                    <h2>Datos de cobro</h2>
+                    <p>Selecciona el comprobante y la forma de pago.</p>
+                </div>
+            </header>
+
+            <div class="section-body">
+                <div class="form-grid payment-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de comprobante</mat-label>
+                        <mat-select formControlName="idTipoComprobante">
+                            @for (tipo of store.tiposComprobante(); track tipo.idTipoComprobante) {
+                            <mat-option [value]="tipo.idTipoComprobante">{{ tipo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Método de pago</mat-label>
+                        <mat-select formControlName="idMetodoPago">
+                            @for (metodo of store.metodosPago(); track metodo.idMetodoPago) {
+                            <mat-option [value]="metodo.idMetodoPago">{{ metodo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                @if (isCash()) {
+                <div class="cash-summary">
+                    <div class="cash-total"><span>Total a pagar</span><strong>S/ {{ store.total().toFixed(2) }}</strong>
+                    </div>
+                    <mat-form-field appearance="outline">
+                        <mat-label> Monto recibido </mat-label>
+                        <span matTextPrefix> S/&nbsp; </span>
+                        <input matInput type="number" min="0" step="0.10" formControlName="montoRecibido">
+                        @if ( form.controls.montoRecibido .hasError('required') ) {
+                        <mat-error> Ingresa el monto recibido. </mat-error>
+                        }
+                        @if ( form.controls.montoRecibido .hasError('min') ) {
+                        <mat-error> El monto recibido no puede ser negativo. </mat-error>
+                        }
+                    </mat-form-field>
+                    <div class="cash-result" [class.missing]="missingAmount() > 0">
+                        <span> {{ missingAmount() > 0 ? 'Falta' : 'Vuelto' }} </span>
+                        <strong> S/ {{ ( missingAmount() > 0 ? missingAmount() : changeAmount() ).toFixed(2) }}
+                        </strong>
+                        @if ( form.controls.montoRecibido.value !== null && missingAmount() > 0 ) {
+                        <small> El monto recibido es menor al total de la venta. </small>
+                        }
+                    </div>
+                </div>
+                }
+
+                <mat-form-field appearance="outline" class="full-width observations">
+                    <mat-label>Observaciones</mat-label>
+                    <textarea matInput rows="3" formControlName="observaciones" maxlength="500"></textarea>
+                </mat-form-field>
+            </div>
+        </section>
+
+        <div class="form-actions">
+            <a mat-stroked-button routerLink="/ventas">Cancelar</a>
+            <button mat-flat-button type="button" data-testid="save-sale" [disabled]="!canSave()" (click)="save()">
+                <mat-icon>point_of_sale</mat-icon>{{ store.saving() ? 'Registrando...' : 'Registrar venta' }}
+            </button>
+        </div>
+    </form>
+</div>

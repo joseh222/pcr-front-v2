@@ -36,3 +36,21 @@ export interface PersonaSearchItem {
     readonly email: string | null;
     readonly rolesPersona: string | null;
 }
+
+export interface PersonaCreateRequest {
+    readonly idTipoDocumento: number | null;
+    readonly numeroDocumento: string | null;
+    readonly nombreCompleto: string | null;
+    readonly fechaNacimiento: string | null;
+    readonly telefono: string | null;
+    readonly email: string | null;
+    readonly direccion: string | null;
+    readonly roles: readonly number[];
+}
+
+export interface PersonaCreateResponse {
+    readonly idPersona: number;
+    readonly codPersona: string;
+    readonly rowVersion: string;
+    readonly mensaje: string;
+}
