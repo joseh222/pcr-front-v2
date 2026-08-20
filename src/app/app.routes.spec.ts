@@ -13,6 +13,10 @@ import { NotFound } from './shared/pages/not-found/not-found';
 import { AuthStore } from './features/auth/data-access/auth.store';
 import { ChangePasswordPage } from './features/auth/pages/change-password/change-password';
 import { DashboardPage } from './features/dashboard/pages/dashboard';
+import { of } from 'rxjs';
+import { MisaApiService } from './features/misas/data-access/misa-api.service';
+import { PersonaApiService } from './features/personas/data-access/persona-api.service';
+import { FeedbackService } from './core/feedback/feedback.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -45,13 +49,76 @@ describe('Application routes', () => {
         resolvedTheme: resolvedTheme.asReadonly(),
         setPreference: vi.fn()
     };
+    const personaApiMock = {
+        getTiposDocumento: vi.fn(() => of([
+            { idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }
+        ]))
+    };
+
+    const feedbackMock = {
+        success: vi.fn(),
+        error: vi.fn(),
+        warning: vi.fn(),
+        info: vi.fn()
+    };
+
+    const misaApiMock = {
+        getModalidades: vi.fn(() => of([])),
+        getTipos: vi.fn(() => of([])),
+        getEstados: vi.fn(() => of([])),
+        getSantos: vi.fn(() => of([])),
+        getList: vi.fn(() =>
+            of({
+                pagina: 1,
+                tamanoPagina: 20,
+                totalRegistros: 0,
+                totalPaginas: 0,
+                items: []
+            })
+        ),
+
+        getById: vi.fn(() => of({
+            idMisa: 15,
+            codMisa: 'M2026-00015',
+            modalidad: { idModalidad: 1, nombre: 'Personal' },
+            tipo: { idTipo: 2, codigo: 'DIFUNTO', nombre: 'Difunto' },
+            solicitante: null,
+            estado: null,
+            santo: null,
+            intenciones: [],
+            fecha: '2026-08-30T00:00:00',
+            hora: '18:00:00',
+            fechaHora: '2026-08-30T18:00:00',
+            observaciones: null,
+            motivo: null,
+            ofrecen: null,
+            celular: null,
+            devotos: null,
+            solicitudServicio: null,
+            puedeEditar: true,
+            puedeEliminar: true,
+            puedeCobrar: false
+        }))
+    };
 
     beforeEach(() => {
+        misaApiMock.getModalidades.mockClear();
+        misaApiMock.getTipos.mockClear();
+        misaApiMock.getEstados.mockClear();
+        misaApiMock.getList.mockClear();
+        misaApiMock.getById.mockClear();
+        misaApiMock.getSantos.mockClear();
         isAuthenticated.set(true);
         preference.set('system');
         resolvedTheme.set('light');
         mustChangePassword.set(false);
         themeServiceMock.setPreference.mockClear();
+        personaApiMock.getTiposDocumento.mockClear();
+        feedbackMock.success.mockClear();
+        feedbackMock.error.mockClear();
+        feedbackMock.warning.mockClear();
+        feedbackMock.info.mockClear();
+
         TestBed.configureTestingModule({
             providers: [
                 provideRouter(routes),
@@ -59,7 +126,10 @@ describe('Application routes', () => {
                     provide: ThemeService,
                     useValue: themeServiceMock
                 },
-                { provide: AuthStore, useValue: authStoreMock }
+                { provide: AuthStore, useValue: authStoreMock },
+                { provide: MisaApiService, useValue: misaApiMock },
+                { provide: PersonaApiService, useValue: personaApiMock },
+                { provide: FeedbackService, useValue: feedbackMock }
             ]
         });
     });
@@ -91,5 +161,30 @@ describe('Application routes', () => {
         await harness.navigateByUrl('/', ChangePasswordPage);
 
         expect(harness.routeNativeElement?.textContent).toContain('Cambiar contraseña');
+    });
+
+    it('should load misas inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+
+        await harness.navigateByUrl('/misas', AppShell);
+
+        expect(harness.routeNativeElement?.textContent).toContain('Misas');
+        expect(harness.routeNativeElement?.textContent).toContain(
+            'Consulta y administra las misas e intenciones parroquiales.'
+        );
+    });
+
+    it('should load the new misa page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/misas/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva misa');
+        expect(harness.routeNativeElement?.textContent).toContain('Registra una nueva misa e intenciones parroquiales.');
+    });
+
+    it('should load the edit misa page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/misas/15/editar', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Editar misa');
+        expect(harness.routeNativeElement?.textContent).toContain('Misa #15');
     });
 });
