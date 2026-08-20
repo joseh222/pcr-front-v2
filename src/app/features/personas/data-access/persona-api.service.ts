@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
-import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from './models/persona-api.models';
+import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from './models/persona-api.models';
 
 @Injectable({ providedIn: 'root' })
 export class PersonaApiService {
@@ -19,9 +19,17 @@ export class PersonaApiService {
         return this.http.get<PersonaLookup | null>(`${this.apiUrl}/by-document`, { params });
     }
 
+    getById(idPersona: number): Observable<PersonaLookup> {
+        return this.http.get<PersonaLookup>(`${this.apiUrl}/${idPersona}`);
+    }
+
     search(search: string, top = 10): Observable<readonly PersonaSearchItem[]> {
         const params = new HttpParams().set('search', search).set('top', top);
         return this.http.get<readonly PersonaSearchItem[]>(`${this.apiUrl}/search`, { params });
+    }
+
+    create(request: PersonaCreateRequest): Observable<PersonaCreateResponse> {
+        return this.http.post<PersonaCreateResponse>(this.apiUrl, request);
     }
 
     private get apiUrl(): string { return `${this.runtimeConfig.config.apiBaseUrl}/Persona`; }

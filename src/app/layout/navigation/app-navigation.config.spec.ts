@@ -68,4 +68,17 @@ describe('APP_NAVIGATION', () => {
             roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
         });
     });
+
+    it('should contain ventas in the gestion section', () => {
+        const gestion = APP_NAVIGATION.find(section => section.id === 'gestion');
+
+        expect(gestion?.items).toContainEqual({
+            id: 'ventas',
+            label: 'Ventas',
+            icon: 'point_of_sale',
+            route: '/ventas',
+            exact: true,
+            roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
+        });
+    });
 });

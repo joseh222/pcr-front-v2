@@ -1,0 +1,234 @@
+:host {
+    display: block;
+}
+
+.page-shell {
+    display: grid;
+    gap: 1rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.eyebrow {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    opacity: .65;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-top: .2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.page-header p {
+    margin: .35rem 0 0;
+    opacity: .68;
+}
+
+.header-actions {
+    display: flex;
+    gap: .6rem;
+    flex-shrink: 0;
+}
+
+.status-badge {
+    display: inline-flex;
+    padding: .25rem .65rem;
+    border-radius: 999px;
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.status-badge.cancelled {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.detail-card,
+.state-card {
+    overflow: hidden;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: 1rem;
+    background: var(--mat-sys-surface-container-lowest);
+}
+
+.detail-card>header {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.detail-card header h2 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.detail-card header p {
+    margin: .15rem 0 0;
+    font-size: .75rem;
+    opacity: .65;
+}
+
+.detail-card header mat-icon {
+    color: var(--mat-sys-primary);
+}
+
+.detail-body {
+    padding: 1rem 1.15rem;
+}
+
+.info-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.info-list div {
+    display: grid;
+    gap: .2rem;
+    min-width: 0;
+}
+
+.info-list span {
+    font-size: .72rem;
+    opacity: .62;
+}
+
+.info-list strong {
+    overflow-wrap: anywhere;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.detail-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+}
+
+.detail-table th,
+.detail-table td {
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    text-align: left;
+    font-size: .82rem;
+}
+
+.detail-table th {
+    font-size: .72rem;
+    opacity: .65;
+}
+
+.type-chip {
+    display: inline-flex;
+    padding: .2rem .5rem;
+    border-radius: 999px;
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+    font-size: .68rem;
+    font-weight: 700;
+}
+
+.totals {
+    display: grid;
+    gap: .5rem;
+    margin-left: auto;
+    width: min(100%, 330px);
+    padding: 1rem 1.15rem;
+}
+
+.totals div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.grand-total {
+    padding-top: .6rem;
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    font-size: 1.1rem;
+}
+
+.observation-text {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.cancellation-card {
+    border-color: color-mix(in srgb, var(--mat-sys-error) 35%, var(--mat-sys-outline-variant));
+}
+
+.cancellation-card header mat-icon {
+    color: var(--mat-sys-error);
+}
+
+.cancellation-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.full-row {
+    grid-column: 1 / -1;
+}
+
+.state-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    min-height: 12rem;
+    padding: 2rem;
+}
+
+.state-card p {
+    margin: .25rem 0 0;
+}
+
+.error-state {
+    color: var(--mat-sys-error);
+}
+
+@media (max-width: 760px) {
+    .page-header {
+        flex-direction: column;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .info-grid,
+    .info-list,
+    .cancellation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-row {
+        grid-column: auto;
+    }
+}

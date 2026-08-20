@@ -1,0 +1,205 @@
+<section class="page-shell" data-testid="venta-detail-page">
+
+    @if (store.loading()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    } @else if (store.error()) {
+    <div class="state-card error-state">
+        <mat-icon>error_outline</mat-icon>
+        <div>
+            <strong>No se pudo cargar la venta.</strong>
+            <p>{{ store.error() }}</p>
+        </div>
+    </div>
+    } @else if (store.detail(); as venta) {
+
+    <header class="page-header">
+        <div>
+            <span class="eyebrow">VENTA</span>
+
+            <div class="title-row">
+                <h1>{{ venta.codVenta }}</h1>
+
+                <span class="status-badge" [class.cancelled]="venta.codigoEstadoVenta === 'ANULADA'">
+                    {{ venta.nombreEstadoVenta }}
+                </span>
+            </div>
+
+            <p>
+                {{ venta.fechaVentaUtc | date:'dd/MM/yyyy HH:mm':'-0500' }}
+                · {{ venta.numeroComprobante }}
+            </p>
+        </div>
+
+        <div class="header-actions">
+            <a mat-stroked-button routerLink="/ventas">
+                <mat-icon>arrow_back</mat-icon>
+                Volver
+            </a>
+
+            @if (venta.puedeAnular) {
+            <button mat-flat-button type="button" (click)="cancel()">
+                <mat-icon>cancel</mat-icon>
+                Anular venta
+            </button>
+            }
+        </div>
+    </header>
+
+    <section class="info-grid">
+        <article class="detail-card">
+            <header>
+                <mat-icon>person</mat-icon>
+                <h2>Cliente</h2>
+            </header>
+
+            <div class="detail-body info-list">
+                <div>
+                    <span>Nombre</span>
+                    <strong>{{ venta.nombreCliente || 'Sin cliente' }}</strong>
+                </div>
+
+                <div>
+                    <span>Documento</span>
+                    <strong>{{ venta.tipoDocumentoCliente || '—' }} {{ venta.numeroDocumentoCliente || '' }}</strong>
+                </div>
+
+                <div>
+                    <span>Teléfono</span>
+                    <strong>{{ venta.telefonoCliente || '—' }}</strong>
+                </div>
+            </div>
+        </article>
+
+        <article class="detail-card">
+            <header>
+                <mat-icon>payments</mat-icon>
+                <h2>Comprobante y pago</h2>
+            </header>
+
+            <div class="detail-body info-list">
+                <div>
+                    <span>Comprobante</span>
+                    <strong>{{ venta.numeroComprobante }}</strong>
+                </div>
+
+                <div>
+                    <span>Tipo</span>
+                    <strong>{{ venta.nombreTipoComprobante }}</strong>
+                </div>
+
+                <div>
+                    <span>Método</span>
+                    <strong>{{ venta.nombreMetodoPago }}</strong>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <article class="detail-card">
+        <header>
+            <mat-icon>receipt_long</mat-icon>
+            <div>
+                <h2>Detalle de venta</h2>
+                <p>{{ venta.cantidadDetalles }} detalle{{ venta.cantidadDetalles === 1 ? '' : 's' }}</p>
+            </div>
+        </header>
+
+        <div class="table-wrap">
+            <table class="detail-table">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Código</th>
+                        <th>Descripción</th>
+                        <th>Cant.</th>
+                        <th>Precio unit.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (item of venta.detalles; track item.idVentaDetalle) {
+                    <tr>
+                        <td>
+                            <span class="type-chip">{{ item.tipoItem }}</span>
+                        </td>
+                        <td>{{ itemCode(item) }}</td>
+                        <td>{{ item.descripcion }}</td>
+                        <td>{{ item.cantidad }}</td>
+                        <td>{{ item.precioUnitario | currency:'PEN':'symbol':'1.2-2' }}</td>
+                        <td>
+                            <strong>{{ item.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <div>
+                <span>Subtotal</span>
+                <strong>{{ venta.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong>
+            </div>
+
+            @if (venta.impuesto > 0) {
+            <div>
+                <span>Impuesto</span>
+                <strong>{{ venta.impuesto | currency:'PEN':'symbol':'1.2-2' }}</strong>
+            </div>
+            }
+
+            <div class="grand-total">
+                <span>Total</span>
+                <strong>{{ venta.total | currency:'PEN':'symbol':'1.2-2' }}</strong>
+            </div>
+        </div>
+    </article>
+
+    @if (venta.observaciones) {
+    <article class="detail-card">
+        <header>
+            <mat-icon>notes</mat-icon>
+            <h2>Observaciones</h2>
+        </header>
+
+        <div class="detail-body">
+            <p class="observation-text">{{ venta.observaciones }}</p>
+        </div>
+    </article>
+    }
+
+    @if (venta.codigoEstadoVenta === 'ANULADA') {
+    <article class="detail-card cancellation-card">
+        <header>
+            <mat-icon>cancel</mat-icon>
+            <h2>Anulación</h2>
+        </header>
+
+        <div class="detail-body info-list cancellation-grid">
+            <div>
+                <span>Razón</span>
+                <strong>{{ venta.nombreRazonAnulacion || '—' }}</strong>
+            </div>
+
+            <div>
+                <span>Fecha</span>
+                <strong>
+                    {{ venta.anuladaUtc
+                    ? (venta.anuladaUtc | date:'dd/MM/yyyy HH:mm':'-0500')
+                    : '—'
+                    }}
+                </strong>
+            </div>
+
+            <div class="full-row">
+                <span>Motivo</span>
+                <strong>{{ venta.motivoAnulacion || 'Sin detalle adicional.' }}</strong>
+            </div>
+        </div>
+    </article>
+    }
+
+    }
+
+</section>

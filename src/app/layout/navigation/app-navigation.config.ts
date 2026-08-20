@@ -27,6 +27,14 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
                 route: '/misas',
                 exact: true,
                 roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
+            },
+            {
+                id: 'ventas',
+                label: 'Ventas',
+                icon: 'point_of_sale',
+                route: '/ventas',
+                exact: true,
+                roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
             }
         ]
     }

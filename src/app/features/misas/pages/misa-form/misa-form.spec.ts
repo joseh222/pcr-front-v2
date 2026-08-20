@@ -6,6 +6,8 @@ import { MisaFormStore } from '../../data-access/models/misa-form.store';
 import { MisaFormPage } from './misa-form';
 import { By } from '@angular/platform-browser';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { MatDialog } from '@angular/material/dialog';
+import { EMPTY, of } from 'rxjs';
 
 describe('MisaFormPage', () => {
     const modalidades = signal([{ idModalidad: 1, nombre: 'Personal' }]);
@@ -41,6 +43,9 @@ describe('MisaFormPage', () => {
         info: vi.fn()
     };
 
+    const dialogMock = {
+        open: vi.fn(() => ({ afterClosed: () => EMPTY }))
+    };
     const storeMock = {
         modalidades: modalidades.asReadonly(),
         tipos: tipos.asReadonly(),
@@ -102,6 +107,8 @@ describe('MisaFormPage', () => {
         feedbackMock.error.mockClear();
         feedbackMock.warning.mockClear();
         feedbackMock.info.mockClear();
+        dialogMock.open.mockClear();
+        dialogMock.open.mockReturnValue({ afterClosed: () => EMPTY });
     });
 
     it('should initialize create mode', async () => {
@@ -311,26 +318,25 @@ describe('MisaFormPage', () => {
         );
     });
 
-    it('should indicate pending payment after creating a payable misa', async () => {
+    it('should ask whether to sell after creating a payable misa', async () => {
         const fixture = await createFixture({});
-        const component = fixture.componentInstance;
 
-        const message = component['getSaveSuccessMessage']({
+        saveResult.set({
             idMisa: 25,
             codMisa: 'M2026-00025',
             idSolicitudServicio: 100,
-            codSolicitudServicio: 'SOL-000100',
+            codSolicitudServicio: 'SS2026-00100',
             requierePago: true,
             importe: 30,
             estadoPago: 'PENDIENTE',
             mensaje: 'Misa registrada correctamente.'
-        }, false);
+        });
+        fixture.detectChanges();
 
-        expect(message).toBe(
-            'Misa registrada correctamente. Pago pendiente.'
-        );
+        expect(dialogMock.open).toHaveBeenCalledOnce();
+        expect(storeMock.clearSaveResult).toHaveBeenCalledOnce();
     });
-    
+
     it('should use backend update success message', async () => {
         const fixture = await createFixture({ id: '25' });
         const component = fixture.componentInstance;
@@ -357,16 +363,22 @@ describe('MisaFormPage', () => {
             providers: [
                 provideRouter([]),
                 { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
-                ,
                 {
                     provide: FeedbackService,
                     useValue: feedbackMock
-                }
+                },
+                { provide: MatDialog, useValue: dialogMock }
             ]
         });
 
         TestBed.overrideComponent(MisaFormPage, {
-            set: { providers: [{ provide: MisaFormStore, useValue: storeMock }] }
+            set: {
+                providers: [
+                    { provide: MisaFormStore, useValue: storeMock },
+                    { provide: FeedbackService, useValue: feedbackMock },
+                    { provide: MatDialog, useValue: dialogMock }
+                ]
+            }
         });
 
         await TestBed.compileComponents();

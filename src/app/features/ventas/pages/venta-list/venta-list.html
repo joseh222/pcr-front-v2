@@ -1,0 +1,234 @@
+<section class="venta-list-page" data-testid="venta-list-page">
+    <header class="page-header">
+        <div>
+            <p class="page-eyebrow"> Gestión </p>
+            <h1 class="page-title"> Ventas </h1>
+            <p class="page-description"> Consulta las ventas registradas, sus clientes, comprobantes e importes.
+            </p>
+        </div>
+        <div class="page-header-actions">
+            <button mat-icon-button type="button" aria-label="Recargar ventas" (click)="reload()">
+                <mat-icon> refresh </mat-icon>
+            </button>
+            <a mat-flat-button routerLink="/ventas/nueva">
+                <mat-icon>add</mat-icon>
+                Nueva venta
+            </a>
+        </div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field class="filter-search" appearance="outline">
+                <mat-label>Buscar</mat-label>
+                <mat-icon matPrefix> search </mat-icon>
+                <input matInput formControlName="texto" placeholder="Venta, cliente, documento, producto o servicio">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Desde</mat-label>
+                <input matInput type="date" formControlName="fechaInicio">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Hasta</mat-label>
+                <input matInput type="date" formControlName="fechaFin">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>
+                    Método de pago
+                </mat-label>
+                <mat-select formControlName="idMetodoPago">
+                    <mat-option [value]="null"> Todos </mat-option>
+                    @for ( metodo of store.metodosPago(); track metodo.idMetodoPago ) {
+                    <mat-option [value]="metodo.idMetodoPago">
+                        {{ metodo.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label> Comprobante </mat-label>
+                <mat-select formControlName="idTipoComprobante">
+                    <mat-option [value]="null"> Todos </mat-option>
+                    @for ( tipo of store.tiposComprobante(); track tipo.idTipoComprobante ) {
+                    <mat-option [value]="tipo.idTipoComprobante">
+                        {{ tipo.nombre }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label> Contenido </mat-label>
+                <mat-select formControlName="tipoItem">
+                    <mat-option [value]="null"> Todos </mat-option>
+                    @for ( item of itemTypes; track item.value ) {
+                    <mat-option [value]="item.value">
+                        {{ item.label }}
+                    </mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+            <button mat-stroked-button type="button" (click)="clearFilters()">
+                <mat-icon> filter_alt_off </mat-icon>
+                Limpiar
+            </button>
+            <button mat-flat-button type="submit">
+                <mat-icon> search </mat-icon>
+                Buscar
+            </button>
+        </div>
+
+    </form>
+
+    @if (store.catalogsError()) {
+    <div class="catalog-error">
+        <mat-icon>warning_amber</mat-icon>
+        <span>{{ store.catalogsError() }}</span>
+    </div>
+    }
+
+    <section class="table-card">
+        <div class="table-header">
+            <div>
+                <h2>Resultados</h2>
+                <p>
+                    {{ store.totalRegistros() }} registro{{ store.totalRegistros() === 1 ? '' : 's' }}
+                </p>
+            </div>
+        </div>
+
+        @if (store.loading()) {
+        <mat-progress-bar mode="indeterminate"> </mat-progress-bar>
+        } @else if (store.error()) {
+        <div class="message-state error-state">
+            <mat-icon> error_outline </mat-icon>
+            <div>
+                <strong> No se pudieron cargar las ventas. </strong>
+                <p> {{ store.error() }} </p>
+            </div>
+        </div>
+        } @else if (store.isEmpty()) {
+        <div class="message-state">
+            <mat-icon> receipt_long </mat-icon>
+            <div>
+                <strong> No se encontraron ventas. </strong>
+                <p> Prueba modificando los filtros de búsqueda. </p>
+            </div>
+        </div>
+        } @else {
+        <div class="table-wrapper">
+            <table mat-table [dataSource]="store.items()" class="venta-table">
+                <ng-container matColumnDef="codigo">
+                    <th mat-header-cell *matHeaderCellDef>
+                        Venta
+                    </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <strong> {{ venta.codVenta }} </strong>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="fecha">
+                    <th mat-header-cell *matHeaderCellDef> Fecha </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <div class="cell-primary"> {{ venta.fechaVentaUtc | date:'dd/MM/yyyy':'-0500' }} </div>
+                        <div class="cell-secondary"> {{ venta.fechaVentaUtc | date:'HH:mm':'-0500' }} </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="cliente">
+                    <th mat-header-cell *matHeaderCellDef> Cliente </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <div class="cell-primary"> {{ venta.nombreCliente || 'Sin cliente' }} </div>
+                        @if ( venta.numeroDocumentoCliente ) {
+                        <div class="cell-secondary">
+                            {{ venta.tipoDocumentoCliente || '' }}
+                            {{ venta.numeroDocumentoCliente }}
+                        </div>
+                        }
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="comprobante">
+                    <th mat-header-cell *matHeaderCellDef> Comprobante </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <div class="cell-primary"> {{ venta.numeroComprobante }} </div>
+                        <div class="cell-secondary"> {{ venta.nombreTipoComprobante }} </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="metodoPago">
+                    <th mat-header-cell *matHeaderCellDef> Pago </th>
+                    <td mat-cell *matCellDef="let venta"> {{ venta.nombreMetodoPago }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="contenido">
+                    <th mat-header-cell *matHeaderCellDef> Detalle </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <div class="cell-primary">
+                            {{ contentLabel( venta.tieneProductos, venta.tieneServicios ) }}
+                        </div>
+                        <div class="cell-secondary">
+                            {{ venta.cantidadDetalles }}
+                            detalle{{ venta.cantidadDetalles === 1 ? '' : 's' }}
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef> Estado </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <span class="status-badge"
+                            [class.status-badge-cancelled]="venta.codigoEstadoVenta ==='ANULADA'">
+                            {{ venta.nombreEstadoVenta }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="total">
+                    <th mat-header-cell *matHeaderCellDef> Total </th>
+                    <td mat-cell *matCellDef="let venta">
+                        <strong> {{ venta.total | currency:'PEN':'symbol':'1.2-2' }} </strong>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                    <td mat-cell *matCellDef="let venta">
+                        <div class="row-actions">
+                            <a mat-icon-button [routerLink]="['/ventas', venta.idVenta]"
+                                [attr.aria-label]="'Ver ' + venta.codVenta" title="Ver venta">
+                                <mat-icon>visibility</mat-icon>
+                            </a>
+                            @if (venta.puedeAnular) {
+                            <button mat-icon-button type="button" [attr.aria-label]="'Anular ' + venta.codVenta"
+                                title="Anular venta" (click)="cancelSale(venta)">
+                                <mat-icon>cancel</mat-icon>
+                            </button>
+                            }
+
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"> </tr>
+                <tr mat-row *matRowDef="let row;columns:displayedColumns"> </tr>
+            </table>
+        </div>
+
+        <mat-paginator class="venta-paginator" [length]="store.totalRegistros()" [pageIndex]="store.pagina() - 1"
+            [pageSize]="store.tamanoPagina()" [pageSizeOptions]="[10,20,50,100]" [showFirstLastButtons]="true"
+            (page)="onPage($event)">
+        </mat-paginator>
+
+        }
+
+    </section>
+
+</section>

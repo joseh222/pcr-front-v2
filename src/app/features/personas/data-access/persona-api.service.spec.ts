@@ -39,6 +39,14 @@ describe('PersonaApiService', () => {
         request.flush(null);
     });
 
+
+    it('should request a person by id', () => {
+        service.getById(25).subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/25`);
+        expect(request.request.method).toBe('GET');
+        request.flush({ idPersona: 25 });
+    });
+
     it('should search persons by text', () => {
         service.search('JOSE', 10).subscribe();
         const request = httpTesting.expectOne(req => req.url === `${apiUrl}/search`);
@@ -46,4 +54,18 @@ describe('PersonaApiService', () => {
         expect(request.request.params.get('top')).toBe('10');
         request.flush([]);
     });
+
+    it('should create a person', () => {
+        const payload = {
+            idTipoDocumento: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE HUAMAN',
+            fechaNacimiento: null, telefono: '999999999', email: null, direccion: null, roles: []
+        };
+
+        service.create(payload).subscribe();
+        const request = httpTesting.expectOne(apiUrl);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual(payload);
+        request.flush({ idPersona: 25, codPersona: 'PER-25', rowVersion: '', mensaje: 'OK' });
+    });
+
 });

@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from 
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -17,6 +18,8 @@ import { EMPTY_MISA_INTENTION_RULE, MisaIntentionRule, resolveMisaIntentionRule 
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MisaCreateRequest, MisaUpdateRequest, MisaWriteResponse } from '../../data-access/models/misa-write.models';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
+
 
 type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nombre: FormControl<string>; observacion: FormControl<string>; }>;
 
@@ -32,7 +35,8 @@ type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nomb
         MatSelectModule,
         MatAutocompleteModule,
         RouterLink,
-        MatCheckboxModule],
+        MatCheckboxModule,
+        MatDialogModule],
     providers: [MisaFormStore],
     templateUrl: './misa-form.html',
     styleUrl: './misa-form.scss'
@@ -43,6 +47,7 @@ export class MisaFormPage implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
+    private readonly dialog = inject(MatDialog);
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
@@ -406,17 +411,39 @@ export class MisaFormPage implements OnInit {
 
     private readonly syncSaveResult = effect(() => {
         const result = this.store.saveResult();
-
         if (!result) return;
 
         const wasEditMode = this.isEditMode();
-        const message = this.getSaveSuccessMessage(result, wasEditMode);
-
         this.store.clearSaveResult();
 
-        void this.router.navigate(['/misas']).then(() => {
-            this.feedback.success(message);
-        });
+        if (!wasEditMode && result.requierePago) {
+            const dialogRef = this.dialog.open(ConfirmActionDialog, {
+                width: '440px',
+                disableClose: true,
+                data: {
+                    title: 'Misa registrada',
+                    message: 'La misa se registró correctamente y quedó pendiente de pago. ¿Deseas registrar la venta ahora?',
+                    cancelText: 'Más tarde',
+                    confirmText: 'Vender ahora',
+                    icon: 'check_circle'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe(sellNow => {
+                if (sellNow) {
+                    void this.router.navigate(['/ventas/nueva'], {
+                        queryParams: { solicitudServicioId: result.idSolicitudServicio, origen: 'misa' }
+                    });
+                    return;
+                }
+
+                void this.router.navigate(['/misas']);
+            });
+            return;
+        }
+
+        const message = this.getSaveSuccessMessage(result, wasEditMode);
+        void this.router.navigate(['/misas']).then(() => this.feedback.success(message));
     });
 
     private readonly syncSaveError = effect(() => {
@@ -436,6 +463,6 @@ export class MisaFormPage implements OnInit {
 
         const message = backendMessage || 'Misa registrada correctamente.';
 
-        return result.requierePago ? `${message} Pago pendiente.` : message;
+        return message;
     }
 }

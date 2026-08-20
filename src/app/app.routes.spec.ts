@@ -17,6 +17,8 @@ import { of } from 'rxjs';
 import { MisaApiService } from './features/misas/data-access/misa-api.service';
 import { PersonaApiService } from './features/personas/data-access/persona-api.service';
 import { FeedbackService } from './core/feedback/feedback.service';
+import { VentaApiService } from './features/ventas/data-access/venta-api.service';
+import { VentaCancellationService } from './features/ventas/data-access/venta-cancellation.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -52,7 +54,11 @@ describe('Application routes', () => {
     const personaApiMock = {
         getTiposDocumento: vi.fn(() => of([
             { idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }
-        ]))
+        ])),
+        getById: vi.fn(() => of(null)),
+        getByDocument: vi.fn(() => of(null)),
+        search: vi.fn(() => of([])),
+        create: vi.fn(() => of({ idPersona: 1, codPersona: 'PER-1', rowVersion: '', mensaje: 'OK' }))
     };
 
     const feedbackMock = {
@@ -60,6 +66,62 @@ describe('Application routes', () => {
         error: vi.fn(),
         warning: vi.fn(),
         info: vi.fn()
+    };
+
+    const ventaApiMock = {
+        getMetodosPago: vi.fn(() => of([{ idMetodoPago: 1, codigo: 'EFECTIVO', nombre: 'Efectivo', isActive: true }])),
+        getTiposComprobante: vi.fn(() => of([{ idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true }])),
+        getSolicitudById: vi.fn(() => of(null)),
+        searchProductos: vi.fn(() => of([])),
+        searchServiciosPendientes: vi.fn(() => of([])),
+        create: vi.fn(() => of({})),
+
+        getList: vi.fn(() =>
+            of({
+                pagina: 1,
+                tamanoPagina: 20,
+                totalRegistros: 0,
+                totalPaginas: 0,
+                items: []
+            })
+        ),
+
+        getById: vi.fn(() => of({
+            idVenta: 15,
+            codVenta: 'V2026-00015',
+            fechaVentaUtc: '2026-08-20T15:00:00Z',
+            nombreEstadoVenta: 'Emitida',
+            codigoEstadoVenta: 'EMITIDA',
+            numeroComprobante: 'R001-000015',
+            nombreCliente: 'JOSE',
+            tipoDocumentoCliente: 'DNI',
+            numeroDocumentoCliente: '12345678',
+            telefonoCliente: null,
+            nombreTipoComprobante: 'Recibo interno',
+            nombreMetodoPago: 'Efectivo',
+            cantidadDetalles: 1,
+            subTotal: 30,
+            impuesto: 0,
+            total: 30,
+            observaciones: null,
+            puedeAnular: true,
+            rowVersion: 'AAAAAAAABQ=',
+            nombreRazonAnulacion: null,
+            anuladaUtc: null,
+            motivoAnulacion: null,
+            detalles: [{
+                idVentaDetalle: 1,
+                tipoItem: 'SERVICIO',
+                idProducto: null,
+                idSolicitudServicio: 25,
+                codigo: 'MISA',
+                referencia: 'SS2026-00025',
+                descripcion: 'Misa',
+                cantidad: 1,
+                precioUnitario: 30,
+                subTotal: 30
+            }]
+        })),
     };
 
     const misaApiMock = {
@@ -101,6 +163,10 @@ describe('Application routes', () => {
         }))
     };
 
+    const cancellationMock = {
+        cancel: vi.fn(() => of(null))
+    };
+
     beforeEach(() => {
         misaApiMock.getModalidades.mockClear();
         misaApiMock.getTipos.mockClear();
@@ -113,7 +179,8 @@ describe('Application routes', () => {
         resolvedTheme.set('light');
         mustChangePassword.set(false);
         themeServiceMock.setPreference.mockClear();
-        personaApiMock.getTiposDocumento.mockClear();
+        Object.values(personaApiMock).forEach(mock => mock.mockClear());
+        Object.values(ventaApiMock).forEach(mock => mock.mockClear());
         feedbackMock.success.mockClear();
         feedbackMock.error.mockClear();
         feedbackMock.warning.mockClear();
@@ -129,7 +196,9 @@ describe('Application routes', () => {
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: MisaApiService, useValue: misaApiMock },
                 { provide: PersonaApiService, useValue: personaApiMock },
-                { provide: FeedbackService, useValue: feedbackMock }
+                { provide: VentaApiService, useValue: ventaApiMock },
+                { provide: FeedbackService, useValue: feedbackMock },
+                { provide: VentaCancellationService, useValue: cancellationMock }
             ]
         });
     });
@@ -174,6 +243,13 @@ describe('Application routes', () => {
         );
     });
 
+    it('should load the new sale page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/ventas/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva venta');
+        expect(harness.routeNativeElement?.textContent).toContain('Detalle de venta');
+    });
+
     it('should load the new misa page inside the application shell', async () => {
         const harness = await RouterTestingHarness.create();
         await harness.navigateByUrl('/misas/nueva', AppShell);
@@ -186,5 +262,24 @@ describe('Application routes', () => {
         await harness.navigateByUrl('/misas/15/editar', AppShell);
         expect(harness.routeNativeElement?.textContent).toContain('Editar misa');
         expect(harness.routeNativeElement?.textContent).toContain('Misa #15');
+    });
+
+    it('should load sales inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+
+        await harness.navigateByUrl('/ventas', AppShell);
+
+        expect(harness.routeNativeElement?.textContent).toContain('Ventas');
+        expect(harness.routeNativeElement?.textContent)
+            .toContain('Consulta las ventas registradas');
+    });
+
+    it('should load sale detail inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+
+        await harness.navigateByUrl('/ventas/15', AppShell);
+
+        expect(harness.routeNativeElement?.textContent).toContain('V2026-00015');
+        expect(harness.routeNativeElement?.textContent).toContain('SS2026-00025');
     });
 });
