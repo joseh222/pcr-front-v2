@@ -272,9 +272,6 @@
                             @if (intention.controls.observacion.hasError('maxlength')) { <mat-error>Máximo 200
                                 caracteres.</mat-error> }
                         </mat-form-field>
-                        @if (intention.controls.observacion.hasError('maxlength')) {
-                        <mat-error>Máximo 200 caracteres.</mat-error>
-                        }
                         }
 
                         <button mat-icon-button type="button" aria-label="Eliminar intención"
@@ -358,6 +355,45 @@
 
         </section>
         }
+        <section class="form-card" data-testid="misa-commercial-status">
+
+            <header class="form-section-header">
+                <div class="form-section-icon"><mat-icon>receipt_long</mat-icon></div>
+                <div>
+                    <h2>Situación comercial</h2>
+                    <p>Indica si esta misa quedará pendiente de cobro.</p>
+                </div>
+            </header>
+
+            <div class="form-section-body">
+
+                <mat-checkbox formControlName="requierePago" (change)="onRequiresPaymentChange()">
+                    Requiere pago
+                </mat-checkbox>
+
+                <p class="commercial-help">
+                    @if (form.controls.requierePago.value) {
+                    La misa quedará disponible para ser cobrada posteriormente desde Ventas.
+                    } @else {
+                    Esta misa no generará una obligación pendiente de pago.
+                    }
+                </p>
+
+                @if (!form.controls.requierePago.value) {
+                <mat-form-field class="full-width" appearance="outline">
+                    <mat-label>Motivo de no cobro</mat-label>
+                    <input matInput formControlName="motivoNoPago" maxlength="250"
+                        placeholder="Ej. AUTORIZADO POR EL PÁRROCO">
+
+                    @if (form.controls.motivoNoPago.touched && form.controls.motivoNoPago.hasError('required')) {
+                    <mat-error>Indica el motivo por el cual no requiere pago.</mat-error>
+                    }
+                </mat-form-field>
+                }
+
+            </div>
+
+        </section>
         <section class="form-card">
             <header class="form-section-header">
                 <div class="form-section-icon"><mat-icon>notes</mat-icon></div>
@@ -375,6 +411,38 @@
             </div>
         </section>
 
+        @if (store.saveError()) {
+        <div class="form-error" data-testid="misa-save-error">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ store.saveError() }}</span>
+        </div>
+        }
+
+        <div class="form-actions">
+
+            <a mat-stroked-button routerLink="/misas">
+                Cancelar
+            </a>
+
+            @if (!isEditMode() || store.detail()?.puedeEditar !== false) {
+            <button mat-flat-button type="button" data-testid="save-misa" [disabled]="store.saving()" (click)="save()">
+
+                @if (store.saving()) {
+                <ng-container>
+                    <mat-icon>hourglass_top</mat-icon>
+                </ng-container>
+                Guardando...
+                } @else {
+                <ng-container>
+                    <mat-icon>save</mat-icon>
+                </ng-container>
+                {{ isEditMode() ? 'Guardar cambios' : 'Registrar misa' }}
+                }
+
+            </button>
+            }
+
+        </div>
     </form>
     }
 </section>

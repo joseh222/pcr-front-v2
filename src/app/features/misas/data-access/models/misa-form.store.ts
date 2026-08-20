@@ -8,6 +8,7 @@ import { MisaModalidad, MisaSanto, MisaTipo } from './misa-catalog.models';
 import { MisaDetail } from './misa-read.models';
 import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
+import { MisaCreateRequest, MisaUpdateRequest, MisaWriteResponse } from './misa-write.models';
 
 @Injectable()
 export class MisaFormStore {
@@ -52,6 +53,14 @@ export class MisaFormStore {
     private readonly santosSignal = signal<readonly MisaSanto[]>([]);
     readonly santos = this.santosSignal.asReadonly();
 
+    private readonly savingSignal = signal(false);
+    private readonly saveErrorSignal = signal<string | null>(null);
+    private readonly saveResultSignal = signal<MisaWriteResponse | null>(null);
+
+    readonly saving = this.savingSignal.asReadonly();
+    readonly saveError = this.saveErrorSignal.asReadonly();
+    readonly saveResult = this.saveResultSignal.asReadonly();
+
     initialize(idMisa: number | null): void {
         this.loadingSignal.set(true);
         this.errorSignal.set(null);
@@ -80,7 +89,7 @@ export class MisaFormStore {
             });
     }
 
-    private getErrorMessage(error: unknown): string {
+    private getErrorMessage(error: unknown, fallback = 'No se pudo cargar la información de la misa.'): string {
         if (error instanceof HttpErrorResponse) {
             const detail = error.error?.detail;
             const message = error.error?.message;
@@ -88,7 +97,7 @@ export class MisaFormStore {
             if (typeof message === 'string' && message.trim()) return message.trim();
         }
 
-        return 'No se pudo cargar la información de la misa.';
+        return fallback;
     }
 
     findPersonByDocument(idTipoDocumento: number, numeroDocumento: string): void {
@@ -160,5 +169,48 @@ export class MisaFormStore {
         this.personSearchResultsSignal.set([]);
         this.personSearchLoadingSignal.set(false);
         this.personSearchErrorSignal.set(null);
+    }
+
+    create(request: MisaCreateRequest): void {
+        this.savingSignal.set(true);
+        this.saveErrorSignal.set(null);
+        this.saveResultSignal.set(null);
+
+        this.api.create(request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: result => {
+                    this.savingSignal.set(false);
+                    this.saveResultSignal.set(result);
+                },
+                error: error => {
+                    this.savingSignal.set(false);
+                    this.saveErrorSignal.set(this.getErrorMessage(error, 'No se pudo registrar la misa.'));
+                }
+            });
+    }
+
+    update(idMisa: number, request: MisaUpdateRequest): void {
+        this.savingSignal.set(true);
+        this.saveErrorSignal.set(null);
+        this.saveResultSignal.set(null);
+
+        this.api.update(idMisa, request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: result => {
+                    this.savingSignal.set(false);
+                    this.saveResultSignal.set(result);
+                },
+                error: error => {
+                    this.savingSignal.set(false);
+                    this.saveErrorSignal.set(this.getErrorMessage(error, 'No se pudo actualizar la misa.'));
+                }
+            });
+    }
+
+    clearSaveResult(): void {
+        this.saveResultSignal.set(null);
+        this.saveErrorSignal.set(null);
     }
 }

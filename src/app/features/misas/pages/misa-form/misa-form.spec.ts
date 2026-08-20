@@ -28,6 +28,11 @@ describe('MisaFormPage', () => {
     const santos = signal([
         { idSanto: 1, nombre: 'San Judas Tadeo' }
     ]);
+
+    const saving = signal(false);
+    const saveError = signal<string | null>(null);
+    const saveResult = signal<any>(null);
+
     const storeMock = {
         modalidades: modalidades.asReadonly(),
         tipos: tipos.asReadonly(),
@@ -50,6 +55,14 @@ describe('MisaFormPage', () => {
         searchPersons: vi.fn(),
         clearPersonSearch: vi.fn(),
         santos: santos.asReadonly(),
+
+        saving: saving.asReadonly(),
+        saveError: saveError.asReadonly(),
+        saveResult: saveResult.asReadonly(),
+
+        create: vi.fn(),
+        update: vi.fn(),
+        clearSaveResult: vi.fn(),
     };
 
     beforeEach(() => {
@@ -68,6 +81,14 @@ describe('MisaFormPage', () => {
         personSearchError.set(null);
         storeMock.searchPersons.mockClear();
         storeMock.clearPersonSearch.mockClear();
+
+        saving.set(false);
+        saveError.set(null);
+        saveResult.set(null);
+
+        storeMock.create.mockClear();
+        storeMock.update.mockClear();
+        storeMock.clearSaveResult.mockClear();
     });
 
     it('should initialize create mode', async () => {
@@ -92,6 +113,16 @@ describe('MisaFormPage', () => {
             intenciones: [
                 { idIntencion: 70, nombre: 'CARLOS PEREZ', observacion: null }
             ],
+            solicitudServicio: {
+                idSolicitudServicio: 50,
+                codSolicitudServicio: 'SOL-000050',
+                requierePago: true,
+                importe: 30,
+                motivoNoPago: null,
+                estadoSolicitud: 'ACTIVA',
+                estadoPago: 'PENDIENTE'
+            },
+            puedeEditar: true,
         });
 
         const fixture = await createFixture({ id: '25' });
@@ -107,7 +138,9 @@ describe('MisaFormPage', () => {
             ofrecen: 'FAMILIA HUAMAN',
             celular: '999999999',
             devotos: '',
-            intenciones: [{ idIntencion: 70, nombre: "CARLOS PEREZ", observacion: "" }]
+            intenciones: [{ idIntencion: 70, nombre: "CARLOS PEREZ", observacion: "" }],
+            requierePago: true,
+            motivoNoPago: '',
         });
         expect(component.form.controls.intenciones.length).toBe(1);
         expect(component.form.controls.intenciones.at(0).controls.idIntencion.value).toBe(70);
@@ -205,6 +238,50 @@ describe('MisaFormPage', () => {
         component['addIntention']();
 
         expect(component.form.controls.intenciones.length).toBe(3);
+    });
+
+    it('should require a reason when misa does not require payment', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        component.form.controls.requierePago.setValue(false);
+        component['onRequiresPaymentChange']();
+
+        expect(component.form.controls.motivoNoPago.hasError('required')).toBe(true);
+
+        component.form.controls.motivoNoPago.setValue('AUTORIZADO POR EL PARROCO');
+
+        expect(component.form.controls.motivoNoPago.valid).toBe(true);
+    });
+
+    it('should build a create request without intention ids', async () => {
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        component.form.patchValue({
+            idModalidad: 1,
+            idTipo: 2,
+            fecha: '2026-08-30',
+            hora: '18:00',
+            nombre: 'JOSE HUAMAN',
+            requierePago: true
+        });
+
+        component['onMisaContextChanged']();
+        component.form.controls.intenciones.at(0).controls.nombre.setValue('CARLOS PEREZ');
+
+        const request = component['buildCreateRequest']();
+
+        expect(request.intenciones).toEqual([
+            {
+                nombre: 'CARLOS PEREZ',
+                observacion: null
+            }
+        ]);
+
+        expect(request.hora).toBe('18:00:00');
+        expect(request.requierePago).toBe(true);
+        expect(request.motivoNoPago).toBeNull();
     });
 
     async function createFixture(params: Record<string, string>) {

@@ -16,6 +16,8 @@ describe('MisaFormStore', () => {
     const getByDocumentMock = vi.fn();
     const searchPersonsMock = vi.fn();
     const getSantosMock = vi.fn();
+    const createMock = vi.fn();
+    const updateMock = vi.fn();
 
     beforeEach(() => {
         getModalidadesMock.mockReset();
@@ -32,14 +34,25 @@ describe('MisaFormStore', () => {
         getSantosMock.mockReturnValue(of([
             { idSanto: 1, nombre: 'San Judas Tadeo' }
         ]));
+        createMock.mockReset();
+        updateMock.mockReset();
         TestBed.configureTestingModule({
             providers: [
                 MisaFormStore,
                 {
                     provide: MisaApiService,
-                    useValue: { getModalidades: getModalidadesMock, getTipos: getTiposMock, getById: getByIdMock, getSantos: getSantosMock }
+                    useValue: {
+                        getModalidades: getModalidadesMock,
+                        getTipos: getTiposMock,
+                        getById: getByIdMock,
+                        getSantos: getSantosMock,
+                        create: createMock,
+                        update: updateMock
+                    }
                 },
-                { provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock, search: searchPersonsMock } }
+                {
+                    provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock, search: searchPersonsMock },
+                }
             ]
         });
 
@@ -143,5 +156,46 @@ describe('MisaFormStore', () => {
         expect(store.santos()).toEqual([
             { idSanto: 1, nombre: 'San Judas Tadeo' }
         ]);
+    });
+
+    it('should create a misa', () => {
+        const request = {} as any;
+
+        createMock.mockReturnValue(of({
+            idMisa: 20,
+            codMisa: 'M2026-00020',
+            idSolicitudServicio: 50,
+            codSolicitudServicio: 'SOL-000050',
+            requierePago: true,
+            importe: 30,
+            estadoPago: 'PENDIENTE',
+            mensaje: 'Misa registrada correctamente.'
+        }));
+
+        store.create(request);
+
+        expect(createMock).toHaveBeenCalledWith(request);
+        expect(store.saving()).toBe(false);
+        expect(store.saveResult()?.idMisa).toBe(20);
+    });
+
+    it('should update a misa', () => {
+        const request = {} as any;
+
+        updateMock.mockReturnValue(of({
+            idMisa: 20,
+            codMisa: 'M2026-00020',
+            idSolicitudServicio: 50,
+            codSolicitudServicio: 'SOL-000050',
+            requierePago: true,
+            importe: 30,
+            estadoPago: 'PENDIENTE',
+            mensaje: 'Misa actualizada correctamente.'
+        }));
+
+        store.update(20, request);
+
+        expect(updateMock).toHaveBeenCalledWith(20, request);
+        expect(store.saving()).toBe(false);
     });
 });

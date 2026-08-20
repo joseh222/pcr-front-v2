@@ -14,6 +14,8 @@ import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 import { EMPTY_MISA_INTENTION_RULE, MisaIntentionRule, resolveMisaIntentionRule } from '../../domain/misa-intention.rules';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MisaCreateRequest, MisaUpdateRequest } from '../../data-access/models/misa-write.models';
 
 type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nombre: FormControl<string>; observacion: FormControl<string>; }>;
 
@@ -28,7 +30,8 @@ type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nomb
         MatProgressBarModule,
         MatSelectModule,
         MatAutocompleteModule,
-        RouterLink],
+        RouterLink,
+        MatCheckboxModule],
     providers: [MisaFormStore],
     templateUrl: './misa-form.html',
     styleUrl: './misa-form.scss'
@@ -65,6 +68,9 @@ export class MisaFormPage implements OnInit {
         celular: this.fb.nonNullable.control('', Validators.maxLength(20)),
         devotos: this.fb.nonNullable.control('', Validators.maxLength(500)),
 
+        requierePago: this.fb.nonNullable.control(true),
+        motivoNoPago: this.fb.nonNullable.control('', Validators.maxLength(250)),
+
         observaciones: this.fb.nonNullable.control('')
     });
 
@@ -93,14 +99,27 @@ export class MisaFormPage implements OnInit {
             ofrecen: detail.ofrecen ?? '',
             celular: detail.celular ?? '',
             devotos: detail.devotos ?? '',
+
+            requierePago: detail.solicitudServicio?.requierePago ?? true,
+            motivoNoPago: detail.solicitudServicio?.motivoNoPago ?? '',
+
             observaciones: detail.observaciones ?? ''
-        }, { emitEvent: false });
+        }, { emitEvent: false }
+        );
+
+        if (!detail.puedeEditar) {
+            this.form.disable({ emitEvent: false });
+        } else {
+            this.form.enable({ emitEvent: false });
+        }
 
         this.updateDocumentRules();
-
+        this.onRequiresPaymentChange();
         this.setIntentions(detail.intenciones ?? []);
         this.applyIntentionRules(false);
     });
+
+
 
     private readonly syncDocumentPerson = effect(() => {
         const person = this.store.documentPerson();
@@ -281,4 +300,113 @@ export class MisaFormPage implements OnInit {
         this.store.clearDocumentPerson();
         this.store.clearPersonSearch();
     }
+
+    protected onRequiresPaymentChange(): void {
+        const control = this.form.controls.motivoNoPago;
+
+        if (this.form.controls.requierePago.value) {
+            control.setValue('', { emitEvent: false });
+            control.setValidators(Validators.maxLength(250));
+        } else {
+            control.setValidators([Validators.required, Validators.maxLength(250)]);
+        }
+
+        control.updateValueAndValidity({ emitEvent: false });
+    }
+
+    private nullableText(value: string): string | null {
+        const text = value.trim();
+        return text || null;
+    }
+
+    private apiTime(value: string): string {
+        return value.length === 5 ? `${value}:00` : value;
+    }
+
+    private buildCommonRequest() {
+        const value = this.form.getRawValue();
+
+        return {
+            modalidad: { idModalidad: value.idModalidad! },
+            tipo: { idTipo: value.idTipo! },
+
+            solicitante: {
+                idPersona: value.idPersona,
+                idTipoDocumento: value.idTipoDocumento,
+                numeroDocumento: this.nullableText(value.numeroDocumento),
+                nombre: this.nullableText(value.nombre),
+                telefono: this.nullableText(value.telefono)
+            },
+
+            fecha: value.fecha,
+            hora: this.apiTime(value.hora),
+
+            observaciones: this.nullableText(value.observaciones),
+
+            requierePago: value.requierePago,
+            motivoNoPago: value.requierePago ? null : this.nullableText(value.motivoNoPago),
+
+            motivo: this.nullableText(value.motivo),
+            ofrecen: this.nullableText(value.ofrecen),
+            celular: this.nullableText(value.celular),
+            devotos: this.nullableText(value.devotos),
+
+            santo: value.idSanto ? { idSanto: value.idSanto } : null
+        };
+    }
+
+    private buildCreateRequest(): MisaCreateRequest {
+        const value = this.form.getRawValue();
+
+        return {
+            ...this.buildCommonRequest(),
+
+            intenciones: value.intenciones.map(item => ({
+                nombre: item.nombre.trim(),
+                observacion: this.nullableText(item.observacion)
+            }))
+        };
+    }
+
+    private buildUpdateRequest(): MisaUpdateRequest {
+        const value = this.form.getRawValue();
+
+        return {
+            ...this.buildCommonRequest(),
+
+            intenciones: value.intenciones.map(item => ({
+                idIntencion: item.idIntencion,
+                nombre: item.nombre.trim(),
+                observacion: this.nullableText(item.observacion)
+            }))
+        };
+    }
+
+    protected save(): void {
+        this.onRequiresPaymentChange();
+
+        if (this.form.invalid) {
+            this.form.markAllAsTouched();
+            return;
+        }
+
+        const idMisa = this.idMisa();
+
+        if (idMisa === null) {
+            this.store.create(this.buildCreateRequest());
+            return;
+        }
+
+        if (this.store.detail()?.puedeEditar === false) return;
+
+        this.store.update(idMisa, this.buildUpdateRequest());
+    }
+
+    private readonly syncSaveResult = effect(() => {
+        const result = this.store.saveResult();
+        if (!result) return;
+
+        this.store.clearSaveResult();
+        void this.router.navigate(['/misas']);
+    });
 }
