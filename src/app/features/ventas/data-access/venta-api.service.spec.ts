@@ -103,4 +103,35 @@ describe('VentaApiService', () => {
             items: []
         });
     });
+
+    it('should request cancellation reasons and sale detail', () => {
+        service.getRazonesAnulacion().subscribe();
+
+        let request = httpTesting.expectOne(`${apiBaseUrl}/Venta/razones-anulacion`);
+        expect(request.request.method).toBe('GET');
+        request.flush([]);
+
+        service.getById(15).subscribe();
+
+        request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15`);
+        expect(request.request.method).toBe('GET');
+        request.flush({ idVenta: 15, detalles: [] });
+    });
+
+    it('should cancel a sale', () => {
+        const payload = {
+            idRazonAnulacion: 1,
+            motivoAnulacion: 'Error de cobro',
+            rowVersion: 'AAAAAAAABQ='
+        };
+
+        service.cancel(15, payload).subscribe();
+
+        const request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/anular`);
+
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual(payload);
+
+        request.flush({ idVenta: 15 });
+    });
 });

@@ -11,7 +11,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { VentaListStore } from '../../data-access/models/venta-list.store';
-import { VentaListFilters, VentaTipoItemFiltro } from '../../data-access/models/venta-read.models';
+import { VentaListFilters, VentaListItem, VentaTipoItemFiltro } from '../../data-access/models/venta-read.models';
+import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
 
 @Component({
     selector: 'pcr-venta-list',
@@ -39,6 +40,8 @@ export class VentaListPage implements OnInit {
 
     protected readonly store = inject(VentaListStore);
     private readonly fb = inject(FormBuilder);
+    private readonly cancellation = inject(VentaCancellationService);
+
     readonly filterForm = this.fb.group({
         texto: this.fb.nonNullable.control(''),
         fechaInicio: this.fb.control<string | null>(null),
@@ -57,7 +60,8 @@ export class VentaListPage implements OnInit {
             'metodoPago',
             'contenido',
             'estado',
-            'total'
+            'total',
+            'acciones'
         ];
 
     protected readonly itemTypes = [
@@ -102,6 +106,14 @@ export class VentaListPage implements OnInit {
             return;
         }
         this.store.changePage(event.pageIndex + 1);
+    }
+
+    protected cancelSale(venta: VentaListItem): void {
+        if (!venta.puedeAnular) return;
+
+        this.cancellation.cancel(venta).subscribe(result => {
+            if (result) this.store.reload();
+        });
     }
 
     protected contentLabel(tieneProductos: boolean, tieneServicios: boolean): string {

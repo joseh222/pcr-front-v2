@@ -82,3 +82,20 @@ export interface VentaPagedResponse {
     readonly items:
     readonly VentaListItem[];
 }
+
+export interface VentaDetailItem {
+    readonly idVentaDetalle: number;
+    readonly tipoItem: string;
+    readonly idProducto: number | null;
+    readonly idSolicitudServicio: number | null;
+    readonly codigo: string;
+    readonly referencia: string | null;
+    readonly descripcion: string;
+    readonly cantidad: number;
+    readonly precioUnitario: number;
+    readonly subTotal: number;
+}
+
+export interface VentaDetailResponse extends VentaListItem {
+    readonly detalles: readonly VentaDetailItem[];
+}

@@ -4,6 +4,8 @@ import { provideRouter } from '@angular/router';
 
 import { VentaListStore } from '../../data-access/models/venta-list.store';
 import { VentaListPage } from './venta-list';
+import { of } from 'rxjs';
+import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
 
 describe('VentaListPage', () => {
     const loading = signal(false);
@@ -13,6 +15,10 @@ describe('VentaListPage', () => {
     const totalRegistros = signal(0);
     const pagina = signal(1);
     const tamanoPagina = signal(20);
+
+    const cancellationMock = {
+        cancel: vi.fn(() => of({ idVenta: 1 }))
+    };
 
     const storeMock = {
         loading: loading.asReadonly(),
@@ -42,6 +48,7 @@ describe('VentaListPage', () => {
         totalRegistros.set(0);
         pagina.set(1);
         tamanoPagina.set(20);
+        cancellationMock.cancel.mockClear();
 
         Object.values(storeMock).forEach(value => {
             if (typeof value === 'function' && 'mockClear' in value) {
@@ -57,7 +64,8 @@ describe('VentaListPage', () => {
         TestBed.overrideComponent(VentaListPage, {
             set: {
                 providers: [
-                    { provide: VentaListStore, useValue: storeMock }
+                    { provide: VentaListStore, useValue: storeMock },
+                    { provide: VentaCancellationService, useValue: cancellationMock }
                 ]
             }
         });
@@ -100,5 +108,24 @@ describe('VentaListPage', () => {
         expect(
             fixture.componentInstance['contentLabel'](true, true)
         ).toBe('Productos + servicios');
+    });
+
+    it('should cancel an emitted sale and reload the list', () => {
+        const fixture = TestBed.createComponent(VentaListPage);
+
+        fixture.detectChanges();
+        storeMock.reload.mockClear();
+
+        const venta = {
+            idVenta: 1,
+            codVenta: 'V2026-00001',
+            rowVersion: 'AAAAAAAABQ=',
+            puedeAnular: true
+        } as any;
+
+        fixture.componentInstance['cancelSale'](venta);
+
+        expect(cancellationMock.cancel).toHaveBeenCalledWith(venta);
+        expect(storeMock.reload).toHaveBeenCalledOnce();
     });
 });

@@ -6,7 +6,8 @@ import { RuntimeConfigService } from '../../../core/config/runtime-config.servic
 import { VentaMetodoPago, VentaTipoComprobante } from './models/venta-catalog.models';
 import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente } from './models/venta-lookup.models';
 import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
-import { VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
+import { VentaDetailResponse, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
+import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
 
 @Injectable({ providedIn: 'root' })
 export class VentaApiService {
@@ -19,6 +20,10 @@ export class VentaApiService {
 
     getTiposComprobante(): Observable<readonly VentaTipoComprobante[]> {
         return this.http.get<readonly VentaTipoComprobante[]>(`${this.ventaUrl}/tipos-comprobante`);
+    }
+
+    getRazonesAnulacion(): Observable<readonly VentaRazonAnulacion[]> {
+        return this.http.get<readonly VentaRazonAnulacion[]>(`${this.ventaUrl}/razones-anulacion`);
     }
 
     searchServiciosPendientes(search: string, top = 20): Observable<readonly VentaSolicitudPendiente[]> {
@@ -37,6 +42,14 @@ export class VentaApiService {
 
     create(request: VentaCreateRequest): Observable<VentaCreateResponse> {
         return this.http.post<VentaCreateResponse>(this.ventaUrl, request);
+    }
+
+    getById(idVenta: number): Observable<VentaDetailResponse> {
+        return this.http.get<VentaDetailResponse>(`${this.ventaUrl}/${idVenta}`);
+    }
+
+    cancel(idVenta: number, request: VentaCancelRequest): Observable<VentaCancelResponse> {
+        return this.http.patch<VentaCancelResponse>(`${this.ventaUrl}/${idVenta}/anular`, request);
     }
 
     getList(query: VentaListQuery): Observable<VentaPagedResponse> {

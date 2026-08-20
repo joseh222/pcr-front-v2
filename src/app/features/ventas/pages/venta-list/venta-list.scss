@@ -185,8 +185,12 @@
 }
 
 .mat-column-acciones {
-    width: 5rem;
+    width: 7rem;
     text-align: right;
+}
+
+.row-actions button mat-icon {
+    color: var(--mat-sys-error);
 }
 
 @media (max-width: 1023px) {
