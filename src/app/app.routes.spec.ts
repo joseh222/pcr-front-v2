@@ -19,6 +19,8 @@ import { PersonaApiService } from './features/personas/data-access/persona-api.s
 import { FeedbackService } from './core/feedback/feedback.service';
 import { VentaApiService } from './features/ventas/data-access/venta-api.service';
 import { VentaCancellationService } from './features/ventas/data-access/venta-cancellation.service';
+import { ProductoApiService } from './features/productos/data-access/producto-api.service';
+import { ProductoStatusService } from './features/productos/data-access/producto-status.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -166,6 +168,18 @@ describe('Application routes', () => {
     const cancellationMock = {
         cancel: vi.fn(() => of(null))
     };
+    const productoApiMock = {
+        getCategorias: vi.fn(() => of([{ idCategoriaProducto: 1, codigo: 'VELAS', nombre: 'Velas', descripcion: null, isActive: true, rowVersion: 'A' }])),
+        getMarcas: vi.fn(() => of([])),
+        getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getById: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', idCategoriaProducto: 1, codigoCategoria: 'VELAS', nombreCategoria: 'Velas', idMarcaProducto: null, codigoMarca: null, nombreMarca: null, nombre: 'Vela', sku: 'VEL-001', descripcion: null, precioCompra: 2, precioVenta: 5, stockActual: 10, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A', stockRowVersion: 'B' })),
+        create: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'A', mensaje: 'OK' })),
+        update: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'B', mensaje: 'OK' })),
+        changeStatus: vi.fn(() => of({ idProducto: 5, isActive: false, rowVersion: 'B', mensaje: 'OK' }))
+    };
+
+    const productoStatusMock = { change: vi.fn(() => of(null)) };
+
 
     beforeEach(() => {
         misaApiMock.getModalidades.mockClear();
@@ -181,6 +195,8 @@ describe('Application routes', () => {
         themeServiceMock.setPreference.mockClear();
         Object.values(personaApiMock).forEach(mock => mock.mockClear());
         Object.values(ventaApiMock).forEach(mock => mock.mockClear());
+        Object.values(productoApiMock).forEach(mock => mock.mockClear());
+        productoStatusMock.change.mockClear();
         feedbackMock.success.mockClear();
         feedbackMock.error.mockClear();
         feedbackMock.warning.mockClear();
@@ -198,7 +214,9 @@ describe('Application routes', () => {
                 { provide: PersonaApiService, useValue: personaApiMock },
                 { provide: VentaApiService, useValue: ventaApiMock },
                 { provide: FeedbackService, useValue: feedbackMock },
-                { provide: VentaCancellationService, useValue: cancellationMock }
+                { provide: VentaCancellationService, useValue: cancellationMock },
+                { provide: ProductoApiService, useValue: productoApiMock },
+                { provide: ProductoStatusService, useValue: productoStatusMock }
             ]
         });
     });
@@ -282,4 +300,22 @@ describe('Application routes', () => {
         expect(harness.routeNativeElement?.textContent).toContain('V2026-00015');
         expect(harness.routeNativeElement?.textContent).toContain('SS2026-00025');
     });
+
+
+    it('should load products inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/productos', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Productos');
+        expect(harness.routeNativeElement?.textContent).toContain('Administra el catálogo comercial');
+    });
+
+    it('should load new and edit product pages inside the application shell', async () => {
+    const harness = await RouterTestingHarness.create();
+
+    await harness.navigateByUrl('/productos/nuevo', AppShell);
+    expect(harness.routeNativeElement?.textContent).toContain('Nuevo producto');
+
+    await harness.navigateByUrl('/productos/5/editar', AppShell);
+    expect(harness.routeNativeElement?.textContent).toContain('Editar producto');
+});
 });

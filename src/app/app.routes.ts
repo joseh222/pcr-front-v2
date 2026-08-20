@@ -27,6 +27,21 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
             },
             {
+                path: 'productos/nuevo',
+                title: 'Nuevo producto | PCR Front V2',
+                loadComponent: () => import('./features/productos/pages/producto-form/producto-form').then(module => module.ProductoFormPage)
+            },
+            {
+                path: 'productos/:id/editar',
+                title: 'Editar producto | PCR Front V2',
+                loadComponent: () => import('./features/productos/pages/producto-form/producto-form').then(module => module.ProductoFormPage)
+            },
+            {
+                path: 'productos',
+                title: 'Productos | PCR Front V2',
+                loadComponent: () => import('./features/productos/pages/producto-list/producto-list').then(module => module.ProductoListPage)
+            },
+            {
                 path: 'ventas/nueva',
                 title: 'Nueva venta | PCR Front V2',
                 loadComponent: () => import('./features/ventas/pages/venta-form/venta-form').then(module => module.VentaFormPage)

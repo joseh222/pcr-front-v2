@@ -81,4 +81,13 @@ describe('APP_NAVIGATION', () => {
             roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
         });
     });
+
+    it('should contain productos in the inventario section', () => {
+        const inventario = APP_NAVIGATION.find(section => section.id === 'inventario');
+        expect(inventario?.items).toContainEqual({
+            id: 'productos', label: 'Productos', icon: 'inventory_2', route: '/productos', exact: true,
+            roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER]
+        });
+    });
+
 });
