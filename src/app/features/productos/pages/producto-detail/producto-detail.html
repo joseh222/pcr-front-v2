@@ -1,0 +1,49 @@
+<section class="page-shell" data-testid="producto-detail-page">
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.error()) {
+        <div class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudo cargar el producto.</strong><p>{{ store.error() }}</p></div></div>
+    } @else if (store.detail(); as producto) {
+        <header class="page-header">
+            <div><p class="eyebrow">PRODUCTO</p><div class="title-row"><h1>{{ producto.nombre }}</h1><span class="status-badge" [class.inactive]="!producto.isActive">{{ producto.isActive ? 'Activo' : 'Inactivo' }}</span></div><p>{{ producto.codProducto }} · {{ producto.sku || 'Sin SKU' }}</p></div>
+            <div class="header-actions">
+                <a mat-stroked-button routerLink="/productos"><mat-icon>arrow_back</mat-icon>Volver</a>
+                <a mat-stroked-button [routerLink]="['/productos', producto.idProducto, 'editar']"><mat-icon>edit</mat-icon>Editar</a>
+                <a mat-flat-button [routerLink]="['/productos', producto.idProducto, 'movimiento']"><mat-icon>sync_alt</mat-icon>Registrar movimiento</a>
+            </div>
+        </header>
+
+        <section class="info-grid">
+            <article class="detail-card"><header><mat-icon>inventory_2</mat-icon><h2>Información comercial</h2></header><div class="detail-body info-list">
+                <div><span>Categoría</span><strong>{{ producto.nombreCategoria }}</strong></div><div><span>Marca</span><strong>{{ producto.nombreMarca || '—' }}</strong></div>
+                <div><span>Precio compra</span><strong>{{ producto.precioCompra == null ? '—' : (producto.precioCompra | currency:'PEN':'symbol':'1.2-2') }}</strong></div><div><span>Precio venta</span><strong>{{ producto.precioVenta | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                <div class="full-row"><span>Descripción</span><strong>{{ producto.descripcion || 'Sin descripción.' }}</strong></div>
+            </div></article>
+
+            @if (store.inventory(); as inventory) {
+                <article class="detail-card inventory-card"><header><mat-icon>warehouse</mat-icon><h2>Inventario</h2></header><div class="detail-body inventory-body">
+                    <div class="stock-block"><span>Stock actual</span><strong [class.stock-empty]="inventory.stockActual <= 0">{{ inventory.stockActual }}</strong></div>
+                    <div class="inventory-meta"><div><span>Último movimiento</span><strong>{{ inventory.fechaUltimoMovimiento ? (inventory.fechaUltimoMovimiento | date:'dd/MM/yyyy HH:mm':'-0500') : 'Sin movimientos' }}</strong></div><div><span>Última actualización</span><strong>{{ inventory.updatedUtc ? (inventory.updatedUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div></div>
+                </div></article>
+            }
+        </section>
+
+        <article class="detail-card history-card">
+            <header><mat-icon>history</mat-icon><div><h2>Historial de movimientos</h2><p>{{ movements.totalRecords() }} movimiento{{ movements.totalRecords() === 1 ? '' : 's' }}</p></div><a mat-stroked-button routerLink="/inventario/movimientos" [queryParams]="{ productoId: producto.idProducto }"><mat-icon>open_in_new</mat-icon>Ver historial global</a></header>
+            @if (movements.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+            @else if (movements.error()) { <div class="history-state error-state"><mat-icon>error_outline</mat-icon><span>{{ movements.error() }}</span></div> }
+            @else if (movements.isEmpty()) { <div class="history-state"><mat-icon>inventory</mat-icon><span>Este producto todavía no tiene movimientos.</span></div> }
+            @else {
+                <div class="table-wrapper"><table mat-table [dataSource]="movements.items()" class="history-table">
+                    <ng-container matColumnDef="fecha"><th mat-header-cell *matHeaderCellDef>Fecha</th><td mat-cell *matCellDef="let item"><strong>{{ item.createdUtc | date:'dd/MM/yyyy':'-0500' }}</strong><small>{{ item.createdUtc | date:'HH:mm':'-0500' }}</small></td></ng-container>
+                    <ng-container matColumnDef="movimiento"><th mat-header-cell *matHeaderCellDef>Movimiento</th><td mat-cell *matCellDef="let item"><span class="type-badge" [class.output]="item.naturaleza === 'S'">{{ item.nombreTipoMovimiento }}</span></td></ng-container>
+                    <ng-container matColumnDef="cantidad"><th mat-header-cell *matHeaderCellDef>Cantidad</th><td mat-cell *matCellDef="let item"><strong>{{ item.naturaleza === 'E' ? '+' : '-' }}{{ item.cantidad }}</strong></td></ng-container>
+                    <ng-container matColumnDef="stock"><th mat-header-cell *matHeaderCellDef>Stock</th><td mat-cell *matCellDef="let item">{{ item.stockAnterior }} → <strong>{{ item.stockNuevo }}</strong></td></ng-container>
+                    <ng-container matColumnDef="costo"><th mat-header-cell *matHeaderCellDef>Costo unit.</th><td mat-cell *matCellDef="let item">{{ item.costoUnitario == null ? '—' : (item.costoUnitario | currency:'PEN':'symbol':'1.2-2') }}</td></ng-container>
+                    <ng-container matColumnDef="motivo"><th mat-header-cell *matHeaderCellDef>Motivo</th><td mat-cell *matCellDef="let item">{{ item.motivo || '—' }}</td></ng-container>
+                    <tr mat-header-row *matHeaderRowDef="movementColumns"></tr><tr mat-row *matRowDef="let row; columns: movementColumns"></tr>
+                </table></div>
+                <mat-paginator [length]="movements.totalRecords()" [pageIndex]="movements.pageNumber() - 1" [pageSize]="movements.pageSize()" [pageSizeOptions]="[10,20,50]" [showFirstLastButtons]="true" (page)="onMovementPage($event)"></mat-paginator>
+            }
+        </article>
+    }
+</section>

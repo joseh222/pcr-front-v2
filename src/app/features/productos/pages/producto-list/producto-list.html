@@ -1,0 +1,82 @@
+<section class="producto-list-page" data-testid="producto-list-page">
+    <header class="page-header">
+        <div>
+            <p class="page-eyebrow">INVENTARIO</p>
+            <h1 class="page-title">Productos</h1>
+            <p class="page-description">Administra el catálogo comercial de productos y consulta su stock actual.</p>
+        </div>
+        <div class="page-header-actions">
+            <button mat-icon-button type="button" aria-label="Recargar productos" (click)="reload()"><mat-icon>refresh</mat-icon></button>
+            <a mat-flat-button routerLink="/productos/nuevo"><mat-icon>add</mat-icon>Nuevo producto</a>
+        </div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline" class="filter-search">
+                <mat-label>Buscar</mat-label><mat-icon matPrefix>search</mat-icon>
+                <input matInput formControlName="search" maxlength="150" placeholder="Código, SKU, nombre, categoría o marca">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Categoría</mat-label>
+                <mat-select formControlName="idCategoriaProducto">
+                    <mat-option [value]="null">Todas</mat-option>
+                    @for (categoria of store.categorias(); track categoria.idCategoriaProducto) { <mat-option [value]="categoria.idCategoriaProducto">{{ categoria.nombre }}</mat-option> }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Marca</mat-label>
+                <mat-select formControlName="idMarcaProducto">
+                    <mat-option [value]="null">Todas</mat-option>
+                    @for (marca of store.marcas(); track marca.idMarcaProducto) { <mat-option [value]="marca.idMarcaProducto">{{ marca.nombre }}</mat-option> }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="isActive">
+                    <mat-option [value]="null">Todos</mat-option>
+                    <mat-option [value]="true">Activos</mat-option>
+                    <mat-option [value]="false">Inactivos</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+        <div class="filter-actions">
+            <button mat-stroked-button type="button" (click)="clearFilters()"><mat-icon>filter_alt_off</mat-icon>Limpiar</button>
+            <button mat-flat-button type="submit"><mat-icon>search</mat-icon>Buscar</button>
+        </div>
+    </form>
+
+    @if (store.catalogsError()) { <div class="catalog-error"><mat-icon>warning_amber</mat-icon><span>{{ store.catalogsError() }}</span></div> }
+
+    <section class="table-card">
+        <div class="table-header"><div><h2>Resultados</h2><p>{{ store.totalRecords() }} registro{{ store.totalRecords() === 1 ? '' : 's' }}</p></div></div>
+        @if (store.loading() || store.catalogsLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+        @if (store.error()) {
+            <div class="message-state error-state"><mat-icon>error_outline</mat-icon><div><strong>No pudimos cargar los productos</strong><p>{{ store.error() }}</p></div><button mat-stroked-button type="button" (click)="reload()">Reintentar</button></div>
+        } @else if (store.isEmpty()) {
+            <div class="message-state"><mat-icon>inventory_2</mat-icon><div><strong>No se encontraron productos</strong><p>Prueba modificando los filtros de búsqueda.</p></div></div>
+        } @else if (store.items().length > 0) {
+            <div class="table-wrapper">
+                <table mat-table [dataSource]="store.items()" class="producto-table">
+                    <ng-container matColumnDef="codigo"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let producto"><strong>{{ producto.codProducto }}</strong><div class="cell-secondary">{{ producto.sku || 'Sin SKU' }}</div></td></ng-container>
+                    <ng-container matColumnDef="producto"><th mat-header-cell *matHeaderCellDef>Producto</th><td mat-cell *matCellDef="let producto"><div class="cell-primary">{{ producto.nombre }}</div><div class="cell-secondary description">{{ producto.descripcion || 'Sin descripción' }}</div></td></ng-container>
+                    <ng-container matColumnDef="categoria"><th mat-header-cell *matHeaderCellDef>Categoría</th><td mat-cell *matCellDef="let producto">{{ producto.nombreCategoria }}</td></ng-container>
+                    <ng-container matColumnDef="marca"><th mat-header-cell *matHeaderCellDef>Marca</th><td mat-cell *matCellDef="let producto">{{ producto.nombreMarca || '—' }}</td></ng-container>
+                    <ng-container matColumnDef="precio"><th mat-header-cell *matHeaderCellDef>Precio venta</th><td mat-cell *matCellDef="let producto"><strong>{{ producto.precioVenta | currency:'PEN':'symbol':'1.2-2' }}</strong></td></ng-container>
+                    <ng-container matColumnDef="stock"><th mat-header-cell *matHeaderCellDef>Stock</th><td mat-cell *matCellDef="let producto"><span class="stock-badge" [class.stock-empty]="producto.stockActual <= 0">{{ producto.stockActual }}</span></td></ng-container>
+                    <ng-container matColumnDef="estado"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let producto"><span class="status-badge" [class.inactive]="!producto.isActive">{{ producto.isActive ? 'Activo' : 'Inactivo' }}</span></td></ng-container>
+                    <ng-container matColumnDef="acciones">
+                        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+                        <td mat-cell *matCellDef="let producto"><div class="row-actions">
+                            <a mat-icon-button [routerLink]="['/productos', producto.idProducto]" [attr.aria-label]="'Ver ' + producto.nombre" title="Ver producto"><mat-icon>visibility</mat-icon></a>
+                            <a mat-icon-button [routerLink]="['/productos', producto.idProducto, 'editar']" [attr.aria-label]="'Editar ' + producto.nombre" title="Editar producto"><mat-icon>edit</mat-icon></a>
+                            <button mat-icon-button type="button" [attr.aria-label]="(producto.isActive ? 'Desactivar ' : 'Activar ') + producto.nombre" [title]="producto.isActive ? 'Desactivar producto' : 'Activar producto'" (click)="changeStatus(producto)"><mat-icon>{{ producto.isActive ? 'block' : 'check_circle' }}</mat-icon></button>
+                        </div></td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+            </div>
+            <mat-paginator [length]="store.totalRecords()" [pageIndex]="store.pageNumber() - 1" [pageSize]="store.pageSize()" [pageSizeOptions]="[10,20,50,100]" [showFirstLastButtons]="true" (page)="onPage($event)"></mat-paginator>
+        }
+    </section>
+</section>
