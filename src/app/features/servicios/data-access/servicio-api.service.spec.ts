@@ -33,6 +33,15 @@ describe('ServicioApiService', () => {
         request.flush({ items: [], pageNumber: 2, pageSize: 20, totalRecords: 0, totalPages: 0 });
     });
 
+    it('should search active services', () => {
+        service.search('const', 10).subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Servicio/search`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('search')).toBe('const');
+        expect(request.request.params.get('top')).toBe('10');
+        request.flush([]);
+    });
+
     it('should create, update and change service status', () => {
         const create = { codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: null, modoPrecio: 'FIJO' as const, precioBase: 15 };
         service.create(create).subscribe(); let request = httpTesting.expectOne(`${apiBaseUrl}/Servicio`); expect(request.request.method).toBe('POST'); expect(request.request.body).toEqual(create); request.flush({});

@@ -68,25 +68,8 @@ describe('ServicioFormPage', () => {
 
     it('should build a create request and save', async () => {
         const fixture = await createFixture();
-
-        fixture.componentInstance.form.setValue({
-            codigo: 'CONSTANCIA',
-            idCategoriaServicio: 1,
-            nombre: ' Constancia ',
-            descripcion: ' Documento ',
-            modoPrecio: 'FIJO',
-            precioBase: 15
-        });
-
+        fixture.componentInstance.form.setValue({ codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: ' Constancia ', descripcion: ' Documento ', modoPrecio: 'FIJO', precioBase: 15 });
         fixture.componentInstance['save']();
-
-        expect(storeMock.create).toHaveBeenCalledWith({
-            codigo: 'CONSTANCIA',
-            idCategoriaServicio: 1,
-            nombre: 'Constancia',
-            descripcion: 'Documento',
-            modoPrecio: 'FIJO',
-            precioBase: 15
-        });
+        expect(storeMock.create).toHaveBeenCalledWith({ codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: 'Documento', modoPrecio: 'FIJO', precioBase: 15 });
     });
 });

@@ -1,0 +1,45 @@
+<section class="detail-page" data-testid="solicitud-servicio-detail-page">
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.error()) {
+        <div class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudo cargar la solicitud.</strong><p>{{ store.error() }}</p></div></div>
+    } @else if (store.detail(); as item) {
+        <header class="page-header">
+            <div><p class="page-eyebrow">Solicitud de servicio</p><div class="title-row"><h1>{{ item.codSolicitudServicio }}</h1><span class="status-badge" [class.cancelled]="item.estadoSolicitud === 'ANULADA'">{{ item.nombreEstadoSolicitud }}</span></div><p>{{ item.nombreServicio }} · {{ item.createdUtc | date:'dd/MM/yyyy HH:mm':'-0500' }}</p></div>
+            <div class="header-actions">
+                <a mat-stroked-button routerLink="/servicios"><mat-icon>arrow_back</mat-icon>Volver</a>
+                @if (canEdit()) { <a mat-stroked-button [routerLink]="['/servicios', item.idSolicitudServicio, 'editar']"><mat-icon>edit</mat-icon>Editar</a> }
+                @if (canCharge()) { <a mat-flat-button routerLink="/ventas/nueva" [queryParams]="{ solicitudServicioId: item.idSolicitudServicio, origen: 'servicio' }"><mat-icon>payments</mat-icon>Cobrar</a> }
+                @if (canCancel()) { <button mat-stroked-button type="button" class="cancel-button" (click)="cancel()"><mat-icon>cancel</mat-icon>Anular</button> }
+            </div>
+        </header>
+
+        @if (isMisa()) { <div class="domain-note"><mat-icon>church</mat-icon><div><strong>Solicitud originada en Misas</strong><p>La información pastoral se administra desde el módulo Misas. Aquí puedes consultar su estado comercial y cobrarla si corresponde.</p></div></div> }
+
+        <section class="info-grid">
+            <article class="detail-card"><header><mat-icon>design_services</mat-icon><h2>Servicio</h2></header><div class="detail-body info-list">
+                <div><span>Servicio</span><strong>{{ item.nombreServicio }}</strong></div>
+                <div><span>Código</span><strong>{{ item.codigoServicio }}</strong></div>
+                <div><span>Modo de precio</span><strong>{{ item.modoPrecio }}</strong></div>
+            </div></article>
+            <article class="detail-card"><header><mat-icon>person</mat-icon><h2>Solicitante</h2></header><div class="detail-body info-list">
+                <div><span>Nombre</span><strong>{{ item.nombreCompleto || 'Sin solicitante' }}</strong></div>
+                <div><span>Documento</span><strong>{{ item.numeroDocumento || '—' }}</strong></div>
+                <div><span>Teléfono</span><strong>{{ item.telefono || '—' }}</strong></div>
+            </div></article>
+        </section>
+
+        <article class="detail-card"><header><mat-icon>payments</mat-icon><h2>Información comercial</h2></header><div class="detail-body commercial-grid">
+            <div><span>Requiere pago</span><strong>{{ item.requierePago ? 'Sí' : 'No' }}</strong></div>
+            <div><span>Importe</span><strong>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+            <div><span>Estado de pago</span><strong class="payment-text">{{ item.nombreEstadoPago }}</strong></div>
+            @if (!item.requierePago) { <div class="full-row"><span>Motivo sin pago</span><strong>{{ item.motivoNoPago || '—' }}</strong></div> }
+        </div></article>
+
+        @if (item.observaciones) { <article class="detail-card"><header><mat-icon>notes</mat-icon><h2>Observaciones</h2></header><div class="detail-body"><p class="text-block">{{ item.observaciones }}</p></div></article> }
+
+        @if (item.estadoSolicitud === 'ANULADA') { <article class="detail-card cancellation-card"><header><mat-icon>cancel</mat-icon><h2>Anulación</h2></header><div class="detail-body info-list">
+            <div><span>Fecha</span><strong>{{ item.anuladaUtc ? (item.anuladaUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div>
+            <div class="wide"><span>Motivo</span><strong>{{ item.motivoAnulacion || '—' }}</strong></div>
+        </div></article> }
+    }
+</section>

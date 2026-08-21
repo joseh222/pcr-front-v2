@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { CategoriaServicio } from './models/servicio-catalog.models';
+import { ServicioLookupItem } from './models/servicio-lookup.models';
 import { ServicioDetail, ServicioListQuery, ServicioPagedResponse } from './models/servicio-read.models';
 import { ServicioChangeStatusRequest, ServicioChangeStatusResponse, ServicioCreateRequest, ServicioUpdateRequest, ServicioWriteResponse } from './models/servicio-write.models';
 
@@ -26,6 +27,11 @@ export class ServicioApiService {
 
     getById(idServicio: number): Observable<ServicioDetail> {
         return this.http.get<ServicioDetail>(`${this.url}/${idServicio}`);
+    }
+
+    search(search: string, top = 10): Observable<readonly ServicioLookupItem[]> {
+        const params = new HttpParams().set('search', search.trim()).set('top', top);
+        return this.http.get<readonly ServicioLookupItem[]>(`${this.url}/search`, { params });
     }
 
     create(request: ServicioCreateRequest): Observable<ServicioWriteResponse> {

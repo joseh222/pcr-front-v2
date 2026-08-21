@@ -24,6 +24,8 @@ import { ProductoStatusService } from './features/productos/data-access/producto
 import { InventarioApiService } from './features/inventario/data-access/inventario-api.service';
 import { ServicioApiService } from './features/servicios/data-access/servicio-api.service';
 import { ServicioStatusService } from './features/servicios/data-access/servicio-status.service';
+import { SolicitudServicioApiService } from './features/servicios/data-access/solicitud-servicio-api.service';
+import { SolicitudServicioCancellationService } from './features/servicios/data-access/solicitud-servicio-cancellation.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -203,9 +205,21 @@ describe('Application routes', () => {
         getById: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', idCategoriaServicio: 1, codigoCategoria: 'LITURGICO', nombreCategoria: 'Litúrgicos', categoriaIsActive: true, nombre: 'Constancia', descripcion: null, modoPrecio: 'FIJO', precioBase: 15, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A' })),
         create: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', rowVersion: 'A', mensaje: 'OK' })),
         update: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', rowVersion: 'B', mensaje: 'OK' })),
-        changeStatus: vi.fn(() => of({ idServicio: 5, isActive: false, rowVersion: 'B', mensaje: 'OK' }))
+        changeStatus: vi.fn(() => of({ idServicio: 5, isActive: false, rowVersion: 'B', mensaje: 'OK' })),
+        search: vi.fn(() => of([]))
     };
     const servicioStatusMock = { change: vi.fn(() => of(null)) };
+
+    const solicitudServicioApiMock = {
+        getEstados: vi.fn(() => of([{ idEstadoSolicitudServicio: 1, codigo: 'ACTIVA', nombre: 'Activa' }])),
+        getEstadosPago: vi.fn(() => of([{ idEstadoPagoSolicitudServicio: 1, codigo: 'PENDIENTE', nombre: 'Pendiente' }])),
+        getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getById: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', idServicio: 5, codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', modoPrecio: 'FIJO', idPersona: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE', telefono: null, requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', nombreEstadoSolicitud: 'Activa', estadoPago: 'PENDIENTE', nombreEstadoPago: 'Pendiente', observaciones: null, createdUtc: '2026-08-20T12:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, rowVersion: 'A' })),
+        create: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', estadoPago: 'PENDIENTE', rowVersion: 'A', mensaje: 'OK' })),
+        update: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', requierePago: true, importe: 15, motivoNoPago: null, estadoPago: 'PENDIENTE', rowVersion: 'B', mensaje: 'OK' })),
+        cancel: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', estadoSolicitud: 'ANULADA', rowVersion: 'B', mensaje: 'OK' }))
+    };
+    const solicitudCancellationMock = { cancel: vi.fn(() => of(null)) };
 
 
     beforeEach(() => {
@@ -227,6 +241,8 @@ describe('Application routes', () => {
         Object.values(inventarioApiMock).forEach(mock => mock.mockClear());
         Object.values(servicioApiMock).forEach(mock => mock.mockClear());
         servicioStatusMock.change.mockClear();
+        Object.values(solicitudServicioApiMock).forEach(mock => mock.mockClear());
+        solicitudCancellationMock.cancel.mockClear();
         feedbackMock.success.mockClear();
         feedbackMock.error.mockClear();
         feedbackMock.warning.mockClear();
@@ -249,7 +265,9 @@ describe('Application routes', () => {
                 { provide: ProductoStatusService, useValue: productoStatusMock },
                 { provide: InventarioApiService, useValue: inventarioApiMock },
                 { provide: ServicioApiService, useValue: servicioApiMock },
-                { provide: ServicioStatusService, useValue: servicioStatusMock }
+                { provide: ServicioStatusService, useValue: servicioStatusMock },
+                { provide: SolicitudServicioApiService, useValue: solicitudServicioApiMock },
+                { provide: SolicitudServicioCancellationService, useValue: solicitudCancellationMock }
             ]
         });
     });
@@ -313,6 +331,29 @@ describe('Application routes', () => {
         await harness.navigateByUrl('/misas/15/editar', AppShell);
         expect(harness.routeNativeElement?.textContent).toContain('Editar misa');
         expect(harness.routeNativeElement?.textContent).toContain('Misa #15');
+    });
+
+    it('should load service requests inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/servicios', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Servicios');
+        expect(harness.routeNativeElement?.textContent).toContain('solicitudes de servicio');
+    });
+
+    it('should load service request detail inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/servicios/10', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('SS2026-00010');
+        expect(harness.routeNativeElement?.textContent).toContain('Constancia');
+    });
+
+    it('should load new and edit service request pages inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/servicios/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva solicitud');
+        await harness.navigateByUrl('/servicios/10/editar', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Editar solicitud');
+        expect(harness.routeNativeElement?.textContent).toContain('Constancia');
     });
 
     it('should load sales inside the application shell', async () => {

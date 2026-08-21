@@ -1,0 +1,86 @@
+<section class="form-page" data-testid="solicitud-servicio-form-page">
+    <header class="page-header">
+        <div><p class="page-eyebrow">Gestión · Servicios</p><h1>{{ pageTitle() }}</h1><p>{{ isEditMode() ? 'Modifica los datos comerciales de una solicitud activa y no pagada.' : 'Registra una solicitud para un servicio parroquial distinto de Misa.' }}</p></div>
+        <a mat-stroked-button routerLink="/servicios"><mat-icon>arrow_back</mat-icon>Volver</a>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.error()) { <div class="message-card error"><mat-icon>error_outline</mat-icon><span>{{ store.error() }}</span></div> }
+
+    @if (!store.loading() && !store.error()) {
+        <form [formGroup]="form" (ngSubmit)="save()" class="form-layout">
+            <section class="form-card">
+                <header><div class="section-icon"><mat-icon>design_services</mat-icon></div><div><h2>Servicio</h2><p>Selecciona el servicio que origina esta solicitud.</p></div></header>
+                <div class="card-body">
+                    @if (selectedService(); as service) {
+                        <div class="selected-card">
+                            <div><span class="selected-label">Servicio seleccionado</span><strong>{{ service.nombre }}</strong><p>{{ service.codigo }} · {{ service.nombreCategoria }} · {{ service.modoPrecio }}</p><small>{{ servicePriceLabel() }}</small></div>
+                            @if (!isEditMode()) { <button mat-stroked-button type="button" (click)="clearService()"><mat-icon>close</mat-icon>Cambiar</button> }
+                        </div>
+                    } @else {
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Buscar servicio</mat-label><mat-icon matPrefix>search</mat-icon>
+                            <input matInput formControlName="serviceSearch" [matAutocomplete]="serviceAutocomplete" autocomplete="off" placeholder="Código o nombre del servicio">
+                            @if (store.searchingServices()) { <mat-icon matSuffix>hourglass_top</mat-icon> }
+                            <mat-autocomplete #serviceAutocomplete="matAutocomplete">
+                                @for (service of store.serviceResults(); track service.idServicio) {
+                                    <mat-option [value]="service.nombre" (onSelectionChange)="$event.source.selected && selectService(service)"><div class="option-content"><strong>{{ service.nombre }}</strong><span>{{ service.codigo }} · {{ service.nombreCategoria }} · {{ service.modoPrecio }}</span></div></mat-option>
+                                }
+                            </mat-autocomplete>
+                            @if (form.controls.idServicio.touched && form.controls.idServicio.hasError('required')) { <mat-error>Selecciona un servicio.</mat-error> }
+                        </mat-form-field>
+                        <p class="helper-text">Las Misas no aparecen aquí porque deben registrarse desde el módulo Misas.</p>
+                    }
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header><div class="section-icon"><mat-icon>person</mat-icon></div><div><h2>Solicitante</h2><p>Es opcional. Puedes vincular una persona existente o registrar una nueva.</p></div></header>
+                <div class="card-body">
+                    @if (selectedPerson(); as person) {
+                        <div class="selected-card"><div><span class="selected-label">Solicitante</span><strong>{{ person.nombreCompleto || 'Sin nombre' }}</strong><p>{{ person.numeroDocumento || 'Sin documento' }}{{ person.telefono ? ' · ' + person.telefono : '' }}</p></div><button mat-stroked-button type="button" (click)="clearPerson()"><mat-icon>person_remove</mat-icon>Quitar</button></div>
+                    } @else {
+                        <div class="person-search-row">
+                            <mat-form-field appearance="outline"><mat-label>Buscar persona</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="personaSearch" [matAutocomplete]="personAutocomplete" autocomplete="off" placeholder="Nombre o documento">@if (store.searchingPersons()) { <mat-icon matSuffix>hourglass_top</mat-icon> }
+                                <mat-autocomplete #personAutocomplete="matAutocomplete">@for (person of store.personResults(); track person.idPersona) { <mat-option [value]="person.nombreCompleto ?? ''" (onSelectionChange)="$event.source.selected && selectPerson(person)"><div class="option-content"><strong>{{ person.nombreCompleto || 'Sin nombre' }}</strong><span>{{ person.codigoTipoDocumento || '' }} {{ person.numeroDocumento || '' }}</span></div></mat-option> }</mat-autocomplete>
+                            </mat-form-field>
+                            <button mat-stroked-button type="button" (click)="toggleNewPerson()"><mat-icon>person_add</mat-icon>{{ showNewPerson() ? 'Cancelar registro' : 'Nueva persona' }}</button>
+                        </div>
+
+                        @if (showNewPerson()) {
+                            <div class="new-person-panel" [formGroup]="personForm">
+                                <div class="form-grid">
+                                    <mat-form-field appearance="outline"><mat-label>Tipo de documento</mat-label><mat-select formControlName="idTipoDocumento"><mat-option [value]="null">Sin documento</mat-option>@for (tipo of store.tiposDocumento(); track tipo.idTipoDocumento) { <mat-option [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</mat-option> }</mat-select></mat-form-field>
+                                    <mat-form-field appearance="outline"><mat-label>Número de documento</mat-label><input matInput formControlName="numeroDocumento" maxlength="20"></mat-form-field>
+                                    <mat-form-field appearance="outline"><mat-label>Nombre completo</mat-label><input matInput formControlName="nombreCompleto" maxlength="250">@if (personForm.controls.nombreCompleto.touched && personForm.controls.nombreCompleto.hasError('required')) { <mat-error>Ingresa el nombre.</mat-error> }</mat-form-field>
+                                    <mat-form-field appearance="outline"><mat-label>Teléfono</mat-label><input matInput formControlName="telefono" maxlength="20"></mat-form-field>
+                                </div>
+                                <div class="panel-actions"><button mat-stroked-button type="button" [disabled]="personForm.invalid" (click)="registerPerson()"><mat-icon>save</mat-icon>Registrar y usar</button></div>
+                            </div>
+                        }
+                    }
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header><div class="section-icon"><mat-icon>payments</mat-icon></div><div><h2>Condición comercial</h2><p>Define si el servicio genera una obligación de pago.</p></div></header>
+                <div class="card-body">
+                    <mat-checkbox formControlName="requierePago">Requiere pago</mat-checkbox>
+                    @if (form.controls.requierePago.value) {
+                        @if (selectedService()?.modoPrecio === 'VARIABLE') {
+                            <mat-form-field appearance="outline" class="amount-field"><mat-label>Importe</mat-label><span matTextPrefix>S/ </span><input matInput type="number" min="0" step="0.01" formControlName="importe">@if (form.controls.importe.hasError('required')) { <mat-error>Ingresa el importe.</mat-error> }@if (form.controls.importe.hasError('min')) { <mat-error>El importe no puede ser negativo.</mat-error> }</mat-form-field>
+                        } @else if (selectedService()) {
+                            <div class="price-readonly"><span>Importe aplicado</span><strong>S/ {{ (form.controls.importe.value ?? 0).toFixed(2) }}</strong><small>El Back aplicará la regla de precio fijo y conservará el snapshot comercial cuando corresponda.</small></div>
+                        }
+                    } @else {
+                        <mat-form-field appearance="outline" class="full-width"><mat-label>Motivo por el que no requiere pago</mat-label><textarea matInput rows="3" maxlength="250" formControlName="motivoNoPago"></textarea><mat-hint align="end">{{ form.controls.motivoNoPago.value.length }}/250</mat-hint>@if (form.controls.motivoNoPago.hasError('required')) { <mat-error>Indica el motivo.</mat-error> }</mat-form-field>
+                    }
+                </div>
+            </section>
+
+            <section class="form-card"><header><div class="section-icon"><mat-icon>notes</mat-icon></div><div><h2>Observaciones</h2><p>Información adicional de la solicitud.</p></div></header><div class="card-body"><mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones</mat-label><textarea matInput rows="4" maxlength="500" formControlName="observaciones"></textarea><mat-hint align="end">{{ form.controls.observaciones.value.length }}/500</mat-hint></mat-form-field></div></section>
+
+            <div class="form-actions"><a mat-stroked-button routerLink="/servicios">Cancelar</a><button mat-flat-button type="submit" [disabled]="form.invalid || store.saving() || !selectedService()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : 'Guardar solicitud' }}</button></div>
+        </form>
+    }
+</section>

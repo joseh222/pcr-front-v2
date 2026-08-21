@@ -113,6 +113,11 @@ export class VentaFormPage implements OnInit {
             return;
         }
 
+        if (this.route.snapshot.queryParamMap.get('origen') === 'servicio') {
+            void this.router.navigate(['/servicios']);
+            return;
+        }
+
         this.resetForNextSale();
     });
 
