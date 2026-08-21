@@ -27,6 +27,21 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
             },
             {
+                path: 'catalogos/servicios/nuevo',
+                title: 'Nuevo servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/servicio-form/servicio-form').then(module => module.ServicioFormPage)
+            },
+            {
+                path: 'catalogos/servicios/:id/editar',
+                title: 'Editar servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/servicio-form/servicio-form').then(module => module.ServicioFormPage)
+            },
+            {
+                path: 'catalogos/servicios',
+                title: 'Servicios | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/servicio-list/servicio-list').then(module => module.ServicioListPage)
+            },
+            {
                 path: 'inventario/movimientos',
                 title: 'Movimientos de inventario | PCR Front V2',
                 loadComponent: () => import('./features/inventario/pages/movimiento-list/movimiento-list').then(module => module.MovimientoListPage)

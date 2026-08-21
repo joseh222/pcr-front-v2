@@ -22,6 +22,8 @@ import { VentaCancellationService } from './features/ventas/data-access/venta-ca
 import { ProductoApiService } from './features/productos/data-access/producto-api.service';
 import { ProductoStatusService } from './features/productos/data-access/producto-status.service';
 import { InventarioApiService } from './features/inventario/data-access/inventario-api.service';
+import { ServicioApiService } from './features/servicios/data-access/servicio-api.service';
+import { ServicioStatusService } from './features/servicios/data-access/servicio-status.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -195,6 +197,16 @@ describe('Application routes', () => {
         createMovimiento: vi.fn(() => of({ idMovimiento: 10, idProducto: 5, stockAnterior: 10, stockNuevo: 15, mensaje: 'Movimiento registrado correctamente.' }))
     };
 
+    const servicioApiMock = {
+        getCategorias: vi.fn(() => of([{ idCategoriaServicio: 1, codigo: 'LITURGICO', nombre: 'Litúrgicos', descripcion: null, isActive: true, rowVersion: 'A' }])),
+        getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getById: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', idCategoriaServicio: 1, codigoCategoria: 'LITURGICO', nombreCategoria: 'Litúrgicos', categoriaIsActive: true, nombre: 'Constancia', descripcion: null, modoPrecio: 'FIJO', precioBase: 15, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A' })),
+        create: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', rowVersion: 'A', mensaje: 'OK' })),
+        update: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', rowVersion: 'B', mensaje: 'OK' })),
+        changeStatus: vi.fn(() => of({ idServicio: 5, isActive: false, rowVersion: 'B', mensaje: 'OK' }))
+    };
+    const servicioStatusMock = { change: vi.fn(() => of(null)) };
+
 
     beforeEach(() => {
         misaApiMock.getModalidades.mockClear();
@@ -213,6 +225,8 @@ describe('Application routes', () => {
         Object.values(productoApiMock).forEach(mock => mock.mockClear());
         productoStatusMock.change.mockClear();
         Object.values(inventarioApiMock).forEach(mock => mock.mockClear());
+        Object.values(servicioApiMock).forEach(mock => mock.mockClear());
+        servicioStatusMock.change.mockClear();
         feedbackMock.success.mockClear();
         feedbackMock.error.mockClear();
         feedbackMock.warning.mockClear();
@@ -233,7 +247,9 @@ describe('Application routes', () => {
                 { provide: VentaCancellationService, useValue: cancellationMock },
                 { provide: ProductoApiService, useValue: productoApiMock },
                 { provide: ProductoStatusService, useValue: productoStatusMock },
-                { provide: InventarioApiService, useValue: inventarioApiMock }
+                { provide: InventarioApiService, useValue: inventarioApiMock },
+                { provide: ServicioApiService, useValue: servicioApiMock },
+                { provide: ServicioStatusService, useValue: servicioStatusMock }
             ]
         });
     });
@@ -356,5 +372,20 @@ describe('Application routes', () => {
         await harness.navigateByUrl('/productos/5/movimiento', AppShell);
         expect(harness.routeNativeElement?.textContent).toContain('Registrar movimiento');
         expect(harness.routeNativeElement?.textContent).toContain('Stock actual');
+    });
+
+    it('should load service catalog inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/catalogos/servicios', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Servicios');
+        expect(harness.routeNativeElement?.textContent).toContain('Administra los servicios que ofrece la parroquia');
+    });
+
+    it('should load new and edit service catalog pages inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/catalogos/servicios/nuevo', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nuevo servicio');
+        await harness.navigateByUrl('/catalogos/servicios/5/editar', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Editar servicio');
     });
 });
