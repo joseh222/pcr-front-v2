@@ -21,6 +21,7 @@ import { VentaApiService } from './features/ventas/data-access/venta-api.service
 import { VentaCancellationService } from './features/ventas/data-access/venta-cancellation.service';
 import { ProductoApiService } from './features/productos/data-access/producto-api.service';
 import { ProductoStatusService } from './features/productos/data-access/producto-status.service';
+import { InventarioApiService } from './features/inventario/data-access/inventario-api.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -179,6 +180,20 @@ describe('Application routes', () => {
     };
 
     const productoStatusMock = { change: vi.fn(() => of(null)) };
+    const inventarioApiMock = {
+        getTiposMovimientoHistorial: vi.fn(() => of([])),
+        getMovimientos: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getTiposMovimiento: vi.fn(() => of([
+            { idTipoMovimiento: 1, codigo: 'STOCK_INICIAL', nombre: 'Stock inicial', naturaleza: 'E', permiteRegistroManual: true },
+            { idTipoMovimiento: 2, codigo: 'AJUSTE_ENTRADA', nombre: 'Ajuste de entrada', naturaleza: 'E', permiteRegistroManual: true }
+        ])),
+        getByProducto: vi.fn(() => of({
+            idProducto: 5, codProducto: 'P2026-00000005', nombre: 'Vela', sku: 'VEL-001', idCategoriaProducto: 1,
+            nombreCategoria: 'Velas', idMarcaProducto: null, nombreMarca: null, precioCompra: 2, precioVenta: 5,
+            isActive: true, stockActual: 10, updatedUtc: null, updatedById: null, stockRowVersion: 'B', fechaUltimoMovimiento: '2026-08-20T12:00:00Z'
+        })),
+        createMovimiento: vi.fn(() => of({ idMovimiento: 10, idProducto: 5, stockAnterior: 10, stockNuevo: 15, mensaje: 'Movimiento registrado correctamente.' }))
+    };
 
 
     beforeEach(() => {
@@ -197,6 +212,7 @@ describe('Application routes', () => {
         Object.values(ventaApiMock).forEach(mock => mock.mockClear());
         Object.values(productoApiMock).forEach(mock => mock.mockClear());
         productoStatusMock.change.mockClear();
+        Object.values(inventarioApiMock).forEach(mock => mock.mockClear());
         feedbackMock.success.mockClear();
         feedbackMock.error.mockClear();
         feedbackMock.warning.mockClear();
@@ -216,7 +232,8 @@ describe('Application routes', () => {
                 { provide: FeedbackService, useValue: feedbackMock },
                 { provide: VentaCancellationService, useValue: cancellationMock },
                 { provide: ProductoApiService, useValue: productoApiMock },
-                { provide: ProductoStatusService, useValue: productoStatusMock }
+                { provide: ProductoStatusService, useValue: productoStatusMock },
+                { provide: InventarioApiService, useValue: inventarioApiMock }
             ]
         });
     });
@@ -310,12 +327,34 @@ describe('Application routes', () => {
     });
 
     it('should load new and edit product pages inside the application shell', async () => {
-    const harness = await RouterTestingHarness.create();
+        const harness = await RouterTestingHarness.create();
 
-    await harness.navigateByUrl('/productos/nuevo', AppShell);
-    expect(harness.routeNativeElement?.textContent).toContain('Nuevo producto');
+        await harness.navigateByUrl('/productos/nuevo', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nuevo producto');
 
-    await harness.navigateByUrl('/productos/5/editar', AppShell);
-    expect(harness.routeNativeElement?.textContent).toContain('Editar producto');
-});
+        await harness.navigateByUrl('/productos/5/editar', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Editar producto');
+    });
+
+    it('should load product detail inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/productos/5', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('P2026-00000005');
+        expect(harness.routeNativeElement?.textContent).toContain('Stock actual');
+    });
+
+
+    it('should load global inventory movements inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/inventario/movimientos', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Movimientos');
+        expect(harness.routeNativeElement?.textContent).toContain('trazabilidad completa');
+    });
+
+    it('should load inventory movement form inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/productos/5/movimiento', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Registrar movimiento');
+        expect(harness.routeNativeElement?.textContent).toContain('Stock actual');
+    });
 });

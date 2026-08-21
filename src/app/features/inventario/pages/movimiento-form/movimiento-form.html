@@ -1,0 +1,74 @@
+<section class="page-shell" data-testid="movimiento-form-page">
+    <header class="page-header">
+        <div><p class="eyebrow">INVENTARIO</p><h1>Registrar movimiento</h1><p>Registra una entrada, salida, merma o stock inicial con trazabilidad.</p></div>
+        <a mat-stroked-button [routerLink]="['/productos', idProducto]"><mat-icon>arrow_back</mat-icon>Volver</a>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.loadError()) {
+        <div class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudo cargar el inventario.</strong><p>{{ store.loadError() }}</p></div></div>
+    } @else if (store.inventory(); as inventory) {
+        <section class="product-summary">
+            <div><span>Producto</span><strong>{{ inventory.nombre }}</strong><small>{{ inventory.codProducto }} · {{ inventory.sku || 'Sin SKU' }}</small></div>
+            <div class="stock-summary"><span>Stock actual</span><strong>{{ inventory.stockActual }}</strong></div>
+            <div><span>Último movimiento</span><strong>{{ inventory.fechaUltimoMovimiento ? 'Registrado' : 'Sin movimientos' }}</strong></div>
+        </section>
+
+        <form class="movement-form" [formGroup]="form" (ngSubmit)="save()">
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>sync_alt</mat-icon></div><div><h2>Movimiento de inventario</h2><p>Los movimientos de Venta y Anulación de Venta son automáticos y no aparecen aquí.</p></div></header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Tipo de movimiento</mat-label>
+                        <mat-select formControlName="idTipoMovimiento">
+                            @for (tipo of availableTypes(); track tipo.idTipoMovimiento) {
+                                <mat-option [value]="tipo.idTipoMovimiento">{{ tipo.nombre }} · {{ tipo.naturaleza === 'E' ? 'Entrada' : 'Salida' }}</mat-option>
+                            }
+                        </mat-select>
+                        @if (form.controls.idTipoMovimiento.touched && form.controls.idTipoMovimiento.hasError('required')) { <mat-error>Selecciona un tipo de movimiento.</mat-error> }
+                        @if (initialStockFlow) { <mat-hint>El tipo queda fijado porque estás registrando el primer stock del producto.</mat-hint> }
+                    </mat-form-field>
+
+                    <div class="field-stack">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Cantidad</mat-label>
+                            <input matInput type="number" min="0.01" step="0.01" formControlName="cantidad">
+                            @if (form.controls.cantidad.touched && form.controls.cantidad.hasError('required')) { <mat-error>La cantidad es obligatoria.</mat-error> }
+                            @if (form.controls.cantidad.hasError('min')) { <mat-error>La cantidad debe ser mayor que cero.</mat-error> }
+                        </mat-form-field>
+                        @if (hasInsufficientStock()) { <small class="inline-error">Stock disponible: {{ inventory.stockActual }}.</small> }
+                    </div>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Costo unitario</mat-label><span matTextPrefix>S/&nbsp;</span>
+                        <input matInput type="number" min="0" step="0.01" formControlName="costoUnitario">
+                        <mat-hint>Opcional. Corresponde a este movimiento.</mat-hint>
+                        @if (form.controls.costoUnitario.hasError('min')) { <mat-error>El costo unitario no puede ser negativo.</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Motivo{{ requiresReason() ? ' *' : '' }}</mat-label>
+                        <textarea matInput rows="3" maxlength="250" formControlName="motivo"></textarea>
+                        <mat-hint align="end">{{ form.controls.motivo.value.length }}/250</mat-hint>
+                        @if (form.controls.motivo.touched && form.controls.motivo.hasError('required')) { <mat-error>Indica el motivo del ajuste o merma.</mat-error> }
+                    </mat-form-field>
+                </div>
+            </section>
+
+            <section class="projection-card">
+                <div><span>Stock actual</span><strong>{{ inventory.stockActual }}</strong></div>
+                <mat-icon>arrow_forward</mat-icon>
+                <div><span>Stock resultante</span><strong [class.invalid-stock]="hasInsufficientStock()">{{ projectedStock() === null ? '—' : projectedStock() }}</strong></div>
+            </section>
+
+            @if (canRegisterInitialStock()) {
+                <div class="info-note"><mat-icon>info</mat-icon><span>Este producto todavía no tiene movimientos. Puedes registrar <strong>Stock inicial</strong> una sola vez.</span></div>
+            }
+
+            <div class="form-actions">
+                <a mat-stroked-button [routerLink]="['/productos', idProducto]">Cancelar</a>
+                <button mat-flat-button type="submit" [disabled]="!canSave()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Registrando...' : 'Registrar movimiento' }}</button>
+            </div>
+        </form>
+    }
+</section>

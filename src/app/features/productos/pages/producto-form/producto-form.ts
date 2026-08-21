@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -8,12 +9,13 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { ProductoFormStore } from '../../data-access/models/producto-form.store';
 import { ProductoCreateRequest, ProductoUpdateRequest } from '../../data-access/models/producto-write.models';
 
 @Component({
     selector: 'pcr-producto-form',
-    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule],
+    imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatDialogModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule],
     providers: [ProductoFormStore],
     templateUrl: './producto-form.html',
     styleUrl: './producto-form.scss'
@@ -24,6 +26,7 @@ export class ProductoFormPage implements OnInit {
     private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     private readonly feedback = inject(FeedbackService);
+    private readonly dialog = inject(MatDialog);
     protected readonly idProducto = signal<number | null>(null);
     protected readonly isEditMode = computed(() => this.idProducto() !== null);
     protected readonly pageTitle = computed(() => this.isEditMode() ? 'Editar producto' : 'Nuevo producto');
@@ -62,9 +65,30 @@ export class ProductoFormPage implements OnInit {
     private readonly syncSaveResult = effect(() => {
         const result = this.store.saveResult();
         if (!result) return;
-        this.feedback.success(result.mensaje || (this.isEditMode() ? 'Producto actualizado correctamente.' : 'Producto registrado correctamente.'));
+        const wasEditMode = this.isEditMode();
         this.store.clearSaveResult();
-        void this.router.navigate(['/productos']);
+
+        if (!wasEditMode) {
+            const dialogRef = this.dialog.open(ConfirmActionDialog, {
+                width: '440px', disableClose: true,
+                data: {
+                    title: 'Producto registrado',
+                    message: 'El producto se registró correctamente con stock 0. ¿Deseas registrar el stock inicial ahora?',
+                    cancelText: 'Más tarde', confirmText: 'Registrar stock', icon: 'inventory_2'
+                }
+            });
+
+            dialogRef.afterClosed().subscribe(registerStock => {
+                if (registerStock) {
+                    void this.router.navigate(['/productos', result.idProducto, 'movimiento'], { queryParams: { tipo: 'STOCK_INICIAL' } });
+                    return;
+                }
+                void this.router.navigate(['/productos']);
+            });
+            return;
+        }
+
+        void this.router.navigate(['/productos', result.idProducto]).then(() => this.feedback.success(result.mensaje || 'Producto actualizado correctamente.'));
     });
 
     ngOnInit(): void {

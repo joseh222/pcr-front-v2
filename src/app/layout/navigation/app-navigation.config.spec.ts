@@ -90,4 +90,9 @@ describe('APP_NAVIGATION', () => {
         });
     });
 
+    it('should contain movements in the inventario section', () => {
+        const inventario = APP_NAVIGATION.find(section => section.id === 'inventario');
+        expect(inventario?.items).toContainEqual({ id: 'movimientos', label: 'Movimientos', icon: 'swap_vert', route: '/inventario/movimientos', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
+    });
+
 });

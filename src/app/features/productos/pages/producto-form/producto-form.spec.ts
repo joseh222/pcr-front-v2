@@ -1,6 +1,8 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { EMPTY, of } from 'rxjs';
 import { vi } from 'vitest';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ProductoFormStore } from '../../data-access/models/producto-form.store';
@@ -16,19 +18,22 @@ describe('ProductoFormPage', () => {
         initialize: vi.fn(), create: vi.fn(), update: vi.fn(), clearSaveError: vi.fn(), clearSaveResult: vi.fn()
     };
     const feedbackMock = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
+    const dialogMock: any = { open: vi.fn(() => ({ afterClosed: () => EMPTY })) };
 
     async function createFixture(params: Record<string, string> = {}) {
         TestBed.configureTestingModule({
             imports: [ProductoFormPage],
-            providers: [provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } }, { provide: FeedbackService, useValue: feedbackMock }]
+            providers: [provideRouter([{ path: 'productos', component: ProductoFormPage }, { path: 'productos/:id/movimiento', component: ProductoFormPage }]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } }, { provide: FeedbackService, useValue: feedbackMock }, { provide: MatDialog, useValue: dialogMock }]
         });
-        TestBed.overrideComponent(ProductoFormPage, { set: { providers: [{ provide: ProductoFormStore, useValue: storeMock }] } });
+        TestBed.overrideComponent(ProductoFormPage, { set: { providers: [{ provide: ProductoFormStore, useValue: storeMock }, { provide: MatDialog, useValue: dialogMock }] } });
         await TestBed.compileComponents(); const fixture = TestBed.createComponent(ProductoFormPage); fixture.detectChanges(); return fixture;
     }
 
     beforeEach(() => {
-        detail.set(null); saveError.set(null); saveResult.set(null); Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); });
-        feedbackMock.success.mockClear(); feedbackMock.error.mockClear(); feedbackMock.warning.mockClear();
+        detail.set(null); saveError.set(null); saveResult.set(null);
+        Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); });
+        feedbackMock.success.mockClear(); feedbackMock.error.mockClear(); feedbackMock.warning.mockClear(); dialogMock.open.mockClear();
+        dialogMock.open.mockReturnValue({ afterClosed: () => EMPTY });
     });
 
     it('should initialize create mode', async () => {
@@ -51,5 +56,19 @@ describe('ProductoFormPage', () => {
         fixture.componentInstance.form.setValue({ idCategoriaProducto: 1, idMarcaProducto: null, nombre: ' Vela ', sku: ' vel-001 ', descripcion: ' Blanca ', precioCompra: 2, precioVenta: 5 });
         fixture.componentInstance['save']();
         expect(storeMock.create).toHaveBeenCalledWith({ idCategoriaProducto: 1, idMarcaProducto: null, nombre: 'Vela', sku: 'VEL-001', descripcion: 'Blanca', precioCompra: 2, precioVenta: 5 });
+    });
+
+    it('should offer stock initial after creating a product', async () => {
+        dialogMock.open.mockReturnValue({ afterClosed: () => of(true) });
+        const fixture = await createFixture();
+        const router = TestBed.inject(Router);
+        const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+        saveResult.set({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'A', mensaje: 'Producto registrado correctamente.' });
+        fixture.detectChanges();
+
+        expect(dialogMock.open).toHaveBeenCalledOnce();
+        expect(navigateSpy).toHaveBeenCalledWith(['/productos', 5, 'movimiento'], { queryParams: { tipo: 'STOCK_INICIAL' } });
+        expect(storeMock.clearSaveResult).toHaveBeenCalledOnce();
     });
 });

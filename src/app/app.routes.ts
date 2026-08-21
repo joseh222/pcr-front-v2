@@ -27,14 +27,29 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
             },
             {
+                path: 'inventario/movimientos',
+                title: 'Movimientos de inventario | PCR Front V2',
+                loadComponent: () => import('./features/inventario/pages/movimiento-list/movimiento-list').then(module => module.MovimientoListPage)
+            },
+            {
                 path: 'productos/nuevo',
                 title: 'Nuevo producto | PCR Front V2',
                 loadComponent: () => import('./features/productos/pages/producto-form/producto-form').then(module => module.ProductoFormPage)
             },
             {
+                path: 'productos/:id/movimiento',
+                title: 'Movimiento de inventario | PCR Front V2',
+                loadComponent: () => import('./features/inventario/pages/movimiento-form/movimiento-form').then(module => module.MovimientoFormPage)
+            },
+            {
                 path: 'productos/:id/editar',
                 title: 'Editar producto | PCR Front V2',
                 loadComponent: () => import('./features/productos/pages/producto-form/producto-form').then(module => module.ProductoFormPage)
+            },
+            {
+                path: 'productos/:id',
+                title: 'Detalle de producto | PCR Front V2',
+                loadComponent: () => import('./features/productos/pages/producto-detail/producto-detail').then(module => module.ProductoDetailPage)
             },
             {
                 path: 'productos',

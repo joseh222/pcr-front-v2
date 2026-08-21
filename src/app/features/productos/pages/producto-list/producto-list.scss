@@ -25,7 +25,7 @@
 .stock-badge { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
 .stock-badge.stock-empty { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
 .row-actions { display: flex; align-items: center; justify-content: flex-end; }
-.mat-column-acciones { width: 7rem; text-align: right; }
+.mat-column-acciones { width: 10rem; text-align: right; }
 .message-state { display: flex; min-height: 12rem; align-items: center; justify-content: center; gap: 1rem; padding: 2rem; }
 .message-state>mat-icon { width: 2rem; height: 2rem; font-size: 2rem; opacity: .65; }
 .message-state strong { display: block; }
