@@ -24,14 +24,20 @@
             </p>
 
             @for (item of section.items; track item.id) {
-            <a class="sidebar-item" [routerLink]="item.route" routerLinkActive="sidebar-item-active"
-                [routerLinkActiveOptions]="{ exact: item.exact ?? false }" ariaCurrentWhenActive="page"
-                [attr.data-testid]="'nav-' + item.id" (click)="navigate()">
-
-                <mat-icon>{{ item.icon }}</mat-icon>
-
-                <span>{{ item.label }}</span>
-            </a>
+                @if (item.disabled) {
+                    <div class="sidebar-item sidebar-item-disabled" aria-disabled="true" [attr.data-testid]="'nav-' + item.id">
+                        <mat-icon>{{ item.icon }}</mat-icon>
+                        <span>{{ item.label }}</span>
+                        <small>Próximamente</small>
+                    </div>
+                } @else {
+                    <a class="sidebar-item" [routerLink]="item.route" routerLinkActive="sidebar-item-active"
+                        [routerLinkActiveOptions]="{ exact: item.exact ?? false }" ariaCurrentWhenActive="page"
+                        [attr.data-testid]="'nav-' + item.id" (click)="navigate()">
+                        <mat-icon>{{ item.icon }}</mat-icon>
+                        <span>{{ item.label }}</span>
+                    </a>
+                }
             }
         </section>
         }

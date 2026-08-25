@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { VentaFormStore } from '../../data-access/models/venta-form.store';
@@ -59,6 +59,15 @@ describe('VentaFormPage', () => {
     it('should initialize from a service id', async () => {
         await createFixture({ solicitudServicioId: '50', origen: 'misa' });
         expect(storeMock.initialize).toHaveBeenCalledWith(50);
+    });
+
+    it('should return to services after saving a sale from a service request', async () => {
+        const fixture = await createFixture({ origen: 'servicio' });
+        const router = TestBed.inject(Router);
+        const navigate = vi.spyOn(router, 'navigate');
+        saveResult.set({ mensaje: 'Venta registrada.', numeroComprobante: 'R001-000001' });
+        fixture.detectChanges();
+        expect(navigate).toHaveBeenCalledWith(['/servicios']);
     });
 
     it('should warn instead of adding a duplicated product', async () => {

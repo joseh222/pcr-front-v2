@@ -27,6 +27,21 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
             },
             {
+                path: 'catalogos/servicios/nuevo',
+                title: 'Nuevo servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/servicio-form/servicio-form').then(module => module.ServicioFormPage)
+            },
+            {
+                path: 'catalogos/servicios/:id/editar',
+                title: 'Editar servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/servicio-form/servicio-form').then(module => module.ServicioFormPage)
+            },
+            {
+                path: 'catalogos/servicios',
+                title: 'Servicios | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/servicio-list/servicio-list').then(module => module.ServicioListPage)
+            },
+            {
                 path: 'inventario/movimientos',
                 title: 'Movimientos de inventario | PCR Front V2',
                 loadComponent: () => import('./features/inventario/pages/movimiento-list/movimiento-list').then(module => module.MovimientoListPage)
@@ -55,6 +70,26 @@ export const routes: Routes = [
                 path: 'productos',
                 title: 'Productos | PCR Front V2',
                 loadComponent: () => import('./features/productos/pages/producto-list/producto-list').then(module => module.ProductoListPage)
+            },
+            {
+                path: 'servicios/nueva',
+                title: 'Nueva solicitud de servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/solicitud-servicio-form/solicitud-servicio-form').then(module => module.SolicitudServicioFormPage)
+            },
+            {
+                path: 'servicios/:id/editar',
+                title: 'Editar solicitud de servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/solicitud-servicio-form/solicitud-servicio-form').then(module => module.SolicitudServicioFormPage)
+            },
+            {
+                path: 'servicios/:id',
+                title: 'Detalle de solicitud de servicio | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/solicitud-servicio-detail/solicitud-servicio-detail').then(module => module.SolicitudServicioDetailPage)
+            },
+            {
+                path: 'servicios',
+                title: 'Servicios | PCR Front V2',
+                loadComponent: () => import('./features/servicios/pages/solicitud-servicio-list/solicitud-servicio-list').then(module => module.SolicitudServicioListPage)
             },
             {
                 path: 'ventas/nueva',

@@ -6,5 +6,6 @@ export interface NavigationItem {
     readonly icon: string;
     readonly route: string;
     readonly exact?: boolean;
+    readonly disabled?: boolean;
     readonly roles?: readonly AuthRole[];
 }

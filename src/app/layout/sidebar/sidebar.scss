@@ -103,3 +103,10 @@
 .sidebar-section+.sidebar-section {
     margin-top: 1rem;
 }
+.sidebar-item-disabled {
+    cursor: default;
+    opacity: .45;
+}
+
+.sidebar-item-disabled:hover { background: transparent; }
+.sidebar-item-disabled small { margin-left: auto; font-size: .62rem; }
