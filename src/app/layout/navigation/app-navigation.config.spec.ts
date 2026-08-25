@@ -28,6 +28,7 @@ describe('APP_NAVIGATION', () => {
 
         expect(principal?.items.some(item => item.id === 'dashboard')).toBe(true);
         expect(catalogos?.items).toContainEqual({ id: 'catalogo-servicios', label: 'Servicios', icon: 'design_services', route: '/catalogos/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
+        expect(catalogos?.items).toContainEqual({ id: 'catalogo-proveedores', label: 'Proveedores', icon: 'local_shipping', route: '/catalogos/proveedores', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
         expect(gestion?.items.some(item => item.id === 'misas')).toBe(true);
         expect(gestion?.items).toContainEqual({ id: 'servicios', label: 'Servicios', icon: 'assignment', route: '/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
         expect(venta?.items.some(item => item.id === 'ventas')).toBe(true);

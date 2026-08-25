@@ -42,6 +42,21 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/servicios/pages/servicio-list/servicio-list').then(module => module.ServicioListPage)
             },
             {
+                path: 'catalogos/proveedores/nuevo',
+                title: 'Nuevo proveedor | PCR Front V2',
+                loadComponent: () => import('./features/proveedores/pages/proveedor-form/proveedor-form').then(module => module.ProveedorFormPage)
+            },
+            {
+                path: 'catalogos/proveedores/:id/editar',
+                title: 'Editar proveedor | PCR Front V2',
+                loadComponent: () => import('./features/proveedores/pages/proveedor-form/proveedor-form').then(module => module.ProveedorFormPage)
+            },
+            {
+                path: 'catalogos/proveedores',
+                title: 'Proveedores | PCR Front V2',
+                loadComponent: () => import('./features/proveedores/pages/proveedor-list/proveedor-list').then(module => module.ProveedorListPage)
+            },
+            {
                 path: 'inventario/movimientos',
                 title: 'Movimientos de inventario | PCR Front V2',
                 loadComponent: () => import('./features/inventario/pages/movimiento-list/movimiento-list').then(module => module.MovimientoListPage)

@@ -26,6 +26,8 @@ import { ServicioApiService } from './features/servicios/data-access/servicio-ap
 import { ServicioStatusService } from './features/servicios/data-access/servicio-status.service';
 import { SolicitudServicioApiService } from './features/servicios/data-access/solicitud-servicio-api.service';
 import { SolicitudServicioCancellationService } from './features/servicios/data-access/solicitud-servicio-cancellation.service';
+import { ProveedorApiService } from './features/proveedores/data-access/proveedor-api.service';
+import { ProveedorStatusService } from './features/proveedores/data-access/proveedor-status.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -210,6 +212,17 @@ describe('Application routes', () => {
     };
     const servicioStatusMock = { change: vi.fn(() => of(null)) };
 
+    const proveedorApiMock = {
+        getTiposDocumento: vi.fn(() => of([{ idTipoDocumento: 3, codigo: 'RUC', nombre: 'RUC', longitudMinima: 11, longitudMaxima: 11, soloNumeros: true, isActive: true }])),
+        getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getById: vi.fn(() => of({ idProveedor: 5, codProveedor: 'PRV2026-000005', idTipoDocumento: 3, codigoTipoDocumento: 'RUC', nombreTipoDocumento: 'RUC', numeroDocumento: '20123456789', razonSocial: 'Proveedor SAC', nombreComercial: null, telefono: null, email: null, direccion: null, observaciones: null, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A' })),
+        create: vi.fn(() => of({ idProveedor: 5, codProveedor: 'PRV2026-000005', rowVersion: 'A', mensaje: 'OK' })),
+        update: vi.fn(() => of({ idProveedor: 5, codProveedor: 'PRV2026-000005', rowVersion: 'B', mensaje: 'OK' })),
+        changeStatus: vi.fn(() => of({ idProveedor: 5, isActive: false, rowVersion: 'B', mensaje: 'OK' })),
+        search: vi.fn(() => of([]))
+    };
+    const proveedorStatusMock = { change: vi.fn(() => of(null)) };
+
     const solicitudServicioApiMock = {
         getEstados: vi.fn(() => of([{ idEstadoSolicitudServicio: 1, codigo: 'ACTIVA', nombre: 'Activa' }])),
         getEstadosPago: vi.fn(() => of([{ idEstadoPagoSolicitudServicio: 1, codigo: 'PENDIENTE', nombre: 'Pendiente' }])),
@@ -241,6 +254,8 @@ describe('Application routes', () => {
         Object.values(inventarioApiMock).forEach(mock => mock.mockClear());
         Object.values(servicioApiMock).forEach(mock => mock.mockClear());
         servicioStatusMock.change.mockClear();
+        Object.values(proveedorApiMock).forEach(mock => mock.mockClear());
+        proveedorStatusMock.change.mockClear();
         Object.values(solicitudServicioApiMock).forEach(mock => mock.mockClear());
         solicitudCancellationMock.cancel.mockClear();
         feedbackMock.success.mockClear();
@@ -266,6 +281,8 @@ describe('Application routes', () => {
                 { provide: InventarioApiService, useValue: inventarioApiMock },
                 { provide: ServicioApiService, useValue: servicioApiMock },
                 { provide: ServicioStatusService, useValue: servicioStatusMock },
+                { provide: ProveedorApiService, useValue: proveedorApiMock },
+                { provide: ProveedorStatusService, useValue: proveedorStatusMock },
                 { provide: SolicitudServicioApiService, useValue: solicitudServicioApiMock },
                 { provide: SolicitudServicioCancellationService, useValue: solicitudCancellationMock }
             ]
@@ -428,5 +445,27 @@ describe('Application routes', () => {
         expect(harness.routeNativeElement?.textContent).toContain('Nuevo servicio');
         await harness.navigateByUrl('/catalogos/servicios/5/editar', AppShell);
         expect(harness.routeNativeElement?.textContent).toContain('Editar servicio');
+    });
+
+    it('should load supplier catalog inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/catalogos/proveedores', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Proveedores');
+        expect(harness.routeNativeElement?.textContent).toContain('Administra las personas y empresas');
+    });
+
+    it('should load new and edit supplier pages inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/catalogos/proveedores/nuevo', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nuevo proveedor');
+        await harness.navigateByUrl('/catalogos/proveedores/5/editar', AppShell);
+
+        expect(harness.routeNativeElement?.textContent).toContain('Editar proveedor');
+
+        const razonSocialInput = harness.routeNativeElement?.querySelector(
+            'input[formControlName="razonSocial"]'
+        ) as HTMLInputElement;
+
+        expect(razonSocialInput.value).toBe('Proveedor SAC');
     });
 });
