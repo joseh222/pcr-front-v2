@@ -36,7 +36,7 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
         id: 'compra',
         label: 'Compra',
         items: [
-            { id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, disabled: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
+            { id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras/nueva', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
         ]
     },
     {

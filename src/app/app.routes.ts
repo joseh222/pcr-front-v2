@@ -107,6 +107,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/servicios/pages/solicitud-servicio-list/solicitud-servicio-list').then(module => module.SolicitudServicioListPage)
             },
             {
+                path: 'compras/nueva',
+                title: 'Nueva compra | PCR Front V2',
+                loadComponent: () => import('./features/compras/pages/compra-form/compra-form').then(module => module.CompraFormPage)
+            },
+            {
                 path: 'ventas/nueva',
                 title: 'Nueva venta | PCR Front V2',
                 loadComponent: () => import('./features/ventas/pages/venta-form/venta-form').then(module => module.VentaFormPage)

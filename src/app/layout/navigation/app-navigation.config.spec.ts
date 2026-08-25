@@ -32,7 +32,7 @@ describe('APP_NAVIGATION', () => {
         expect(gestion?.items.some(item => item.id === 'misas')).toBe(true);
         expect(gestion?.items).toContainEqual({ id: 'servicios', label: 'Servicios', icon: 'assignment', route: '/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
         expect(venta?.items.some(item => item.id === 'ventas')).toBe(true);
-        expect(compra?.items.find(item => item.id === 'compras')?.disabled).toBe(true);
+        expect(compra?.items).toContainEqual({ id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras/nueva', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
         expect(inventario?.items.map(item => item.id)).toEqual(['productos', 'movimientos']);
     });
 });

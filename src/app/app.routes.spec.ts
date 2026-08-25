@@ -28,6 +28,7 @@ import { SolicitudServicioApiService } from './features/servicios/data-access/so
 import { SolicitudServicioCancellationService } from './features/servicios/data-access/solicitud-servicio-cancellation.service';
 import { ProveedorApiService } from './features/proveedores/data-access/proveedor-api.service';
 import { ProveedorStatusService } from './features/proveedores/data-access/proveedor-status.service';
+import { CompraApiService } from './features/compras/data-access/compra-api.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -179,6 +180,7 @@ describe('Application routes', () => {
         getCategorias: vi.fn(() => of([{ idCategoriaProducto: 1, codigo: 'VELAS', nombre: 'Velas', descripcion: null, isActive: true, rowVersion: 'A' }])),
         getMarcas: vi.fn(() => of([])),
         getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        search: vi.fn(() => of([])),
         getById: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', idCategoriaProducto: 1, codigoCategoria: 'VELAS', nombreCategoria: 'Velas', idMarcaProducto: null, codigoMarca: null, nombreMarca: null, nombre: 'Vela', sku: 'VEL-001', descripcion: null, precioCompra: 2, precioVenta: 5, stockActual: 10, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A', stockRowVersion: 'B' })),
         create: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'A', mensaje: 'OK' })),
         update: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'B', mensaje: 'OK' })),
@@ -222,11 +224,16 @@ describe('Application routes', () => {
         search: vi.fn(() => of([]))
     };
     const proveedorStatusMock = { change: vi.fn(() => of(null)) };
+    const compraApiMock = {
+        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true }])),
+        create: vi.fn(() => of({ idCompra: 1, codCompra: 'CMP2026-000001', fechaCompra: '2026-08-25', total: 10, estadoCompra: 'REGISTRADA', rowVersion: 'A', mensaje: 'OK' }))
+    };
 
     const solicitudServicioApiMock = {
         getEstados: vi.fn(() => of([{ idEstadoSolicitudServicio: 1, codigo: 'ACTIVA', nombre: 'Activa' }])),
         getEstadosPago: vi.fn(() => of([{ idEstadoPagoSolicitudServicio: 1, codigo: 'PENDIENTE', nombre: 'Pendiente' }])),
         getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        search: vi.fn(() => of([])),
         getById: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', idServicio: 5, codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', modoPrecio: 'FIJO', idPersona: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE', telefono: null, requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', nombreEstadoSolicitud: 'Activa', estadoPago: 'PENDIENTE', nombreEstadoPago: 'Pendiente', observaciones: null, createdUtc: '2026-08-20T12:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, rowVersion: 'A' })),
         create: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', estadoPago: 'PENDIENTE', rowVersion: 'A', mensaje: 'OK' })),
         update: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', requierePago: true, importe: 15, motivoNoPago: null, estadoPago: 'PENDIENTE', rowVersion: 'B', mensaje: 'OK' })),
@@ -256,6 +263,7 @@ describe('Application routes', () => {
         servicioStatusMock.change.mockClear();
         Object.values(proveedorApiMock).forEach(mock => mock.mockClear());
         proveedorStatusMock.change.mockClear();
+        Object.values(compraApiMock).forEach(mock => mock.mockClear());
         Object.values(solicitudServicioApiMock).forEach(mock => mock.mockClear());
         solicitudCancellationMock.cancel.mockClear();
         feedbackMock.success.mockClear();
@@ -283,6 +291,7 @@ describe('Application routes', () => {
                 { provide: ServicioStatusService, useValue: servicioStatusMock },
                 { provide: ProveedorApiService, useValue: proveedorApiMock },
                 { provide: ProveedorStatusService, useValue: proveedorStatusMock },
+                { provide: CompraApiService, useValue: compraApiMock },
                 { provide: SolicitudServicioApiService, useValue: solicitudServicioApiMock },
                 { provide: SolicitudServicioCancellationService, useValue: solicitudCancellationMock }
             ]
@@ -327,6 +336,13 @@ describe('Application routes', () => {
         expect(harness.routeNativeElement?.textContent).toContain(
             'Consulta y administra las misas e intenciones parroquiales.'
         );
+    });
+
+    it('should load the new purchase page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/compras/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva compra');
+        expect(harness.routeNativeElement?.textContent).toContain('Detalle de compra');
     });
 
     it('should load the new sale page inside the application shell', async () => {
