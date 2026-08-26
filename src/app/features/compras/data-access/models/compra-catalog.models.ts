@@ -6,3 +6,10 @@ export interface TipoComprobanteCompra {
     readonly requiereNumero: boolean;
     readonly isActive: boolean;
 }
+
+export interface EstadoCompra {
+    readonly idEstadoCompra: number;
+    readonly codigo: string;
+    readonly nombre: string;
+    readonly isActive: boolean;
+}

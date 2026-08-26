@@ -1,0 +1,55 @@
+<section class="compra-list-page" data-testid="compra-list-page">
+    <header class="page-header">
+        <div><p class="page-eyebrow">Compra</p><h1 class="page-title">Compras</h1><p class="page-description">Consulta las compras registradas, sus proveedores, comprobantes e importes.</p></div>
+        <div class="page-header-actions"><button mat-icon-button type="button" aria-label="Recargar compras" (click)="reload()"><mat-icon>refresh</mat-icon></button><a mat-flat-button routerLink="/compras/nueva"><mat-icon>add</mat-icon>Nueva compra</a></div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field class="filter-search" appearance="outline"><mat-label>Buscar</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="search" maxlength="150" placeholder="Compra, proveedor, comprobante o producto"></mat-form-field>
+
+            <div class="supplier-filter">
+                @if (selectedProveedor(); as proveedor) {
+                    <div class="selected-supplier"><span><strong>{{ proveedor.razonSocial }}</strong><small>{{ proveedor.codProveedor }} @if (proveedor.numeroDocumento) { · {{ proveedor.numeroDocumento }} }</small></span><button mat-icon-button type="button" aria-label="Quitar proveedor" (click)="clearProveedor()"><mat-icon>close</mat-icon></button></div>
+                } @else {
+                    <mat-form-field appearance="outline"><mat-label>Proveedor</mat-label><mat-icon matPrefix>local_shipping</mat-icon><input matInput formControlName="proveedorSearch" autocomplete="off" placeholder="Buscar proveedor"></mat-form-field>
+                    @if (store.proveedorLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+                    @if (store.proveedorResults().length > 0) { <div class="supplier-results">@for (proveedor of store.proveedorResults(); track proveedor.idProveedor) { <button type="button" (click)="selectProveedor(proveedor)"><strong>{{ proveedor.razonSocial }}</strong><small>{{ proveedor.codProveedor }} @if (proveedor.numeroDocumento) { · {{ proveedor.numeroDocumento }} }</small></button> }</div> }
+                }
+            </div>
+
+            <mat-form-field appearance="outline"><mat-label>Comprobante</mat-label><mat-select formControlName="idTipoComprobanteCompra"><mat-option [value]="null">Todos</mat-option>@for (tipo of store.tiposComprobante(); track tipo.idTipoComprobanteCompra) { <mat-option [value]="tipo.idTipoComprobanteCompra">{{ tipo.nombre }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select formControlName="idEstadoCompra"><mat-option [value]="null">Todos</mat-option>@for (estado of store.estados(); track estado.idEstadoCompra) { <mat-option [value]="estado.idEstadoCompra">{{ estado.nombre }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Desde</mat-label><input matInput type="date" formControlName="fechaInicio"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Hasta</mat-label><input matInput type="date" formControlName="fechaFin"></mat-form-field>
+        </div>
+        @if (dateRangeInvalid()) { <div class="filter-error"><mat-icon>warning_amber</mat-icon>La fecha desde no puede ser mayor que la fecha hasta.</div> }
+        @if (store.proveedorError()) { <div class="filter-error"><mat-icon>warning_amber</mat-icon>{{ store.proveedorError() }}</div> }
+        <div class="filter-actions"><button mat-stroked-button type="button" (click)="clearFilters()"><mat-icon>filter_alt_off</mat-icon>Limpiar</button><button mat-flat-button type="submit" [disabled]="dateRangeInvalid()"><mat-icon>search</mat-icon>Buscar</button></div>
+    </form>
+
+    @if (store.catalogsError()) { <div class="catalog-error"><mat-icon>warning_amber</mat-icon><span>{{ store.catalogsError() }}</span></div> }
+
+    <section class="table-card">
+        <div class="table-header"><div><h2>Resultados</h2><p>{{ store.totalRows() }} registro{{ store.totalRows() === 1 ? '' : 's' }}</p></div></div>
+        @if (store.loading() || store.catalogsLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+        @if (store.error()) {
+            <div class="message-state error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudieron cargar las compras.</strong><p>{{ store.error() }}</p></div><button mat-stroked-button type="button" (click)="reload()">Reintentar</button></div>
+        } @else if (store.isEmpty()) {
+            <div class="message-state"><mat-icon>shopping_cart</mat-icon><div><strong>No se encontraron compras.</strong><p>Prueba modificando los filtros de búsqueda.</p></div></div>
+        } @else {
+            <div class="table-wrapper"><table mat-table [dataSource]="store.items()" class="compra-table">
+                <ng-container matColumnDef="codigo"><th mat-header-cell *matHeaderCellDef>Compra</th><td mat-cell *matCellDef="let compra"><strong>{{ compra.codCompra }}</strong><div class="cell-secondary">{{ compra.createdUtc | date:'dd/MM/yyyy HH:mm' }}</div></td></ng-container>
+                <ng-container matColumnDef="fecha"><th mat-header-cell *matHeaderCellDef>Fecha</th><td mat-cell *matCellDef="let compra">{{ compra.fechaCompra | date:'dd/MM/yyyy' }}</td></ng-container>
+                <ng-container matColumnDef="proveedor"><th mat-header-cell *matHeaderCellDef>Proveedor</th><td mat-cell *matCellDef="let compra"><div class="cell-primary">{{ compra.razonSocialProveedor }}</div><div class="cell-secondary">@if (compra.numeroDocumentoProveedor) { {{ compra.tipoDocumentoProveedor }} {{ compra.numeroDocumentoProveedor }} } @else { Sin documento }</div></td></ng-container>
+                <ng-container matColumnDef="comprobante"><th mat-header-cell *matHeaderCellDef>Comprobante</th><td mat-cell *matCellDef="let compra"><div class="cell-primary">{{ compra.nombreTipoComprobante }}</div><div class="cell-secondary">{{ comprobante(compra.serieComprobante, compra.numeroComprobante) }}</div></td></ng-container>
+                <ng-container matColumnDef="productos"><th mat-header-cell *matHeaderCellDef>Productos</th><td mat-cell *matCellDef="let compra"><div class="cell-primary">{{ compra.cantidadDetalles }} producto{{ compra.cantidadDetalles === 1 ? '' : 's' }}</div><div class="cell-secondary">{{ compra.cantidadTotal }} unidades</div></td></ng-container>
+                <ng-container matColumnDef="estado"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let compra"><span class="status-badge" [class.status-badge-cancelled]="compra.codigoEstadoCompra === 'ANULADA'">{{ compra.nombreEstadoCompra }}</span></td></ng-container>
+                <ng-container matColumnDef="total"><th mat-header-cell *matHeaderCellDef>Total</th><td mat-cell *matCellDef="let compra"><strong>{{ compra.total | currency:'PEN':'symbol':'1.2-2' }}</strong></td></ng-container>
+                <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef aria-label="Acciones"></th><td mat-cell *matCellDef="let compra" class="actions-cell"><a mat-icon-button [routerLink]="['/compras', compra.idCompra]" [attr.aria-label]="'Ver compra ' + compra.codCompra"><mat-icon>visibility</mat-icon></a></td></ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table></div>
+            <mat-paginator [length]="store.totalRows()" [pageIndex]="store.pageNumber() - 1" [pageSize]="store.pageSize()" [pageSizeOptions]="[10,20,50,100]" [showFirstLastButtons]="true" (page)="onPage($event)"></mat-paginator>
+        }
+    </section>
+</section>

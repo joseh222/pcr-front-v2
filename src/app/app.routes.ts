@@ -112,6 +112,16 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/compras/pages/compra-form/compra-form').then(module => module.CompraFormPage)
             },
             {
+                path: 'compras/:id',
+                title: 'Detalle de compra | PCR Front V2',
+                loadComponent: () => import('./features/compras/pages/compra-detail/compra-detail').then(module => module.CompraDetailPage)
+            },
+            {
+                path: 'compras',
+                title: 'Compras | PCR Front V2',
+                loadComponent: () => import('./features/compras/pages/compra-list/compra-list').then(module => module.CompraListPage)
+            },
+            {
                 path: 'ventas/nueva',
                 title: 'Nueva venta | PCR Front V2',
                 loadComponent: () => import('./features/ventas/pages/venta-form/venta-form').then(module => module.VentaFormPage)

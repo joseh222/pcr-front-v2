@@ -126,7 +126,7 @@ describe('Sidebar', () => {
         const compras = fixture.nativeElement.querySelector('[data-testid="nav-compras"]') as HTMLAnchorElement;
         expect(compras).toBeTruthy();
         expect(compras.getAttribute('aria-disabled')).toBeNull();
-        expect(compras.getAttribute('href')).toBe('/compras/nueva');
+        expect(compras.getAttribute('href')).toBe('/compras');
     });
 
 });
