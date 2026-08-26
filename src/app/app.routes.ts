@@ -27,6 +27,26 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/dashboard/pages/dashboard').then(module => module.DashboardPage)
             },
             {
+                path: 'personas/nueva',
+                title: 'Nueva persona | PCR Front V2',
+                loadComponent: () => import('./features/personas/pages/persona-form/persona-form').then(module => module.PersonaFormPage)
+            },
+            {
+                path: 'personas/:id/editar',
+                title: 'Editar persona | PCR Front V2',
+                loadComponent: () => import('./features/personas/pages/persona-form/persona-form').then(module => module.PersonaFormPage)
+            },
+            {
+                path: 'personas/:id',
+                title: 'Detalle de persona | PCR Front V2',
+                loadComponent: () => import('./features/personas/pages/persona-detail/persona-detail').then(module => module.PersonaDetailPage)
+            },
+            {
+                path: 'personas',
+                title: 'Personas | PCR Front V2',
+                loadComponent: () => import('./features/personas/pages/persona-list/persona-list').then(module => module.PersonaListPage)
+            },
+            {
                 path: 'catalogos/servicios/nuevo',
                 title: 'Nuevo servicio | PCR Front V2',
                 loadComponent: () => import('./features/servicios/pages/servicio-form/servicio-form').then(module => module.ServicioFormPage)
