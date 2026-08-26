@@ -21,6 +21,7 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
         id: 'gestion',
         label: 'Gestión',
         items: [
+            { id: 'personas', label: 'Personas', icon: 'groups', route: '/personas', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
             { id: 'misas', label: 'Misas', icon: 'church', route: '/misas', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
             { id: 'servicios', label: 'Servicios', icon: 'assignment', route: '/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
         ]

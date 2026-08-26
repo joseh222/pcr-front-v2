@@ -1,0 +1,80 @@
+<section class="person-detail-page">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">GESTIÓN · PERSONAS</p>
+            <h1>Detalle de persona</h1>
+            <p>Consulta la ficha central y los roles registrados para esta persona.</p>
+        </div>
+        <div class="header-actions">
+            <a mat-stroked-button routerLink="/personas"><mat-icon>arrow_back</mat-icon>Volver</a>
+            @if (store.detail(); as person) {
+                <button mat-stroked-button type="button" (click)="changeStatus()"><mat-icon>{{ person.isActive ? 'block' : 'check_circle' }}</mat-icon>{{ person.isActive ? 'Desactivar' : 'Activar' }}</button>
+                <a mat-flat-button [routerLink]="['/personas', person.idPersona, 'editar']"><mat-icon>edit</mat-icon>Editar</a>
+            }
+        </div>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (store.error()) {
+        <div class="state-card error-state">
+            <mat-icon>error_outline</mat-icon>
+            <div><strong>No se pudo cargar la persona.</strong><p>{{ store.error() }}</p></div>
+        </div>
+    } @else if (store.detail(); as person) {
+        <section class="summary-card">
+            <div class="identity-icon"><mat-icon>person</mat-icon></div>
+            <div class="identity-main">
+                <div class="identity-title">
+                    <h2>{{ person.nombreCompleto || 'Sin nombre registrado' }}</h2>
+                    <span class="status-badge" [class.inactive]="!person.isActive">{{ person.isActive ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+                <p>{{ person.codPersona || 'Sin código' }}</p>
+            </div>
+        </section>
+
+        <div class="detail-grid">
+            <section class="detail-card">
+                <header><mat-icon>badge</mat-icon><div><h2>Identificación</h2><p>Datos generales de la persona.</p></div></header>
+                <dl>
+                    <div><dt>Tipo de documento</dt><dd>{{ person.nombreTipoDocumento || person.codigoTipoDocumento || 'Sin documento' }}</dd></div>
+                    <div><dt>Número</dt><dd>{{ person.numeroDocumento || '—' }}</dd></div>
+                    <div><dt>Fecha de nacimiento</dt><dd>{{ person.fechaNacimiento ? (person.fechaNacimiento | date:'dd/MM/yyyy') : 'No registrada' }}</dd></div>
+                </dl>
+            </section>
+
+            <section class="detail-card">
+                <header><mat-icon>contact_phone</mat-icon><div><h2>Contacto</h2><p>Información reutilizada por los procesos parroquiales.</p></div></header>
+                <dl>
+                    <div><dt>Teléfono</dt><dd>{{ person.telefono || 'No registrado' }}</dd></div>
+                    <div><dt>Email</dt><dd>{{ person.email || 'No registrado' }}</dd></div>
+                    <div class="wide"><dt>Dirección</dt><dd>{{ person.direccion || 'No registrada' }}</dd></div>
+                </dl>
+            </section>
+
+            <section class="detail-card full-card">
+                <header><mat-icon>groups</mat-icon><div><h2>Roles en la parroquia</h2><p>Responsabilidades permanentes asociadas a la persona.</p></div></header>
+                @if (person.roles.length > 0) {
+                    <div class="roles-list">
+                        @for (rol of person.roles; track rol.idRolPersona) {
+                            <div class="role-card">
+                                <mat-icon>verified_user</mat-icon>
+                                <div><strong>{{ rol.nombre }}</strong><span>{{ rol.descripcion || rol.codigo }}</span></div>
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <div class="empty-role"><mat-icon>person_outline</mat-icon>Sin roles asignados.</div>
+                }
+            </section>
+
+            <section class="detail-card full-card">
+                <header><mat-icon>history</mat-icon><div><h2>Registro</h2><p>Fechas de creación y última modificación de la ficha.</p></div></header>
+                <dl>
+                    <div><dt>Creada</dt><dd>{{ person.createdUtc | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+                    <div><dt>Última actualización</dt><dd>{{ person.updatedUtc ? (person.updatedUtc | date:'dd/MM/yyyy HH:mm') : 'Sin modificaciones' }}</dd></div>
+                </dl>
+            </section>
+        </div>
+    }
+</section>

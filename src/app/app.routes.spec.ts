@@ -16,6 +16,7 @@ import { DashboardPage } from './features/dashboard/pages/dashboard';
 import { of } from 'rxjs';
 import { MisaApiService } from './features/misas/data-access/misa-api.service';
 import { PersonaApiService } from './features/personas/data-access/persona-api.service';
+import { PersonaStatusService } from './features/personas/data-access/persona-status.service';
 import { FeedbackService } from './core/feedback/feedback.service';
 import { VentaApiService } from './features/ventas/data-access/venta-api.service';
 import { VentaCancellationService } from './features/ventas/data-access/venta-cancellation.service';
@@ -65,11 +66,22 @@ describe('Application routes', () => {
         getTiposDocumento: vi.fn(() => of([
             { idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }
         ])),
-        getById: vi.fn(() => of(null)),
+        getRoles: vi.fn(() => of([{ idRolPersona: 7, codigo: 'AGENTE_PASTORAL', nombre: 'Agente pastoral', descripcion: null, isActive: true }])),
+        getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getById: vi.fn(() => of({
+            idPersona: 5, codPersona: 'PER2026-000005', idTipoDocumento: 1, codigoTipoDocumento: 'DNI', nombreTipoDocumento: 'DNI',
+            numeroDocumento: '12345678', nombreCompleto: 'JUAN PEREZ', fechaNacimiento: '1990-01-01', telefono: '999999999',
+            email: 'juan@pcr.pe', direccion: 'Pueblo Nuevo', isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null,
+            roles: [{ idRolPersona: 7, codigo: 'AGENTE_PASTORAL', nombre: 'Agente pastoral', descripcion: null }], rowVersion: 'AQIDBAUGBwg='
+        })),
         getByDocument: vi.fn(() => of(null)),
         search: vi.fn(() => of([])),
-        create: vi.fn(() => of({ idPersona: 1, codPersona: 'PER-1', rowVersion: '', mensaje: 'OK' }))
+        create: vi.fn(() => of({ idPersona: 1, codPersona: 'PER-1', rowVersion: 'AQIDBAUGBwg=', mensaje: 'OK' })),
+        update: vi.fn(() => of({ idPersona: 5, codPersona: 'PER2026-000005', rowVersion: 'AgMEBQYHCAk=', mensaje: 'OK' })),
+        changeStatus: vi.fn(() => of({ idPersona: 5, isActive: false, rowVersion: 'AgMEBQYHCAk=', mensaje: 'OK' }))
     };
+
+    const personaStatusMock = { change: vi.fn(() => of(false)) };
 
     const feedbackMock = {
         success: vi.fn(),
@@ -260,6 +272,7 @@ describe('Application routes', () => {
         mustChangePassword.set(false);
         themeServiceMock.setPreference.mockClear();
         Object.values(personaApiMock).forEach(mock => mock.mockClear());
+        personaStatusMock.change.mockClear();
         Object.values(ventaApiMock).forEach(mock => mock.mockClear());
         Object.values(productoApiMock).forEach(mock => mock.mockClear());
         productoStatusMock.change.mockClear();
@@ -286,6 +299,7 @@ describe('Application routes', () => {
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: MisaApiService, useValue: misaApiMock },
                 { provide: PersonaApiService, useValue: personaApiMock },
+                { provide: PersonaStatusService, useValue: personaStatusMock },
                 { provide: VentaApiService, useValue: ventaApiMock },
                 { provide: FeedbackService, useValue: feedbackMock },
                 { provide: VentaCancellationService, useValue: cancellationMock },
@@ -330,6 +344,36 @@ describe('Application routes', () => {
         await harness.navigateByUrl('/', ChangePasswordPage);
 
         expect(harness.routeNativeElement?.textContent).toContain('Cambiar contraseña');
+    });
+
+    it('should load persons inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/personas', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Personas');
+        expect(harness.routeNativeElement?.textContent).toContain('registro central de personas');
+    });
+
+    it('should load new and edit person pages inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/personas/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva persona');
+
+        await harness.navigateByUrl('/personas/5/editar', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Editar persona');
+
+        const nameInput = harness.routeNativeElement?.querySelector(
+            'input[formControlName="nombreCompleto"]'
+        ) as HTMLInputElement;
+
+        expect(nameInput.value).toBe('JUAN PEREZ');
+    });
+
+    it('should load person detail inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/personas/5', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Detalle de persona');
+        expect(harness.routeNativeElement?.textContent).toContain('JUAN PEREZ');
+        expect(harness.routeNativeElement?.textContent).toContain('Agente pastoral');
     });
 
     it('should load misas inside the application shell', async () => {

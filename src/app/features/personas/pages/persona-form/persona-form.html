@@ -1,0 +1,140 @@
+<div class="page-shell">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">GESTIÓN · PERSONAS</p>
+            <h1>{{ pageTitle() }}</h1>
+            <p>{{ pageDescription() }}</p>
+        </div>
+        <a mat-stroked-button routerLink="/personas"><mat-icon>arrow_back</mat-icon>Volver</a>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (store.loadError()) {
+        <div class="state-card error-state">
+            <mat-icon>error_outline</mat-icon>
+            <div><strong>No se pudo cargar el formulario.</strong><p>{{ store.loadError() }}</p></div>
+        </div>
+    } @else {
+        <form class="persona-form" [formGroup]="form" (ngSubmit)="save()">
+            <section class="form-card">
+                <header class="section-header">
+                    <div class="section-icon"><mat-icon>badge</mat-icon></div>
+                    <div><h2>Identificación</h2><p>El documento es opcional; si lo registras, tipo y número deben ir juntos.</p></div>
+                </header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de documento</mat-label>
+                        <mat-select formControlName="idTipoDocumento">
+                            <mat-option [value]="null">Sin documento</mat-option>
+                            @for (tipo of store.tiposDocumento(); track tipo.idTipoDocumento) {
+                                <mat-option [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Número de documento</mat-label>
+                        <input matInput formControlName="numeroDocumento" maxlength="20" (blur)="normalizeDocument()">
+                        <mat-hint>{{ documentHint() }}</mat-hint>
+                        @if (form.controls.numeroDocumento.touched && form.controls.numeroDocumento.hasError('required')) { <mat-error>Ingresa el número de documento.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('minlength') || form.controls.numeroDocumento.hasError('maxlength')) { <mat-error>La longitud del documento no es válida.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('pattern')) { <mat-error>Este documento admite solo números.</mat-error> }
+                    </mat-form-field>
+
+                    @if (form.touched && form.hasError('documentPair')) {
+                        <div class="form-error full-width"><mat-icon>error_outline</mat-icon>Tipo y número de documento deben indicarse juntos.</div>
+                    }
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Nombre completo</mat-label>
+                        <input matInput formControlName="nombreCompleto" maxlength="250" placeholder="Ej. José Pérez Gómez">
+                        <mat-hint>Opcional, pero recomendado para identificar fácilmente a la persona.</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Fecha de nacimiento</mat-label>
+                        <input matInput type="date" formControlName="fechaNacimiento" [max]="today">
+                        <mat-hint>Opcional.</mat-hint>
+                        @if (form.controls.fechaNacimiento.hasError('futureDate')) { <mat-error>La fecha de nacimiento no puede ser futura.</mat-error> }
+                    </mat-form-field>
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header class="section-header">
+                    <div class="section-icon"><mat-icon>contact_phone</mat-icon></div>
+                    <div><h2>Contacto</h2><p>Datos que podrán reutilizarse en Misas, Servicios y Ventas.</p></div>
+                </header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Teléfono</mat-label>
+                        <input matInput formControlName="telefono" maxlength="20">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Email</mat-label>
+                        <input matInput type="email" formControlName="email" maxlength="150">
+                        <mat-hint>Opcional.</mat-hint>
+                        @if (form.controls.email.hasError('email')) { <mat-error>Ingresa un correo válido.</mat-error> }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Dirección</mat-label>
+                        <input matInput formControlName="direccion" maxlength="250">
+                    </mat-form-field>
+
+                    @if (form.touched && form.hasError('identifiableData')) {
+                        <div class="form-error full-width">
+                            <mat-icon>error_outline</mat-icon>
+                            Registra al menos documento, nombre, teléfono, email o dirección.
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header class="section-header">
+                    <div class="section-icon"><mat-icon>groups</mat-icon></div>
+                    <div><h2>Roles en la parroquia</h2><p>Una persona puede no tener roles o desempeñar varios al mismo tiempo.</p></div>
+                </header>
+                <div class="section-body">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Roles</mat-label>
+                        <mat-select formControlName="roles" multiple>
+                            @for (rol of store.roles(); track rol.idRolPersona) {
+                                <mat-option [value]="rol.idRolPersona">{{ rol.nombre }}</mat-option>
+                            }
+                        </mat-select>
+                        <mat-hint>Ej. Sacerdote, Catequista o Agente pastoral. “Cliente” no es un rol permanente.</mat-hint>
+                    </mat-form-field>
+
+                    @if (form.controls.roles.value.length > 0) {
+                        <div class="roles-summary">
+                            @for (id of form.controls.roles.value; track id) {
+                                @if (store.roles().find(r => r.idRolPersona === id); as rol) {
+                                    <span class="role-chip" [title]="roleDescription(rol)">{{ rol.nombre }}</span>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </section>
+
+            @if (isEditMode() && store.detail(); as detail) {
+                <section class="person-note">
+                    <mat-icon>info</mat-icon>
+                    <div><strong>{{ detail.codPersona || 'Persona sin código' }}</strong><span>El código identifica esta ficha y no cambia al editar sus datos.</span></div>
+                </section>
+            }
+
+            <div class="form-actions">
+                <a mat-stroked-button routerLink="/personas">Cancelar</a>
+                <button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()">
+                    <mat-icon>save</mat-icon>
+                    {{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Registrar persona') }}
+                </button>
+            </div>
+        </form>
+    }
+</div>
