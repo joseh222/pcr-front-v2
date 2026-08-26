@@ -1,0 +1,42 @@
+:host { display:block; }
+.compra-list-page { display:flex; width:100%; min-width:0; flex-direction:column; gap:1rem; }
+.page-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.page-eyebrow { margin:0; color:var(--mat-sys-primary); font-size:.875rem; font-weight:600; }
+.page-title { margin:.25rem 0 0; font-size:clamp(1.5rem,3vw,2rem); font-weight:600; }
+.page-description { margin:.5rem 0 0; font-size:.875rem; opacity:.65; }
+.page-header-actions { display:flex; flex-shrink:0; align-items:center; gap:.5rem; }
+.filters-card,.table-card { overflow:visible; border:1px solid var(--mat-sys-outline-variant); border-radius:1rem; background:var(--mat-sys-surface-container-lowest); }
+.filters-card { padding:1rem; }
+.filters-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; align-items:start; }
+.filter-search { grid-column:span 2; }
+.supplier-filter { position:relative; min-width:0; }
+.supplier-filter mat-form-field { width:100%; }
+.selected-supplier { display:flex; min-height:3.5rem; align-items:center; justify-content:space-between; gap:.5rem; border:1px solid var(--mat-sys-outline); border-radius:.25rem; padding:.35rem .35rem .35rem .75rem; }
+.selected-supplier span,.supplier-results button { display:flex; min-width:0; flex-direction:column; align-items:flex-start; }
+.selected-supplier strong,.supplier-results strong { overflow:hidden; max-width:100%; text-overflow:ellipsis; white-space:nowrap; }
+.selected-supplier small,.supplier-results small { margin-top:.15rem; opacity:.65; }
+.supplier-results { position:absolute; z-index:10; top:3.7rem; right:0; left:0; overflow:hidden; border:1px solid var(--mat-sys-outline-variant); border-radius:.5rem; background:var(--mat-sys-surface-container); box-shadow:var(--mat-sys-level2); }
+.supplier-results button { width:100%; border:0; padding:.65rem .75rem; background:transparent; color:inherit; cursor:pointer; text-align:left; }
+.supplier-results button:hover { background:var(--mat-sys-surface-container-high); }
+.filter-actions { display:flex; justify-content:flex-end; gap:.75rem; }
+.filter-error,.catalog-error { display:flex; align-items:center; gap:.5rem; margin:.25rem 0 .75rem; color:var(--mat-sys-error); font-size:.875rem; }
+.table-card { overflow:hidden; }
+.table-header { display:flex; min-height:4rem; align-items:center; padding:0 1rem; }
+.table-header h2 { margin:0; font-size:1rem; font-weight:600; }
+.table-header p { margin:.25rem 0 0; font-size:.75rem; opacity:.6; }
+.table-wrapper { width:100%; overflow-x:auto; }
+.compra-table { width:100%; min-width:62rem; }
+.cell-primary { font-weight:500; }
+.cell-secondary { margin-top:.125rem; font-size:.75rem; opacity:.6; }
+.status-badge { display:inline-flex; min-height:1.75rem; align-items:center; border-radius:999px; padding:.25rem .65rem; background:var(--mat-sys-tertiary-container); color:var(--mat-sys-on-tertiary-container); font-size:.75rem; font-weight:500; white-space:nowrap; }
+.status-badge-cancelled { background:var(--mat-sys-error-container); color:var(--mat-sys-on-error-container); }
+.message-state { display:flex; min-height:12rem; align-items:center; justify-content:center; gap:1rem; padding:2rem; }
+.message-state>mat-icon { width:2rem; height:2rem; font-size:2rem; opacity:.65; }
+.message-state strong { display:block; }
+.message-state p { margin:.25rem 0 0; font-size:.875rem; opacity:.65; }
+.error-state { color:var(--mat-sys-error); }
+mat-paginator { border-top:1px solid var(--mat-sys-outline-variant); }
+@media(max-width:1023px){ .filters-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.filter-search{grid-column:span 2;} }
+@media(max-width:640px){ .page-header{align-items:flex-start;flex-direction:column}.page-header-actions{width:100%;justify-content:flex-end}.filters-grid{grid-template-columns:1fr}.filter-search{grid-column:span 1}.filter-actions{flex-direction:column-reverse}.filter-actions button{width:100%}.compra-table{min-width:62rem} }
+.actions-cell { width:6.5rem; text-align:right; white-space:nowrap; }
+.cancel-action { color:var(--mat-sys-error); }

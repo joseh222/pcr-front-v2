@@ -26,6 +26,9 @@ import { ServicioApiService } from './features/servicios/data-access/servicio-ap
 import { ServicioStatusService } from './features/servicios/data-access/servicio-status.service';
 import { SolicitudServicioApiService } from './features/servicios/data-access/solicitud-servicio-api.service';
 import { SolicitudServicioCancellationService } from './features/servicios/data-access/solicitud-servicio-cancellation.service';
+import { ProveedorApiService } from './features/proveedores/data-access/proveedor-api.service';
+import { ProveedorStatusService } from './features/proveedores/data-access/proveedor-status.service';
+import { CompraApiService } from './features/compras/data-access/compra-api.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -177,6 +180,7 @@ describe('Application routes', () => {
         getCategorias: vi.fn(() => of([{ idCategoriaProducto: 1, codigo: 'VELAS', nombre: 'Velas', descripcion: null, isActive: true, rowVersion: 'A' }])),
         getMarcas: vi.fn(() => of([])),
         getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        search: vi.fn(() => of([])),
         getById: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', idCategoriaProducto: 1, codigoCategoria: 'VELAS', nombreCategoria: 'Velas', idMarcaProducto: null, codigoMarca: null, nombreMarca: null, nombre: 'Vela', sku: 'VEL-001', descripcion: null, precioCompra: 2, precioVenta: 5, stockActual: 10, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A', stockRowVersion: 'B' })),
         create: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'A', mensaje: 'OK' })),
         update: vi.fn(() => of({ idProducto: 5, codProducto: 'P2026-00000005', rowVersion: 'B', mensaje: 'OK' })),
@@ -210,10 +214,31 @@ describe('Application routes', () => {
     };
     const servicioStatusMock = { change: vi.fn(() => of(null)) };
 
+    const proveedorApiMock = {
+        getTiposDocumento: vi.fn(() => of([{ idTipoDocumento: 3, codigo: 'RUC', nombre: 'RUC', longitudMinima: 11, longitudMaxima: 11, soloNumeros: true, isActive: true }])),
+        getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getById: vi.fn(() => of({ idProveedor: 5, codProveedor: 'PRV2026-000005', idTipoDocumento: 3, codigoTipoDocumento: 'RUC', nombreTipoDocumento: 'RUC', numeroDocumento: '20123456789', razonSocial: 'Proveedor SAC', nombreComercial: null, telefono: null, email: null, direccion: null, observaciones: null, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A' })),
+        create: vi.fn(() => of({ idProveedor: 5, codProveedor: 'PRV2026-000005', rowVersion: 'A', mensaje: 'OK' })),
+        update: vi.fn(() => of({ idProveedor: 5, codProveedor: 'PRV2026-000005', rowVersion: 'B', mensaje: 'OK' })),
+        changeStatus: vi.fn(() => of({ idProveedor: 5, isActive: false, rowVersion: 'B', mensaje: 'OK' })),
+        search: vi.fn(() => of([]))
+    };
+    const proveedorStatusMock = { change: vi.fn(() => of(null)) };
+    const compraApiMock = {
+        getEstados: vi.fn(() => of([{ idEstadoCompra: 1, codigo: 'REGISTRADA', nombre: 'Registrada', isActive: true }])),
+        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true }])),
+        getList: vi.fn(() => of({ pageNumber: 1, pageSize: 20, totalRows: 0, totalPages: 0, items: [] })),
+        getById: vi.fn(() => of({
+            idCompra: 5, codCompra: 'CMP2026-000005', fechaCompra: '2026-08-25', idProveedor: 2, tipoDocumentoProveedor: 'RUC', numeroDocumentoProveedor: '20123456789', razonSocialProveedor: 'Distribuidora San José SAC', nombreComercialProveedor: 'San José', idTipoComprobanteCompra: 1, codigoTipoComprobante: 'FACTURA', nombreTipoComprobante: 'Factura', serieComprobante: 'F001', numeroComprobante: '000123', idEstadoCompra: 1, codigoEstadoCompra: 'REGISTRADA', nombreEstadoCompra: 'Registrada', moneda: 'PEN', total: 55, cantidadDetalles: 1, cantidadTotal: 10, observaciones: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, createdUtc: '2026-08-25T20:00:00Z', createdById: 9, puedeAnular: true, rowVersion: 'A', detalles: [{ idCompraDetalle: 10, idProducto: 8, codigoProducto: 'P2026-000008', sku: 'VEL-001', descripcion: 'Vela blanca', cantidad: 10, costoUnitario: 5.5, subTotal: 55 }]
+        })),
+        create: vi.fn(() => of({ idCompra: 1, codCompra: 'CMP2026-000001', fechaCompra: '2026-08-25', total: 10, estadoCompra: 'REGISTRADA', rowVersion: 'A', mensaje: 'OK' }))
+    };
+
     const solicitudServicioApiMock = {
         getEstados: vi.fn(() => of([{ idEstadoSolicitudServicio: 1, codigo: 'ACTIVA', nombre: 'Activa' }])),
         getEstadosPago: vi.fn(() => of([{ idEstadoPagoSolicitudServicio: 1, codigo: 'PENDIENTE', nombre: 'Pendiente' }])),
         getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        search: vi.fn(() => of([])),
         getById: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', idServicio: 5, codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', modoPrecio: 'FIJO', idPersona: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE', telefono: null, requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', nombreEstadoSolicitud: 'Activa', estadoPago: 'PENDIENTE', nombreEstadoPago: 'Pendiente', observaciones: null, createdUtc: '2026-08-20T12:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, rowVersion: 'A' })),
         create: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', estadoPago: 'PENDIENTE', rowVersion: 'A', mensaje: 'OK' })),
         update: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', requierePago: true, importe: 15, motivoNoPago: null, estadoPago: 'PENDIENTE', rowVersion: 'B', mensaje: 'OK' })),
@@ -241,6 +266,9 @@ describe('Application routes', () => {
         Object.values(inventarioApiMock).forEach(mock => mock.mockClear());
         Object.values(servicioApiMock).forEach(mock => mock.mockClear());
         servicioStatusMock.change.mockClear();
+        Object.values(proveedorApiMock).forEach(mock => mock.mockClear());
+        proveedorStatusMock.change.mockClear();
+        Object.values(compraApiMock).forEach(mock => mock.mockClear());
         Object.values(solicitudServicioApiMock).forEach(mock => mock.mockClear());
         solicitudCancellationMock.cancel.mockClear();
         feedbackMock.success.mockClear();
@@ -266,6 +294,9 @@ describe('Application routes', () => {
                 { provide: InventarioApiService, useValue: inventarioApiMock },
                 { provide: ServicioApiService, useValue: servicioApiMock },
                 { provide: ServicioStatusService, useValue: servicioStatusMock },
+                { provide: ProveedorApiService, useValue: proveedorApiMock },
+                { provide: ProveedorStatusService, useValue: proveedorStatusMock },
+                { provide: CompraApiService, useValue: compraApiMock },
                 { provide: SolicitudServicioApiService, useValue: solicitudServicioApiMock },
                 { provide: SolicitudServicioCancellationService, useValue: solicitudCancellationMock }
             ]
@@ -310,6 +341,28 @@ describe('Application routes', () => {
         expect(harness.routeNativeElement?.textContent).toContain(
             'Consulta y administra las misas e intenciones parroquiales.'
         );
+    });
+
+    it('should load purchases inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/compras', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Compras');
+        expect(harness.routeNativeElement?.textContent).toContain('Consulta las compras registradas');
+    });
+
+    it('should load purchase detail inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/compras/5', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('CMP2026-000005');
+        expect(harness.routeNativeElement?.textContent).toContain('Distribuidora San José SAC');
+        expect(harness.routeNativeElement?.textContent).toContain('Vela blanca');
+    });
+
+    it('should load the new purchase page inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/compras/nueva', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nueva compra');
+        expect(harness.routeNativeElement?.textContent).toContain('Detalle de compra');
     });
 
     it('should load the new sale page inside the application shell', async () => {
@@ -428,5 +481,27 @@ describe('Application routes', () => {
         expect(harness.routeNativeElement?.textContent).toContain('Nuevo servicio');
         await harness.navigateByUrl('/catalogos/servicios/5/editar', AppShell);
         expect(harness.routeNativeElement?.textContent).toContain('Editar servicio');
+    });
+
+    it('should load supplier catalog inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/catalogos/proveedores', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Proveedores');
+        expect(harness.routeNativeElement?.textContent).toContain('Administra las personas y empresas');
+    });
+
+    it('should load new and edit supplier pages inside the application shell', async () => {
+        const harness = await RouterTestingHarness.create();
+        await harness.navigateByUrl('/catalogos/proveedores/nuevo', AppShell);
+        expect(harness.routeNativeElement?.textContent).toContain('Nuevo proveedor');
+        await harness.navigateByUrl('/catalogos/proveedores/5/editar', AppShell);
+
+        expect(harness.routeNativeElement?.textContent).toContain('Editar proveedor');
+
+        const razonSocialInput = harness.routeNativeElement?.querySelector(
+            'input[formControlName="razonSocial"]'
+        ) as HTMLInputElement;
+
+        expect(razonSocialInput.value).toBe('Proveedor SAC');
     });
 });

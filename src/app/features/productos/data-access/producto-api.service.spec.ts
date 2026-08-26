@@ -38,6 +38,13 @@ describe('ProductoApiService', () => {
         service.changeStatus(5, status).subscribe(); request = httpTesting.expectOne(`${apiBaseUrl}/Producto/5/status`); expect(request.request.method).toBe('PATCH'); expect(request.request.body).toEqual(status); request.flush({});
     });
 
+    it('should search active products', () => {
+        service.search('vela', 10).subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Producto/search`);
+        expect(request.request.params.get('search')).toBe('vela'); expect(request.request.params.get('top')).toBe('10');
+        request.flush([]);
+    });
+
     it('should request product detail', () => {
         service.getById(5).subscribe(); const request = httpTesting.expectOne(`${apiBaseUrl}/Producto/5`); expect(request.request.method).toBe('GET'); request.flush({ idProducto: 5 });
     });

@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { InventarioMovementStore } from '../../data-access/models/inventario-movement.store';
 import { MovimientoFormPage } from './movimiento-form';
@@ -19,11 +19,12 @@ describe('MovimientoFormPage', () => {
         saveError: saveError.asReadonly(), saveResult: saveResult.asReadonly(), initialize: vi.fn(), create: vi.fn(), clearSaveError: vi.fn(), clearSaveResult: vi.fn()
     };
     const feedbackMock = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
+    const routerMock = { navigate: vi.fn(() => Promise.resolve(true)) };
 
     async function createFixture(query: Record<string, string> = {}) {
         TestBed.configureTestingModule({
             imports: [MovimientoFormPage],
-            providers: [provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '5' }), queryParamMap: convertToParamMap(query) } } }, { provide: FeedbackService, useValue: feedbackMock }]
+            providers: [{ provide: Router, useValue: routerMock }, { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '5' }), queryParamMap: convertToParamMap(query) } } }, { provide: FeedbackService, useValue: feedbackMock }]
         });
         TestBed.overrideComponent(MovimientoFormPage, { set: { providers: [{ provide: InventarioMovementStore, useValue: storeMock }] } });
         await TestBed.compileComponents(); const fixture = TestBed.createComponent(MovimientoFormPage); fixture.detectChanges(); return fixture;
@@ -32,7 +33,7 @@ describe('MovimientoFormPage', () => {
     beforeEach(() => {
         inventory.set({ idProducto: 5, codProducto: 'P2026-00000005', nombre: 'Vela', sku: 'VEL-001', stockActual: 10, fechaUltimoMovimiento: '2026-08-20T12:00:00Z' });
         saveError.set(null); saveResult.set(null); storeMock.initialize.mockClear(); storeMock.create.mockClear(); storeMock.clearSaveError.mockClear(); storeMock.clearSaveResult.mockClear();
-        feedbackMock.success.mockClear(); feedbackMock.error.mockClear(); feedbackMock.warning.mockClear();
+        feedbackMock.success.mockClear(); feedbackMock.error.mockClear(); feedbackMock.warning.mockClear(); routerMock.navigate.mockClear();
     });
 
     it('should initialize inventory movement', async () => {
@@ -69,6 +70,14 @@ describe('MovimientoFormPage', () => {
         const fixture = await createFixture({ tipo: 'STOCK_INICIAL' });
         expect(fixture.componentInstance.form.controls.idTipoMovimiento.value).toBe(1);
         expect(fixture.componentInstance.form.controls.idTipoMovimiento.disabled).toBe(true);
+    });
+
+    it('should return to movement history when opened from movements', async () => {
+        const fixture = await createFixture({ origen: 'movimientos' });
+        saveResult.set({ idProducto: 5, mensaje: 'Movimiento registrado correctamente.' });
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(routerMock.navigate).toHaveBeenCalledWith(['/inventario/movimientos'], { queryParams: { productoId: 5 } });
     });
 
     it('should create a valid movement', async () => {

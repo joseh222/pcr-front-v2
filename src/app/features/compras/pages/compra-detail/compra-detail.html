@@ -1,0 +1,65 @@
+<section class="page-shell" data-testid="compra-detail-page">
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (store.error()) {
+        <div class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudo cargar la compra.</strong><p>{{ store.error() }}</p></div><a mat-stroked-button routerLink="/compras">Volver</a></div>
+    } @else if (store.detail(); as compra) {
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">COMPRA · DETALLE</p>
+                <div class="title-row"><h1>{{ compra.codCompra }}</h1><span class="status-badge" [class.cancelled]="compra.codigoEstadoCompra === 'ANULADA'">{{ compra.nombreEstadoCompra }}</span></div>
+                <p>{{ compra.fechaCompra | date:'dd/MM/yyyy' }} · {{ compra.nombreTipoComprobante }} · {{ comprobante(compra.serieComprobante, compra.numeroComprobante) }}</p>
+            </div>
+            <div class="header-actions">
+                @if (compra.puedeAnular) { <button mat-stroked-button class="cancel-button" type="button" (click)="cancel()"><mat-icon>cancel</mat-icon>Anular compra</button> }
+                <a mat-stroked-button routerLink="/compras"><mat-icon>arrow_back</mat-icon>Volver</a>
+            </div>
+        </header>
+
+        <section class="info-grid">
+            <article class="detail-card">
+                <header><mat-icon>local_shipping</mat-icon><h2>Proveedor</h2></header>
+                <div class="detail-body info-list">
+                    <div class="wide"><span>Razón social / nombre</span><strong>{{ compra.razonSocialProveedor }}</strong></div>
+                    <div><span>Documento</span><strong>@if (compra.numeroDocumentoProveedor) { {{ compra.tipoDocumentoProveedor || '' }} {{ compra.numeroDocumentoProveedor }} } @else { — }</strong></div>
+                    <div><span>Nombre comercial</span><strong>{{ compra.nombreComercialProveedor || '—' }}</strong></div>
+                </div>
+            </article>
+
+            <article class="detail-card">
+                <header><mat-icon>receipt_long</mat-icon><h2>Comprobante</h2></header>
+                <div class="detail-body info-list">
+                    <div><span>Tipo</span><strong>{{ compra.nombreTipoComprobante }}</strong></div>
+                    <div><span>Número</span><strong>{{ comprobante(compra.serieComprobante, compra.numeroComprobante) }}</strong></div>
+                    <div><span>Moneda</span><strong>{{ compra.moneda }}</strong></div>
+                </div>
+            </article>
+        </section>
+
+        <article class="detail-card">
+            <header><mat-icon>inventory_2</mat-icon><div><h2>Detalle de compra</h2><p>{{ compra.cantidadDetalles }} producto{{ compra.cantidadDetalles === 1 ? '' : 's' }} · {{ compra.cantidadTotal }} unidades</p></div></header>
+            <div class="table-wrap">
+                <table class="detail-table">
+                    <thead><tr><th>Código</th><th>SKU</th><th>Producto</th><th>Cantidad</th><th>Costo unit.</th><th>Subtotal</th></tr></thead>
+                    <tbody>@for (item of compra.detalles; track item.idCompraDetalle) {
+                        <tr><td>{{ item.codigoProducto || '—' }}</td><td>{{ item.sku || '—' }}</td><td>{{ item.descripcion }}</td><td>{{ item.cantidad }}</td><td>{{ item.costoUnitario | currency:'PEN':'symbol':'1.2-2' }}</td><td><strong>{{ item.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong></td></tr>
+                    }</tbody>
+                </table>
+            </div>
+            <div class="totals"><div><span>Productos</span><strong>{{ compra.cantidadDetalles }}</strong></div><div><span>Unidades</span><strong>{{ compra.cantidadTotal }}</strong></div><div class="grand-total"><span>Total</span><strong>{{ compra.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div></div>
+        </article>
+
+        @if (compra.observaciones) {
+            <article class="detail-card"><header><mat-icon>notes</mat-icon><h2>Observaciones</h2></header><div class="detail-body"><p class="observation-text">{{ compra.observaciones }}</p></div></article>
+        }
+
+        <article class="detail-card">
+            <header><mat-icon>history</mat-icon><h2>Registro</h2></header>
+            <div class="detail-body info-list audit-list"><div><span>Registrada</span><strong>{{ compra.createdUtc | date:'dd/MM/yyyy HH:mm':'-0500' }}</strong></div><div><span>Usuario</span><strong>#{{ compra.createdById }}</strong></div></div>
+        </article>
+
+        @if (compra.codigoEstadoCompra === 'ANULADA') {
+            <article class="detail-card cancellation-card"><header><mat-icon>cancel</mat-icon><h2>Anulación</h2></header><div class="detail-body info-list cancellation-grid"><div><span>Fecha</span><strong>{{ compra.anuladaUtc ? (compra.anuladaUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div><div><span>Usuario</span><strong>{{ compra.anuladaById ? '#' + compra.anuladaById : '—' }}</strong></div><div class="full-row"><span>Motivo</span><strong>{{ compra.motivoAnulacion || 'Sin detalle.' }}</strong></div></div></article>
+        }
+    }
+</section>

@@ -29,6 +29,7 @@ export class MovimientoFormPage implements OnInit {
     protected idProducto = 0;
     private requestedType: string | null = null;
     protected initialStockFlow = false;
+    private returnToMovements = false;
 
     readonly form = this.fb.group({
         idTipoMovimiento: this.fb.control<number | null>(null, Validators.required),
@@ -66,13 +67,17 @@ export class MovimientoFormPage implements OnInit {
         const result = this.store.saveResult();
         if (!result) return;
         this.store.clearSaveResult();
-        void this.router.navigate(['/productos', result.idProducto]).then(() => this.feedback.success(result.mensaje || 'Movimiento registrado correctamente.'));
+        const navigation = this.returnToMovements
+            ? this.router.navigate(['/inventario/movimientos'], { queryParams: { productoId: result.idProducto } })
+            : this.router.navigate(['/productos', result.idProducto]);
+        void navigation.then(() => this.feedback.success(result.mensaje || 'Movimiento registrado correctamente.'));
     });
 
     ngOnInit(): void {
         this.idProducto = Number(this.route.snapshot.paramMap.get('id'));
         if (!Number.isInteger(this.idProducto) || this.idProducto <= 0) { void this.router.navigate(['/productos']); return; }
         this.requestedType = this.route.snapshot.queryParamMap.get('tipo');
+        this.returnToMovements = this.route.snapshot.queryParamMap.get('origen') === 'movimientos';
         this.initialStockFlow = this.requestedType?.toUpperCase() === 'STOCK_INICIAL';
         this.form.controls.idTipoMovimiento.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyReasonValidators());
         this.store.initialize(this.idProducto);

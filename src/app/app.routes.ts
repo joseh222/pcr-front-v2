@@ -42,6 +42,21 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/servicios/pages/servicio-list/servicio-list').then(module => module.ServicioListPage)
             },
             {
+                path: 'catalogos/proveedores/nuevo',
+                title: 'Nuevo proveedor | PCR Front V2',
+                loadComponent: () => import('./features/proveedores/pages/proveedor-form/proveedor-form').then(module => module.ProveedorFormPage)
+            },
+            {
+                path: 'catalogos/proveedores/:id/editar',
+                title: 'Editar proveedor | PCR Front V2',
+                loadComponent: () => import('./features/proveedores/pages/proveedor-form/proveedor-form').then(module => module.ProveedorFormPage)
+            },
+            {
+                path: 'catalogos/proveedores',
+                title: 'Proveedores | PCR Front V2',
+                loadComponent: () => import('./features/proveedores/pages/proveedor-list/proveedor-list').then(module => module.ProveedorListPage)
+            },
+            {
                 path: 'inventario/movimientos',
                 title: 'Movimientos de inventario | PCR Front V2',
                 loadComponent: () => import('./features/inventario/pages/movimiento-list/movimiento-list').then(module => module.MovimientoListPage)
@@ -90,6 +105,21 @@ export const routes: Routes = [
                 path: 'servicios',
                 title: 'Servicios | PCR Front V2',
                 loadComponent: () => import('./features/servicios/pages/solicitud-servicio-list/solicitud-servicio-list').then(module => module.SolicitudServicioListPage)
+            },
+            {
+                path: 'compras/nueva',
+                title: 'Nueva compra | PCR Front V2',
+                loadComponent: () => import('./features/compras/pages/compra-form/compra-form').then(module => module.CompraFormPage)
+            },
+            {
+                path: 'compras/:id',
+                title: 'Detalle de compra | PCR Front V2',
+                loadComponent: () => import('./features/compras/pages/compra-detail/compra-detail').then(module => module.CompraDetailPage)
+            },
+            {
+                path: 'compras',
+                title: 'Compras | PCR Front V2',
+                loadComponent: () => import('./features/compras/pages/compra-list/compra-list').then(module => module.CompraListPage)
             },
             {
                 path: 'ventas/nueva',

@@ -16,7 +16,7 @@ import { ProductoListItem } from '../../../productos/data-access/models/producto
 import { InventarioApiService } from '../../data-access/inventario-api.service';
 import { InventarioMovementListStore } from '../../data-access/models/inventario-movement-list.store';
 import { MovimientoInventarioListFilters, TipoMovimientoInventario } from '../../data-access/models/inventario.models';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'pcr-movimiento-list',
@@ -31,6 +31,7 @@ export class MovimientoListPage implements OnInit {
     private readonly productApi = inject(ProductoApiService);
     private readonly feedback = inject(FeedbackService);
     private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     private readonly fb = inject(FormBuilder);
     protected readonly tipos = signal<readonly TipoMovimientoInventario[]>([]);
     protected readonly productos = signal<readonly ProductoListItem[]>([]);
@@ -50,5 +51,10 @@ export class MovimientoListPage implements OnInit {
     protected search(): void { this.store.search(this.filterForm.getRawValue() as MovimientoInventarioListFilters); }
     protected clearFilters(): void { this.filterForm.reset({ idProducto: null, idTipoMovimiento: null, fechaInicio: null, fechaFin: null }); this.search(); }
     protected reload(): void { this.store.reload(); }
+    protected registerMovement(): void {
+        const idProducto = this.filterForm.controls.idProducto.value;
+        if (!idProducto) { this.feedback.warning('Selecciona primero el producto al que registrarás el movimiento.'); return; }
+        void this.router.navigate(['/productos', idProducto, 'movimiento'], { queryParams: { origen: 'movimientos' } });
+    }
     protected onPage(event: PageEvent): void { if (event.pageSize !== this.store.pageSize()) { this.store.changePageSize(event.pageSize); return; } this.store.changePage(event.pageIndex + 1); }
 }

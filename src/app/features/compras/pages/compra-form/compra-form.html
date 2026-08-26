@@ -1,0 +1,87 @@
+<div class="page-shell">
+    <header class="page-header">
+        <div>
+            <span class="eyebrow">COMPRA · REGISTRO</span>
+            <h1>Nueva compra</h1>
+            <p>Registra el abastecimiento de productos y actualiza el inventario automáticamente.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="resetForm()"><mat-icon>refresh</mat-icon>Limpiar</button>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+    <form [formGroup]="form" class="compra-form" novalidate>
+        <section class="form-card">
+            <header class="section-header"><div class="section-icon"><mat-icon>local_shipping</mat-icon></div><div><h2>Proveedor</h2><p>Busca un proveedor activo por código, documento o razón social.</p></div></header>
+            <div class="section-body">
+                @if (store.selectedProveedor(); as proveedor) {
+                    <div class="selected-card">
+                        <div><strong>{{ proveedor.razonSocial }}</strong><span>{{ proveedor.codProveedor }} @if (proveedor.numeroDocumento) { · {{ proveedor.codigoTipoDocumento }} {{ proveedor.numeroDocumento }} }</span>@if (proveedor.nombreComercial) { <small>{{ proveedor.nombreComercial }}</small> }</div>
+                        <button mat-stroked-button type="button" (click)="clearProveedor()"><mat-icon>close</mat-icon>Cambiar</button>
+                    </div>
+                } @else {
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Buscar proveedor</mat-label><mat-icon matPrefix>search</mat-icon>
+                        <input matInput formControlName="proveedorSearch" autocomplete="off" placeholder="Ej. San José, RUC o PRV2026...">
+                        <mat-hint>Escribe al menos 2 caracteres.</mat-hint>
+                    </mat-form-field>
+                    @if (store.proveedorLoading()) { <mat-progress-bar mode="indeterminate" /> }
+                    @if (store.proveedorResults().length > 0) {
+                        <div class="search-results">
+                            @for (proveedor of store.proveedorResults(); track proveedor.idProveedor) {
+                                <button type="button" class="search-result" (click)="selectProveedor(proveedor)"><span><strong>{{ proveedor.razonSocial }}</strong><small>{{ proveedor.codProveedor }} @if (proveedor.numeroDocumento) { · {{ proveedor.numeroDocumento }} }</small></span><mat-icon>add_circle_outline</mat-icon></button>
+                            }
+                        </div>
+                    }
+                    @if (form.controls.idProveedor.touched && form.controls.idProveedor.invalid) { <div class="field-error">Selecciona un proveedor.</div> }
+                }
+            </div>
+        </section>
+
+        <section class="form-card">
+            <header class="section-header"><div class="section-icon"><mat-icon>receipt_long</mat-icon></div><div><h2>Datos de compra</h2><p>La fecha no puede ser futura y el comprobante aplica sus reglas automáticamente.</p></div></header>
+            <div class="section-body form-grid purchase-grid">
+                <mat-form-field appearance="outline"><mat-label>Fecha de compra</mat-label><input matInput type="date" [max]="today" formControlName="fechaCompra">@if (form.controls.fechaCompra.hasError('futureDate')) { <mat-error>La fecha no puede ser futura.</mat-error> }</mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Tipo de comprobante</mat-label><mat-select formControlName="idTipoComprobanteCompra">@for (tipo of store.tiposComprobante(); track tipo.idTipoComprobanteCompra) { <mat-option [value]="tipo.idTipoComprobanteCompra">{{ tipo.nombre }}</mat-option> }</mat-select>@if (form.controls.idTipoComprobanteCompra.hasError('required')) { <mat-error>Selecciona el tipo.</mat-error> }</mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Serie</mat-label><input matInput maxlength="20" formControlName="serieComprobante" placeholder="F001">@if (form.controls.serieComprobante.hasError('required')) { <mat-error>La serie es obligatoria.</mat-error> }</mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Número</mat-label><input matInput maxlength="30" formControlName="numeroComprobante" placeholder="000123">@if (form.controls.numeroComprobante.hasError('required')) { <mat-error>El número es obligatorio.</mat-error> }</mat-form-field>
+            </div>
+        </section>
+
+        <section class="form-card">
+            <header class="section-header"><div class="section-icon"><mat-icon>inventory_2</mat-icon></div><div><h2>Detalle de compra</h2><p>El costo sugerido viene del producto y puede ajustarse para esta compra.</p></div></header>
+            <div class="section-body">
+                <mat-form-field appearance="outline" class="full-width"><mat-label>Buscar producto</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="productoSearch" autocomplete="off" placeholder="Código, SKU o nombre"><mat-hint>Escribe al menos 2 caracteres.</mat-hint></mat-form-field>
+                @if (store.productoLoading()) { <mat-progress-bar mode="indeterminate" /> }
+                @if (store.productoResults().length > 0) {
+                    <div class="search-results product-results">
+                        @for (producto of store.productoResults(); track producto.idProducto) {
+                            <button type="button" class="search-result" (click)="addProduct(producto)"><span><strong>{{ producto.nombre }}</strong><small>{{ producto.codProducto }} @if (producto.sku) { · {{ producto.sku }} } · {{ producto.nombreCategoria }}</small></span><mat-icon>add_circle_outline</mat-icon></button>
+                        }
+                    </div>
+                }
+
+                @if (store.items().length === 0) {
+                    <div class="empty-detail"><mat-icon>shopping_cart</mat-icon><span>Agrega al menos un producto a la compra.</span></div>
+                } @else {
+                    <div class="detail-table-wrap"><table class="detail-table"><thead><tr><th>Producto</th><th>Cantidad</th><th>Costo unit.</th><th>Subtotal</th><th></th></tr></thead><tbody>
+                        @for (item of store.items(); track item.idProducto) {
+                            <tr><td><strong>{{ item.nombre }}</strong><small>{{ item.codProducto }} @if (item.sku) { · {{ item.sku }} }</small></td>
+                                <td><div class="value-field"><input class="compact-input" [class.invalid]="item.cantidadError" type="number" min="0.01" step="0.01" [value]="item.cantidad" (input)="updateQuantity(item.idProducto, $any($event.target).value)">@if (item.cantidadError) { <span>{{ item.cantidadError }}</span> }</div></td>
+                                <td><div class="value-field"><div class="money-input"><span>S/</span><input class="compact-input" [class.invalid]="item.costoError" type="number" min="0" step="0.01" [value]="item.costoUnitario" (input)="updateCost(item.idProducto, $any($event.target).value)"></div>@if (item.costoError) { <span>{{ item.costoError }}</span> }</div></td>
+                                <td><strong>S/ {{ item.subtotal.toFixed(2) }}</strong></td><td><button mat-icon-button type="button" aria-label="Eliminar producto" (click)="removeProduct(item.idProducto)"><mat-icon>delete_outline</mat-icon></button></td></tr>
+                        }
+                    </tbody></table></div>
+                    <div class="detail-total"><span>Total de compra</span><strong>S/ {{ store.total().toFixed(2) }}</strong></div>
+                }
+            </div>
+        </section>
+
+        <section class="form-card">
+            <header class="section-header"><div class="section-icon"><mat-icon>notes</mat-icon></div><div><h2>Observaciones</h2><p>Información adicional opcional de la compra.</p></div></header>
+            <div class="section-body"><mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones</mat-label><textarea matInput rows="3" maxlength="500" formControlName="observaciones"></textarea><mat-hint align="end">{{ form.controls.observaciones.value.length }}/500</mat-hint></mat-form-field></div>
+        </section>
+
+        <div class="form-actions"><button mat-stroked-button type="button" (click)="resetForm()">Limpiar</button><button mat-flat-button type="button" data-testid="save-purchase" [disabled]="!canSave()" (click)="save()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Registrando...' : 'Registrar compra' }}</button></div>
+    </form>
+</div>

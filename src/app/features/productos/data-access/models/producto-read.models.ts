@@ -60,3 +60,17 @@ export interface ProductoDetail {
     readonly rowVersion: string;
     readonly stockRowVersion: string;
 }
+
+
+export interface ProductoSearchItem {
+    readonly idProducto: number;
+    readonly codProducto: string;
+    readonly nombre: string;
+    readonly sku: string | null;
+    readonly idCategoriaProducto: number;
+    readonly nombreCategoria: string;
+    readonly idMarcaProducto: number | null;
+    readonly nombreMarca: string | null;
+    readonly precioVenta: number;
+    readonly stockActual: number;
+}

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { ProductoCategoria, ProductoMarca } from './models/producto-catalog.models';
-import { ProductoDetail, ProductoListQuery, ProductoPagedResponse } from './models/producto-read.models';
+import { ProductoDetail, ProductoListQuery, ProductoPagedResponse, ProductoSearchItem } from './models/producto-read.models';
 import { ProductoChangeStatusRequest, ProductoChangeStatusResponse, ProductoCreateRequest, ProductoUpdateRequest, ProductoWriteResponse } from './models/producto-write.models';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +19,10 @@ export class ProductoApiService {
     }
     getById(idProducto: number): Observable<ProductoDetail> {
         return this.http.get<ProductoDetail>(`${this.url}/${idProducto}`);
+    }
+    search(search: string, top = 10): Observable<readonly ProductoSearchItem[]> {
+        const params = new HttpParams().set('search', search.trim()).set('top', top);
+        return this.http.get<readonly ProductoSearchItem[]>(`${this.url}/search`, { params });
     }
     create(request: ProductoCreateRequest): Observable<ProductoWriteResponse> {
         return this.http.post<ProductoWriteResponse>(this.url, request);

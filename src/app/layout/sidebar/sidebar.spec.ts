@@ -122,11 +122,11 @@ describe('Sidebar', () => {
         expect(principal.textContent).toContain('Principal');
         expect(principal.textContent).toContain('Dashboard');
     });
-    it('should render future modules as disabled navigation items', () => {
-        const compras = fixture.nativeElement.querySelector('[data-testid="nav-compras"]') as HTMLElement;
+    it('should render purchases as enabled navigation item', () => {
+        const compras = fixture.nativeElement.querySelector('[data-testid="nav-compras"]') as HTMLAnchorElement;
         expect(compras).toBeTruthy();
-        expect(compras.getAttribute('aria-disabled')).toBe('true');
-        expect(compras.textContent).toContain('Próximamente');
+        expect(compras.getAttribute('aria-disabled')).toBeNull();
+        expect(compras.getAttribute('href')).toBe('/compras');
     });
 
 });
