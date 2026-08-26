@@ -42,4 +42,10 @@ describe('CompraApiService', () => {
         service.create(body).subscribe(); const request = httpTesting.expectOne(`${apiBaseUrl}/Compra`);
         expect(request.request.method).toBe('POST'); expect(request.request.body).toEqual(body); request.flush({ idCompra: 1, codCompra: 'CMP2026-000001' });
     });
+
+    it('should cancel a purchase', () => {
+        const body = { motivoAnulacion: 'Compra registrada por error', rowVersion: 'AAAAAAAABQ=' };
+        service.cancel(5, body).subscribe(); const request = httpTesting.expectOne(`${apiBaseUrl}/Compra/5/anular`);
+        expect(request.request.method).toBe('PATCH'); expect(request.request.body).toEqual(body); request.flush({ idCompra: 5, codCompra: 'CMP2026-000005', estadoCompra: 'ANULADA' });
+    });
 });

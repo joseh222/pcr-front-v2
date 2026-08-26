@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { EstadoCompra, TipoComprobanteCompra } from './models/compra-catalog.models';
+import { CompraCancelRequest, CompraCancelResponse } from './models/compra-cancel.models';
 import { CompraDetailResponse, CompraListQuery, CompraPagedResponse } from './models/compra-read.models';
 import { CompraCreateRequest, CompraCreateResponse } from './models/compra-write.models';
 
@@ -27,5 +28,6 @@ export class CompraApiService {
 
     getById(idCompra: number): Observable<CompraDetailResponse> { return this.http.get<CompraDetailResponse>(`${this.url}/${idCompra}`); }
     create(request: CompraCreateRequest): Observable<CompraCreateResponse> { return this.http.post<CompraCreateResponse>(this.url, request); }
+    cancel(idCompra: number, request: CompraCancelRequest): Observable<CompraCancelResponse> { return this.http.patch<CompraCancelResponse>(`${this.url}/${idCompra}/anular`, request); }
     private get url(): string { return `${this.runtimeConfig.config.apiBaseUrl}/Compra`; }
 }

@@ -38,4 +38,5 @@
 mat-paginator { border-top:1px solid var(--mat-sys-outline-variant); }
 @media(max-width:1023px){ .filters-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.filter-search{grid-column:span 2;} }
 @media(max-width:640px){ .page-header{align-items:flex-start;flex-direction:column}.page-header-actions{width:100%;justify-content:flex-end}.filters-grid{grid-template-columns:1fr}.filter-search{grid-column:span 1}.filter-actions{flex-direction:column-reverse}.filter-actions button{width:100%}.compra-table{min-width:62rem} }
-.actions-cell { width:3.5rem; text-align:right; white-space:nowrap; }
+.actions-cell { width:6.5rem; text-align:right; white-space:nowrap; }
+.cancel-action { color:var(--mat-sys-error); }

@@ -13,8 +13,9 @@ import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ProveedorSearchItem } from '../../../proveedores/data-access/models/proveedor-read.models';
+import { CompraCancellationService } from '../../data-access/compra-cancellation.service';
 import { CompraListStore } from '../../data-access/models/compra-list.store';
-import { CompraListFilters } from '../../data-access/models/compra-read.models';
+import { CompraListFilters, CompraListItem } from '../../data-access/models/compra-read.models';
 
 @Component({
     selector: 'pcr-compra-list',
@@ -27,6 +28,7 @@ export class CompraListPage implements OnInit {
     protected readonly store = inject(CompraListStore);
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly cancellation = inject(CompraCancellationService);
     protected readonly selectedProveedor = signal<ProveedorSearchItem | null>(null);
 
     readonly filterForm = this.fb.group({
@@ -65,6 +67,7 @@ export class CompraListPage implements OnInit {
         this.store.resetFilters();
     }
 
+    protected cancel(compra: CompraListItem): void { if (!compra.puedeAnular) return; this.cancellation.cancel(compra).subscribe(result => { if (result) this.store.reload(); }); }
     protected reload(): void { this.store.reload(); }
     protected onPage(event: PageEvent): void { if (event.pageSize !== this.store.pageSize()) { this.store.changePageSize(event.pageSize); return; } this.store.changePage(event.pageIndex + 1); }
     protected dateRangeInvalid(): boolean { const { fechaInicio, fechaFin } = this.filterForm.getRawValue(); return !!fechaInicio && !!fechaFin && fechaInicio > fechaFin; }

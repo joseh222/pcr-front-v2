@@ -37,3 +37,5 @@
 .state-card p { margin:.25rem 0 0; }
 .error-state { color:var(--mat-sys-error); }
 @media(max-width:760px){ .page-header{flex-direction:column}.header-actions{width:100%;flex-wrap:wrap}.info-grid,.info-list,.audit-list,.cancellation-grid{grid-template-columns:1fr}.info-list .wide,.full-row{grid-column:auto} }
+
+.cancel-button { color:var(--mat-sys-error); }
