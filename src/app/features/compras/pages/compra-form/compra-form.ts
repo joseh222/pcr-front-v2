@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { Router } from '@angular/router';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ProductoSearchItem } from '../../../productos/data-access/models/producto-read.models';
 import { ProveedorSearchItem } from '../../../proveedores/data-access/models/proveedor-read.models';
@@ -37,6 +38,7 @@ export class CompraFormPage implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
+    private readonly router = inject(Router);
     protected readonly today = todayLocal();
 
     protected readonly form = this.fb.group({
@@ -59,7 +61,8 @@ export class CompraFormPage implements OnInit {
         const result = this.store.saveResult();
         if (!result) return;
         this.feedback.success(result.mensaje || `Compra ${result.codCompra} registrada correctamente.`);
-        this.resetForm();
+        this.store.clearSaveResult();
+        void this.router.navigate(['/compras']);
     });
 
     ngOnInit(): void {

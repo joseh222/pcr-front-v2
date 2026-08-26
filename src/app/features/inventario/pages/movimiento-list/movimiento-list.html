@@ -1,5 +1,5 @@
 <section class="movement-list-page" data-testid="movimiento-list-page">
-    <header class="page-header"><div><p class="eyebrow">INVENTARIO</p><h1>Movimientos</h1><p>Consulta la trazabilidad completa de entradas y salidas de inventario.</p></div><button mat-icon-button type="button" aria-label="Recargar movimientos" (click)="reload()"><mat-icon>refresh</mat-icon></button></header>
+    <header class="page-header"><div><p class="eyebrow">INVENTARIO</p><h1>Movimientos</h1><p>Consulta la trazabilidad completa de entradas y salidas de inventario.</p></div><div class="header-actions"><button mat-flat-button type="button" (click)="registerMovement()"><mat-icon>add</mat-icon>Registrar movimiento</button><button mat-icon-button type="button" aria-label="Recargar movimientos" (click)="reload()"><mat-icon>refresh</mat-icon></button></div></header>
 
     <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
         <div class="filters-grid">
