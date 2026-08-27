@@ -1,0 +1,32 @@
+<section class="rol-list-page" data-testid="rol-list-page">
+    <header class="page-header">
+        <div><p class="page-eyebrow">SEGURIDAD</p><h1 class="page-title">Roles y permisos</h1><p class="page-description">Administra los roles del sistema y la matriz de permisos asignada a cada uno.</p></div>
+        <div class="page-header-actions"><button mat-icon-button type="button" aria-label="Recargar roles" (click)="reload()"><mat-icon>refresh</mat-icon></button><a mat-flat-button routerLink="/seguridad/roles/nuevo"><mat-icon>add_moderator</mat-icon>Nuevo rol</a></div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline"><mat-label>Buscar</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="search" maxlength="150" placeholder="Código, nombre o descripción"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select formControlName="isActive"><mat-option [value]="null">Todos</mat-option><mat-option [value]="true">Activos</mat-option><mat-option [value]="false">Inactivos</mat-option></mat-select></mat-form-field>
+        </div>
+        <div class="filter-actions"><button mat-stroked-button type="button" (click)="clearFilters()">Limpiar</button><button mat-flat-button type="submit"><mat-icon>search</mat-icon>Buscar</button></div>
+    </form>
+
+    <section class="table-card">
+        @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+        <header class="table-header"><div><h2>Roles registrados</h2><p>{{ store.visibleRecords() }} de {{ store.totalRecords() }} roles visibles</p></div></header>
+        @if (store.error()) {
+            <div class="message-state error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudieron cargar los roles</strong><p>{{ store.error() }}</p></div></div>
+        } @else if (store.isEmpty()) {
+            <div class="message-state"><mat-icon>shield</mat-icon><div><strong>No se encontraron roles</strong><p>Prueba modificando los filtros de búsqueda.</p></div></div>
+        } @else {
+            <div class="table-wrapper"><table mat-table [dataSource]="store.items()" class="rol-table">
+                <ng-container matColumnDef="rol"><th mat-header-cell *matHeaderCellDef>Rol</th><td mat-cell *matCellDef="let role"><div class="cell-primary">{{ role.name }}</div><div class="cell-secondary">{{ role.code }}{{ role.description ? ' · ' + role.description : '' }}</div></td></ng-container>
+                <ng-container matColumnDef="tipo"><th mat-header-cell *matHeaderCellDef>Tipo</th><td mat-cell *matCellDef="let role"><span class="type-badge" [class.admin]="role.grantsAllPermissions">{{ roleType(role) }}</span></td></ng-container>
+                <ng-container matColumnDef="estado"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let role"><span class="status-badge" [class.inactive]="!role.isActive">{{ role.isActive ? 'Activo' : 'Inactivo' }}</span></td></ng-container>
+                <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let role"><div class="row-actions"><a mat-icon-button [routerLink]="['/seguridad/roles', role.idRole, 'editar']" [attr.aria-label]="'Abrir rol ' + role.name" [title]="role.isSystem ? 'Ver rol y administrar permisos permitidos' : 'Editar rol y permisos'"><mat-icon>{{ role.isSystem ? 'admin_panel_settings' : 'edit' }}</mat-icon></a><button mat-icon-button type="button" [disabled]="role.isSystem" (click)="changeStatus(role)" [attr.aria-label]="(role.isActive ? 'Desactivar ' : 'Activar ') + role.name" [title]="role.isSystem ? 'Los roles de sistema no cambian de estado' : (role.isActive ? 'Desactivar rol' : 'Activar rol')"><mat-icon>{{ role.isActive ? 'block' : 'check_circle' }}</mat-icon></button></div></td></ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table></div>
+        }
+    </section>
+</section>

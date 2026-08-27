@@ -192,6 +192,24 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/usuarios/pages/usuario-list/usuario-list').then(module => module.UsuarioListPage)
             },
             {
+                path: 'seguridad/roles/nuevo',
+                title: 'Nuevo rol | PCR Front V2',
+                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                loadComponent: () => import('./features/roles/pages/rol-form/rol-form').then(module => module.RolFormPage)
+            },
+            {
+                path: 'seguridad/roles/:id/editar',
+                title: 'Rol y permisos | PCR Front V2',
+                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                loadComponent: () => import('./features/roles/pages/rol-form/rol-form').then(module => module.RolFormPage)
+            },
+            {
+                path: 'seguridad/roles',
+                title: 'Roles y permisos | PCR Front V2',
+                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                loadComponent: () => import('./features/roles/pages/rol-list/rol-list').then(module => module.RolListPage)
+            },
+            {
                 path: '',
                 pathMatch: 'full',
                 redirectTo: 'dashboard'
