@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { guestGuard } from './core/auth/guards/guest.guard';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { passwordChangeRequiredGuard } from './core/auth/guards/password-change-required.guard';
+import { roleGuard } from './core/auth/guards/role.guard';
+import { AUTH_ROLE } from './core/auth/auth-role.model';
 
 export const routes: Routes = [
     {
@@ -170,6 +172,24 @@ export const routes: Routes = [
                 path: 'misas',
                 title: 'Misas | PCR Front V2',
                 loadComponent: () => import('./features/misas/pages/misa-list/misa-list').then(module => module.MisaListPage)
+            },
+            {
+                path: 'seguridad/usuarios/nuevo',
+                title: 'Nuevo usuario | PCR Front V2',
+                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                loadComponent: () => import('./features/usuarios/pages/usuario-form/usuario-form').then(module => module.UsuarioFormPage)
+            },
+            {
+                path: 'seguridad/usuarios/:id/editar',
+                title: 'Editar usuario | PCR Front V2',
+                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                loadComponent: () => import('./features/usuarios/pages/usuario-form/usuario-form').then(module => module.UsuarioFormPage)
+            },
+            {
+                path: 'seguridad/usuarios',
+                title: 'Usuarios | PCR Front V2',
+                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                loadComponent: () => import('./features/usuarios/pages/usuario-list/usuario-list').then(module => module.UsuarioListPage)
             },
             {
                 path: '',

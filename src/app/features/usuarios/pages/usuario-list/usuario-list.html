@@ -1,0 +1,43 @@
+<section class="usuario-list-page" data-testid="usuario-list-page">
+    <header class="page-header">
+        <div><p class="page-eyebrow">SEGURIDAD</p><h1 class="page-title">Usuarios</h1><p class="page-description">Administra las cuentas de acceso, sus roles y el estado de sus sesiones.</p></div>
+        <div class="page-header-actions"><button mat-icon-button type="button" aria-label="Recargar usuarios" (click)="reload()"><mat-icon>refresh</mat-icon></button><a mat-flat-button routerLink="/seguridad/usuarios/nuevo"><mat-icon>person_add</mat-icon>Nuevo usuario</a></div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline" class="filter-search"><mat-label>Buscar</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="search" maxlength="250" placeholder="Usuario, nombre, correo, persona o documento"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Rol</mat-label><mat-select formControlName="idRole"><mat-option [value]="null">Todos</mat-option>@for (role of store.roles(); track role.idRole) { <mat-option [value]="role.idRole">{{ role.name }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select formControlName="isActive"><mat-option [value]="null">Todos</mat-option><mat-option [value]="true">Activos</mat-option><mat-option [value]="false">Inactivos</mat-option></mat-select></mat-form-field>
+        </div>
+        <div class="filter-actions"><button mat-stroked-button type="button" (click)="clearFilters()"><mat-icon>filter_alt_off</mat-icon>Limpiar</button><button mat-flat-button type="submit"><mat-icon>search</mat-icon>Buscar</button></div>
+    </form>
+
+    @if (store.rolesError()) { <div class="catalog-error"><mat-icon>warning_amber</mat-icon><span>{{ store.rolesError() }}</span></div> }
+    <section class="table-card">
+        <div class="table-header"><div><h2>Resultados</h2><p>{{ store.totalRecords() }} registro{{ store.totalRecords() === 1 ? '' : 's' }}</p></div></div>
+        @if (store.loading() || store.rolesLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+        @if (store.error()) {
+            <div class="message-state error-state"><mat-icon>error_outline</mat-icon><div><strong>No pudimos cargar los usuarios</strong><p>{{ store.error() }}</p></div><button mat-stroked-button type="button" (click)="reload()">Reintentar</button></div>
+        } @else if (store.isEmpty()) {
+            <div class="message-state"><mat-icon>manage_accounts</mat-icon><div><strong>No se encontraron usuarios</strong><p>Prueba modificando los filtros de búsqueda.</p></div></div>
+        } @else if (store.items().length > 0) {
+            <div class="table-wrapper"><table mat-table [dataSource]="store.items()" class="usuario-table">
+                <ng-container matColumnDef="usuario"><th mat-header-cell *matHeaderCellDef>Usuario</th><td mat-cell *matCellDef="let user"><div class="cell-primary">{{ user.username }}</div><div class="cell-secondary">{{ user.nombreCompleto || 'Sin nombre completo' }}</div><div class="cell-secondary">{{ user.email || 'Sin correo' }}</div></td></ng-container>
+                <ng-container matColumnDef="persona"><th mat-header-cell *matHeaderCellDef>Persona vinculada</th><td mat-cell *matCellDef="let user"><div class="cell-primary">{{ user.personaNombreCompleto || 'Sin vincular' }}</div><div class="cell-secondary">{{ user.codPersona || '—' }} · {{ user.personaNumeroDocumento || 'Sin documento' }}</div></td></ng-container>
+                <ng-container matColumnDef="roles"><th mat-header-cell *matHeaderCellDef>Roles</th><td mat-cell *matCellDef="let user"><span class="roles-text">{{ user.rolesSistema || 'Sin rol asignado' }}</span></td></ng-container>
+                <ng-container matColumnDef="seguridad"><th mat-header-cell *matHeaderCellDef>Seguridad</th><td mat-cell *matCellDef="let user"><div class="security-flags">@if (user.mustChangePassword) { <span class="mini-badge warning">Cambio de clave</span> } @if (user.isLocked) { <span class="mini-badge error">Bloqueado</span> } @if (user.hasActiveSession) { <span class="mini-badge">Sesión activa</span> } @if (!user.mustChangePassword && !user.isLocked && !user.hasActiveSession) { <span class="cell-secondary">Sin alertas</span> }</div></td></ng-container>
+                <ng-container matColumnDef="estado"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let user"><span class="status-badge" [class.inactive]="!user.isActive">{{ user.isActive ? 'Activo' : 'Inactivo' }}</span></td></ng-container>
+                <ng-container matColumnDef="ultimoAcceso"><th mat-header-cell *matHeaderCellDef>Último acceso</th><td mat-cell *matCellDef="let user"><div>{{ user.lastLoginUtc ? (user.lastLoginUtc | date:'dd/MM/yyyy HH:mm') : 'Nunca' }}</div></td></ng-container>
+                <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let user"><div class="row-actions">
+                    <a mat-icon-button [routerLink]="['/seguridad/usuarios', user.idUser, 'editar']" [attr.aria-label]="'Editar ' + user.username" title="Editar usuario"><mat-icon>edit</mat-icon></a>
+                    <button mat-icon-button type="button" [disabled]="isSelf(user)" (click)="resetPassword(user)" [attr.aria-label]="'Restablecer contraseña de ' + user.username" [title]="isSelf(user) ? 'No puedes restablecer tu propia contraseña aquí' : 'Restablecer contraseña'"><mat-icon>key</mat-icon></button>
+                    <button mat-icon-button type="button" [disabled]="isSelf(user) || !user.hasActiveSession" (click)="revokeSession(user)" [attr.aria-label]="'Revocar sesiones de ' + user.username" [title]="isSelf(user) ? 'Usa Cerrar sesión para tu propia cuenta' : 'Revocar sesiones'"><mat-icon>logout</mat-icon></button>
+                    <button mat-icon-button type="button" [disabled]="isSelf(user)" (click)="changeStatus(user)" [attr.aria-label]="(user.isActive ? 'Desactivar ' : 'Activar ') + user.username" [title]="isSelf(user) ? 'No puedes cambiar tu propio estado' : (user.isActive ? 'Desactivar usuario' : 'Activar usuario')"><mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon></button>
+                </div></td></ng-container>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table></div>
+            <mat-paginator [length]="store.totalRecords()" [pageIndex]="store.pageNumber() - 1" [pageSize]="store.pageSize()" [pageSizeOptions]="[10,20,50,100]" [showFirstLastButtons]="true" (page)="onPage($event)"></mat-paginator>
+        }
+    </section>
+</section>

@@ -25,6 +25,7 @@ describe('APP_NAVIGATION', () => {
         const venta = APP_NAVIGATION.find(section => section.id === 'venta');
         const compra = APP_NAVIGATION.find(section => section.id === 'compra');
         const inventario = APP_NAVIGATION.find(section => section.id === 'inventario');
+        const seguridad = APP_NAVIGATION.find(section => section.id === 'seguridad');
 
         expect(principal?.items.some(item => item.id === 'dashboard')).toBe(true);
         expect(catalogos?.items).toContainEqual({ id: 'catalogo-servicios', label: 'Servicios', icon: 'design_services', route: '/catalogos/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
@@ -35,5 +36,6 @@ describe('APP_NAVIGATION', () => {
         expect(venta?.items.some(item => item.id === 'ventas')).toBe(true);
         expect(compra?.items).toContainEqual({ id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
         expect(inventario?.items.map(item => item.id)).toEqual(['productos', 'movimientos']);
+        expect(seguridad?.items).toContainEqual({ id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, roles: [AUTH_ROLE.ADMIN] });
     });
 });

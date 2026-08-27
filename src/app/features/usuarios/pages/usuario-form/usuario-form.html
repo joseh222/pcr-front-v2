@@ -1,0 +1,40 @@
+<div class="page-shell" data-testid="usuario-form-page">
+    <header class="page-header"><div><span class="eyebrow">SEGURIDAD</span><h1>{{ pageTitle() }}</h1><p>{{ pageDescription() }}</p></div><a mat-stroked-button routerLink="/seguridad/usuarios"><mat-icon>arrow_back</mat-icon>Volver</a></header>
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.loadError()) {
+        <section class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No pudimos cargar el formulario</strong><p>{{ store.loadError() }}</p></div></section>
+    } @else {
+        <form class="usuario-form" [formGroup]="form" (ngSubmit)="save()">
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>badge</mat-icon></div><div><h2>Cuenta</h2><p>Datos con los que se identificará al usuario dentro del sistema.</p></div></header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline"><mat-label>Usuario</mat-label><input matInput formControlName="username" maxlength="100" [readonly]="isEditMode()" placeholder="Ej. jperez"><mat-hint>{{ isEditMode() ? 'El nombre de usuario no se modifica.' : 'Letras, números, punto, guion o guion bajo.' }}</mat-hint>@if (form.controls.username.hasError('required')) { <mat-error>El usuario es obligatorio.</mat-error> } @else if (form.controls.username.invalid) { <mat-error>Usa entre 4 y 100 caracteres válidos.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Nombre completo</mat-label><input matInput formControlName="nombreCompleto" maxlength="200">@if (form.controls.nombreCompleto.invalid) { <mat-error>Ingresa entre 3 y 200 caracteres.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width"><mat-label>Email</mat-label><input matInput type="email" formControlName="email" maxlength="256"><mat-hint>Opcional.</mat-hint>@if (form.controls.email.hasError('email')) { <mat-error>Ingresa un correo válido.</mat-error> }</mat-form-field>
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>person_search</mat-icon></div><div><h2>Persona vinculada</h2><p>Opcional. Relaciona la cuenta con una persona registrada en la parroquia.</p></div></header>
+                <div class="section-body person-grid">
+                    <mat-form-field appearance="outline"><mat-label>Buscar persona</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="personaSearch" maxlength="150" placeholder="Nombre, código o documento"><mat-hint>Escribe al menos 3 caracteres.</mat-hint></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Persona seleccionada</mat-label><mat-select formControlName="idPersona"><mat-option [value]="null">Sin persona vinculada</mat-option>@for (person of personOptions(); track person.idPersona) { <mat-option [value]="person.idPersona">{{ selectPersonLabel(person) }}</mat-option> }</mat-select></mat-form-field>
+                    @if (form.controls.idPersona.value !== null) { <button mat-stroked-button type="button" class="clear-person" (click)="clearPerson()"><mat-icon>link_off</mat-icon>Quitar vínculo</button> }
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>admin_panel_settings</mat-icon></div><div><h2>Roles de acceso</h2><p>El usuario debe mantener al menos un rol activo del sistema.</p></div></header>
+                <div class="section-body">
+                    <mat-form-field appearance="outline" class="full-width"><mat-label>Roles</mat-label><mat-select formControlName="roles" multiple>@for (role of store.roles(); track role.idRole) { <mat-option [value]="role.idRole" [disabled]="!role.isActive && !form.controls.roles.value.includes(role.idRole)">{{ role.name }}{{ role.isActive ? '' : ' (inactivo)' }}</mat-option> }</mat-select><mat-hint>{{ isSelf() ? 'Tus propios roles no pueden modificarse desde esta pantalla.' : 'Puedes asignar más de un rol.' }}</mat-hint>@if (form.controls.roles.hasError('required')) { <mat-error>Selecciona al menos un rol.</mat-error> }</mat-form-field>
+                    @if (form.controls.roles.value.length > 0) { <div class="roles-summary">@for (id of form.controls.roles.value; track id) { @if (store.roles().find(role => role.idRole === id); as role) { <span class="role-chip" [class.inactive]="!role.isActive" [title]="roleDescription(role)">{{ role.name }}</span> } }</div> }
+                </div>
+            </section>
+
+            @if (isEditMode() && store.detail(); as detail) {
+                <section class="user-note"><mat-icon>info</mat-icon><div><strong>{{ detail.username }} · {{ detail.isActive ? 'Activo' : 'Inactivo' }}</strong><span>{{ detail.hasActiveSession ? 'Tiene una sesión activa.' : 'No tiene sesiones activas.' }}{{ detail.mustChangePassword ? ' Tiene pendiente cambiar su contraseña.' : '' }}</span></div></section>
+            }
+            <div class="form-actions"><a mat-stroked-button routerLink="/seguridad/usuarios">Cancelar</a><button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Crear usuario') }}</button></div>
+        </form>
+    }
+</div>

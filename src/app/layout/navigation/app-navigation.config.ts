@@ -47,5 +47,12 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
             { id: 'productos', label: 'Productos', icon: 'inventory_2', route: '/productos', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
             { id: 'movimientos', label: 'Movimientos', icon: 'swap_vert', route: '/inventario/movimientos', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
         ]
+    },
+    {
+        id: 'seguridad',
+        label: 'Seguridad',
+        items: [
+            { id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, roles: [AUTH_ROLE.ADMIN] }
+        ]
     }
 ];
