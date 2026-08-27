@@ -26,7 +26,7 @@
             <section class="form-card">
                 <header class="section-header"><div class="section-icon"><mat-icon>admin_panel_settings</mat-icon></div><div><h2>Roles de acceso</h2><p>El usuario debe mantener al menos un rol activo del sistema.</p></div></header>
                 <div class="section-body">
-                    <mat-form-field appearance="outline" class="full-width"><mat-label>Roles</mat-label><mat-select formControlName="roles" multiple>@for (role of store.roles(); track role.idRole) { <mat-option [value]="role.idRole" [disabled]="!role.isActive && !form.controls.roles.value.includes(role.idRole)">{{ role.name }}{{ role.isActive ? '' : ' (inactivo)' }}</mat-option> }</mat-select><mat-hint>{{ isSelf() ? 'Tus propios roles no pueden modificarse desde esta pantalla.' : 'Puedes asignar más de un rol.' }}</mat-hint>@if (form.controls.roles.hasError('required')) { <mat-error>Selecciona al menos un rol.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width"><mat-label>Roles</mat-label><mat-select formControlName="roles" multiple>@for (role of store.roles(); track role.idRole) { <mat-option [value]="role.idRole" [disabled]="!role.isActive && !form.controls.roles.value.includes(role.idRole)">{{ role.name }}{{ role.isActive ? '' : ' (inactivo)' }}</mat-option> }</mat-select><mat-hint>{{ isSelf() ? 'Tus propios roles no pueden modificarse desde esta pantalla.' : (!canAssignRoles() ? 'No tienes permiso para modificar roles.' : 'Puedes asignar más de un rol.') }}</mat-hint>@if (form.controls.roles.hasError('required')) { <mat-error>Selecciona al menos un rol.</mat-error> }</mat-form-field>
                     @if (form.controls.roles.value.length > 0) { <div class="roles-summary">@for (id of form.controls.roles.value; track id) { @if (store.roles().find(role => role.idRole === id); as role) { <span class="role-chip" [class.inactive]="!role.isActive" [title]="roleDescription(role)">{{ role.name }}</span> } }</div> }
                 </div>
             </section>
@@ -34,7 +34,7 @@
             @if (isEditMode() && store.detail(); as detail) {
                 <section class="user-note"><mat-icon>info</mat-icon><div><strong>{{ detail.username }} · {{ detail.isActive ? 'Activo' : 'Inactivo' }}</strong><span>{{ detail.hasActiveSession ? 'Tiene una sesión activa.' : 'No tiene sesiones activas.' }}{{ detail.mustChangePassword ? ' Tiene pendiente cambiar su contraseña.' : '' }}</span></div></section>
             }
-            <div class="form-actions"><a mat-stroked-button routerLink="/seguridad/usuarios">Cancelar</a><button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Crear usuario') }}</button></div>
+            <div class="form-actions"><a mat-stroked-button routerLink="/seguridad/usuarios">Cancelar</a><button mat-flat-button type="submit" [disabled]="form.invalid || store.saving() || !canSave()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Crear usuario') }}</button></div>
         </form>
     }
 </div>

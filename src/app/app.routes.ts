@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 import { guestGuard } from './core/auth/guards/guest.guard';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { passwordChangeRequiredGuard } from './core/auth/guards/password-change-required.guard';
-import { roleGuard } from './core/auth/guards/role.guard';
-import { AUTH_ROLE } from './core/auth/auth-role.model';
+import { permissionGuard } from './core/auth/guards/permission.guard';
+import { PERMISSION_CODE } from './core/auth/permission-code.model';
 
 export const routes: Routes = [
     {
@@ -176,37 +176,37 @@ export const routes: Routes = [
             {
                 path: 'seguridad/usuarios/nuevo',
                 title: 'Nuevo usuario | PCR Front V2',
-                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.USER_VIEW, PERMISSION_CODE.USER_CREATE, PERMISSION_CODE.USER_ASSIGN_ROLES] },
                 loadComponent: () => import('./features/usuarios/pages/usuario-form/usuario-form').then(module => module.UsuarioFormPage)
             },
             {
                 path: 'seguridad/usuarios/:id/editar',
                 title: 'Editar usuario | PCR Front V2',
-                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.USER_VIEW, PERMISSION_CODE.USER_EDIT] },
                 loadComponent: () => import('./features/usuarios/pages/usuario-form/usuario-form').then(module => module.UsuarioFormPage)
             },
             {
                 path: 'seguridad/usuarios',
                 title: 'Usuarios | PCR Front V2',
-                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.USER_VIEW] },
                 loadComponent: () => import('./features/usuarios/pages/usuario-list/usuario-list').then(module => module.UsuarioListPage)
             },
             {
                 path: 'seguridad/roles/nuevo',
                 title: 'Nuevo rol | PCR Front V2',
-                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.ROLE_VIEW, PERMISSION_CODE.ROLE_CREATE] },
                 loadComponent: () => import('./features/roles/pages/rol-form/rol-form').then(module => module.RolFormPage)
             },
             {
                 path: 'seguridad/roles/:id/editar',
                 title: 'Rol y permisos | PCR Front V2',
-                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.ROLE_VIEW] },
                 loadComponent: () => import('./features/roles/pages/rol-form/rol-form').then(module => module.RolFormPage)
             },
             {
                 path: 'seguridad/roles',
                 title: 'Roles y permisos | PCR Front V2',
-                canActivate: [roleGuard], data: { roles: [AUTH_ROLE.ADMIN] },
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.ROLE_VIEW] },
                 loadComponent: () => import('./features/roles/pages/rol-list/rol-list').then(module => module.RolListPage)
             },
             {

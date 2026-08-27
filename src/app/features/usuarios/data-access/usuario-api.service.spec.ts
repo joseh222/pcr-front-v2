@@ -22,7 +22,7 @@ describe('UsuarioApiService', () => {
 
     it('should request assignable roles', () => {
         service.getRoles().subscribe();
-        const request = http.expectOne('https://localhost:7002/api/Roles');
+        const request = http.expectOne('https://localhost:7002/api/Usuarios/roles');
         expect(request.request.method).toBe('GET'); request.flush([]);
     });
 

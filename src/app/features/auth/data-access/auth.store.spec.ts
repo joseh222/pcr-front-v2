@@ -39,7 +39,8 @@ describe('AuthStore', () => {
     const authApiMock = {
         login: vi.fn(),
         refreshSession: vi.fn(),
-        logout: vi.fn()
+        logout: vi.fn(),
+        access: vi.fn()
     };
     const accountApiMock = {
         changePassword: vi.fn()
@@ -50,6 +51,8 @@ describe('AuthStore', () => {
         authApiMock.login.mockReset();
         authApiMock.refreshSession.mockReset();
         authApiMock.logout.mockReset();
+        authApiMock.access.mockReset();
+        authApiMock.access.mockReturnValue(of({ idUser: 7, roles: [], permissions: [] }));
         accountApiMock.changePassword.mockReset();
 
         TestBed.configureTestingModule({
@@ -294,6 +297,15 @@ describe('AuthStore', () => {
         expect(store.isAuthenticated()).toBe(true);
         expect(storage.accessToken).toBe(accessToken);
         expect(storage.refreshToken).toBe('refresh-token');
+    });
+
+
+    it('should expose permissions returned by current access', async () => {
+        const accessToken = createAccessToken('SECRETARIA', 'USER', 'session-rbac');
+        storage.setTokens({ accessToken, refreshToken: 'refresh-token' });
+        authApiMock.access.mockReturnValue(of({ idUser: 7, roles: [{ idRole: 3, code: 'SECRETARIA', name: 'Secretaría', description: null, isActive: true, isSystem: true, grantsAllPermissions: false }], permissions: [{ idPermiso: 1, codigo: 'USUARIO_VER', modulo: 'SEGURIDAD_USUARIOS', accion: 'VER', nombre: 'Ver usuarios' }] }));
+        const store = TestBed.inject(AuthStore); await store.initialize();
+        expect(store.roleCodes()).toEqual(['SECRETARIA']); expect(store.permissions()).toEqual(['USUARIO_VER']); expect(store.hasPermission('USUARIO_VER')).toBe(true); expect(store.hasPermission('ROL_VER')).toBe(false);
     });
 
     it('should expose null for an unsupported role', async () => {

@@ -1,4 +1,5 @@
 import { AUTH_ROLE } from '../../core/auth/auth-role.model';
+import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
 import { NavigationSection } from './navigation-section.model';
 
 export const APP_NAVIGATION: readonly NavigationSection[] = [
@@ -52,8 +53,8 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
         id: 'seguridad',
         label: 'Seguridad',
         items: [
-            { id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, roles: [AUTH_ROLE.ADMIN] },
-            { id: 'roles', label: 'Roles y permisos', icon: 'admin_panel_settings', route: '/seguridad/roles', exact: true, roles: [AUTH_ROLE.ADMIN] }
+            { id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, permissions: [PERMISSION_CODE.USER_VIEW] },
+            { id: 'roles', label: 'Roles y permisos', icon: 'admin_panel_settings', route: '/seguridad/roles', exact: true, permissions: [PERMISSION_CODE.ROLE_VIEW] }
         ]
     }
 ];

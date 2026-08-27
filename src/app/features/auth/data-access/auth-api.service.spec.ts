@@ -83,6 +83,14 @@ describe('AuthApiService', () => {
         });
     });
 
+    it('should get current access from Seguridad/Access', () => {
+        service.access().subscribe();
+        const request = httpTesting.expectOne('https://localhost:7002/api/Seguridad/Access');
+        expect(request.request.method).toBe('GET');
+        expect(request.request.context.get(SKIP_AUTH)).toBe(false);
+        request.flush({ idUser: 1, roles: [], permissions: [] });
+    });
+
     it('should send the logout request to Seguridad/Logout', () => {
         service.logout().subscribe();
 

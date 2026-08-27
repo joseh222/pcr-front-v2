@@ -16,7 +16,7 @@
             </section>
 
             <section class="form-card">
-                <header class="section-header permission-header"><div class="header-main"><div class="section-icon"><mat-icon>key</mat-icon></div><div><h2>Permisos</h2><p>{{ grantsAllPermissions() ? 'ADMIN concede todos los permisos automáticamente y su matriz está protegida.' : 'Selecciona exactamente las acciones que podrá realizar este rol.' }}</p></div></div>@if (!permissionsLocked() && store.permissions().length) { <mat-checkbox [checked]="allSelected()" [indeterminate]="allIndeterminate()" (change)="toggleAll($event.checked)">Seleccionar todos</mat-checkbox> }</header>
+                <header class="section-header permission-header"><div class="header-main"><div class="section-icon"><mat-icon>key</mat-icon></div><div><h2>Permisos</h2><p>{{ grantsAllPermissions() ? 'ADMIN concede todos los permisos automáticamente y su matriz está protegida.' : (!canAssignPermissions() ? 'Puedes consultar la matriz, pero no tienes permiso para modificarla.' : 'Selecciona exactamente las acciones que podrá realizar este rol.') }}</p></div></div>@if (!permissionsLocked() && store.permissions().length) { <mat-checkbox [checked]="allSelected()" [indeterminate]="allIndeterminate()" (change)="toggleAll($event.checked)">Seleccionar todos</mat-checkbox> }</header>
                 <div class="section-body">
                     @if (store.permissions().length === 0) { <div class="empty-permissions"><mat-icon>vpn_key_off</mat-icon><span>No hay permisos activos disponibles.</span></div> }
                     <div class="permission-groups">
@@ -36,7 +36,7 @@
 
             @if (isSystem() && !grantsAllPermissions()) { <section class="system-note"><mat-icon>info</mat-icon><div><strong>Rol de sistema protegido</strong><span>Su código, nombre, descripción y estado no se modifican. Solo puedes administrar su matriz de permisos.</span></div></section> }
             @if (grantsAllPermissions()) { <section class="system-note"><mat-icon>verified_user</mat-icon><div><strong>ADMIN está protegido</strong><span>Este rol conserva acceso total automáticamente. No requiere asignaciones manuales.</span></div></section> }
-            <div class="form-actions"><a mat-stroked-button routerLink="/seguridad/roles">{{ grantsAllPermissions() ? 'Volver' : 'Cancelar' }}</a>@if (!grantsAllPermissions()) { <button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Crear rol') }}</button> }</div>
+            <div class="form-actions"><a mat-stroked-button routerLink="/seguridad/roles">{{ grantsAllPermissions() ? 'Volver' : 'Cancelar' }}</a>@if (canSave()) { <button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Crear rol') }}</button> }</div>
         </form>
     }
 </div>

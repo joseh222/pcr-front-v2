@@ -1,4 +1,5 @@
 import { AUTH_ROLE } from '../../core/auth/auth-role.model';
+import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
 import { APP_NAVIGATION } from './app-navigation.config';
 
 describe('APP_NAVIGATION', () => {
@@ -36,7 +37,7 @@ describe('APP_NAVIGATION', () => {
         expect(venta?.items.some(item => item.id === 'ventas')).toBe(true);
         expect(compra?.items).toContainEqual({ id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] });
         expect(inventario?.items.map(item => item.id)).toEqual(['productos', 'movimientos']);
-        expect(seguridad?.items).toContainEqual({ id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, roles: [AUTH_ROLE.ADMIN] });
-        expect(seguridad?.items).toContainEqual({ id: 'roles', label: 'Roles y permisos', icon: 'admin_panel_settings', route: '/seguridad/roles', exact: true, roles: [AUTH_ROLE.ADMIN] });
+        expect(seguridad?.items).toContainEqual({ id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, permissions: [PERMISSION_CODE.USER_VIEW] });
+        expect(seguridad?.items).toContainEqual({ id: 'roles', label: 'Roles y permisos', icon: 'admin_panel_settings', route: '/seguridad/roles', exact: true, permissions: [PERMISSION_CODE.ROLE_VIEW] });
     });
 });

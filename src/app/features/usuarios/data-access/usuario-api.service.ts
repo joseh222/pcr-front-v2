@@ -13,7 +13,7 @@ export class UsuarioApiService {
     private readonly http = inject(HttpClient);
     private readonly runtimeConfig = inject(RuntimeConfigService);
 
-    getRoles(): Observable<readonly UsuarioRole[]> { return this.http.get<readonly UsuarioRole[]>(`${this.runtimeConfig.config.apiBaseUrl}/Roles`); }
+    getRoles(): Observable<readonly UsuarioRole[]> { return this.http.get<readonly UsuarioRole[]>(`${this.apiUrl}/roles`); }
 
     getList(query: UsuarioListQuery): Observable<UsuarioPagedResponse> {
         let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);

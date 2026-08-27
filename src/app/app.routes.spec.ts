@@ -49,12 +49,16 @@ describe('Application routes', () => {
     });
 
     const roleCode = signal('ADMIN');
+    const permissions = signal<readonly string[]>([]);
+    const grantsAllPermissions = signal(true);
 
     const authStoreMock = {
         isAuthenticated: isAuthenticated.asReadonly(),
         mustChangePassword: mustChangePassword.asReadonly(),
         currentUser: currentUser.asReadonly(),
         roleCode: roleCode.asReadonly(),
+        permissions: permissions.asReadonly(),
+        grantsAllPermissions: grantsAllPermissions.asReadonly(),
         logout: vi.fn()
     };
     const themeServiceMock = {
@@ -267,6 +271,8 @@ describe('Application routes', () => {
         misaApiMock.getById.mockClear();
         misaApiMock.getSantos.mockClear();
         isAuthenticated.set(true);
+        permissions.set([]);
+        grantsAllPermissions.set(true);
         preference.set('system');
         resolvedTheme.set('light');
         mustChangePassword.set(false);
