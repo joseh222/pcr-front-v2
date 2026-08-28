@@ -49,6 +49,7 @@ describe('Application routes', () => {
     });
 
     const roleCode = signal('ADMIN');
+    const roleCodes = signal<readonly string[]>(['ADMIN']);
     const permissions = signal<readonly string[]>([]);
     const grantsAllPermissions = signal(true);
 
@@ -57,8 +58,12 @@ describe('Application routes', () => {
         mustChangePassword: mustChangePassword.asReadonly(),
         currentUser: currentUser.asReadonly(),
         roleCode: roleCode.asReadonly(),
+        roleCodes: roleCodes.asReadonly(),
         permissions: permissions.asReadonly(),
         grantsAllPermissions: grantsAllPermissions.asReadonly(),
+        hasPermission: (permission: string) => grantsAllPermissions() || permissions().includes(permission),
+        hasAllPermissions: (required: readonly string[]) => grantsAllPermissions() || required.every(permission => permissions().includes(permission)),
+        hasAnyPermission: (required: readonly string[]) => grantsAllPermissions() || required.some(permission => permissions().includes(permission)),
         logout: vi.fn()
     };
     const themeServiceMock = {
@@ -99,6 +104,10 @@ describe('Application routes', () => {
         getTiposComprobante: vi.fn(() => of([{ idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true }])),
         getSolicitudById: vi.fn(() => of(null)),
         searchProductos: vi.fn(() => of([])),
+        getPersonaTiposDocumento: vi.fn(() => of([])),
+        getPersonaByDocument: vi.fn(() => of(null)),
+        searchPersonas: vi.fn(() => of([])),
+        getPersonaById: vi.fn(() => of(null)),
         searchServiciosPendientes: vi.fn(() => of([])),
         create: vi.fn(() => of({})),
 
@@ -155,6 +164,9 @@ describe('Application routes', () => {
         getTipos: vi.fn(() => of([])),
         getEstados: vi.fn(() => of([])),
         getSantos: vi.fn(() => of([])),
+        getPersonaTiposDocumento: vi.fn(() => of([])),
+        getPersonaByDocument: vi.fn(() => of(null)),
+        searchPersonas: vi.fn(() => of([])),
         getList: vi.fn(() =>
             of({
                 pagina: 1,
@@ -206,6 +218,7 @@ describe('Application routes', () => {
     const productoStatusMock = { change: vi.fn(() => of(null)) };
     const inventarioApiMock = {
         getTiposMovimientoHistorial: vi.fn(() => of([])),
+        getProductos: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 })),
         getMovimientos: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
         getTiposMovimiento: vi.fn(() => of([
             { idTipoMovimiento: 1, codigo: 'STOCK_INICIAL', nombre: 'Stock inicial', naturaleza: 'E', permiteRegistroManual: true },
@@ -254,6 +267,12 @@ describe('Application routes', () => {
         getEstados: vi.fn(() => of([{ idEstadoSolicitudServicio: 1, codigo: 'ACTIVA', nombre: 'Activa' }])),
         getEstadosPago: vi.fn(() => of([{ idEstadoPagoSolicitudServicio: 1, codigo: 'PENDIENTE', nombre: 'Pendiente' }])),
         getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
+        getServicios: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 })),
+        searchServicios: vi.fn(() => of([])),
+        getServicioById: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', nombre: 'Constancia', nombreCategoria: 'Litúrgicos', modoPrecio: 'FIJO', precioBase: 15 })),
+        getPersonaTiposDocumento: vi.fn(() => of([])),
+        getPersonaByDocument: vi.fn(() => of(null)),
+        searchPersonas: vi.fn(() => of([])),
         search: vi.fn(() => of([])),
         getById: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', idServicio: 5, codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', modoPrecio: 'FIJO', idPersona: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE', telefono: null, requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', nombreEstadoSolicitud: 'Activa', estadoPago: 'PENDIENTE', nombreEstadoPago: 'Pendiente', observaciones: null, createdUtc: '2026-08-20T12:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, rowVersion: 'A' })),
         create: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', codigoServicio: 'CONSTANCIA', nombreServicio: 'Constancia', requierePago: true, importe: 15, motivoNoPago: null, estadoSolicitud: 'ACTIVA', estadoPago: 'PENDIENTE', rowVersion: 'A', mensaje: 'OK' })),
@@ -271,6 +290,7 @@ describe('Application routes', () => {
         misaApiMock.getById.mockClear();
         misaApiMock.getSantos.mockClear();
         isAuthenticated.set(true);
+        roleCodes.set(['ADMIN']);
         permissions.set([]);
         grantsAllPermissions.set(true);
         preference.set('system');

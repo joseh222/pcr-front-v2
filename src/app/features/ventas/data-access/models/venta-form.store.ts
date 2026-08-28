@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
 
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
-import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 import { PersonaLookup, PersonaCreateRequest, PersonaCreateResponse, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
 import { VentaApiService } from '../venta-api.service';
 import { VentaMetodoPago, VentaTipoComprobante } from './venta-catalog.models';
@@ -14,7 +13,6 @@ import { VentaCreateRequest, VentaCreateResponse } from './venta-write.models';
 @Injectable()
 export class VentaFormStore {
     private readonly api = inject(VentaApiService);
-    private readonly personaApi = inject(PersonaApiService);
     private readonly destroyRef = inject(DestroyRef);
 
     private readonly loadingSignal = signal(false);
@@ -99,7 +97,7 @@ export class VentaFormStore {
         forkJoin({
             metodosPago: this.api.getMetodosPago(),
             tiposComprobante: this.api.getTiposComprobante(),
-            tiposDocumento: this.personaApi.getTiposDocumento(),
+            tiposDocumento: this.api.getPersonaTiposDocumento(),
             initialService: initialServiceId ? this.api.getSolicitudById(initialServiceId) : of(null)
         })
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -204,7 +202,7 @@ export class VentaFormStore {
         this.personLoadingSignal.set(true);
         this.personErrorSignal.set(null);
 
-        this.personaApi.search(text, 10)
+        this.api.searchPersonas(text, 10)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {
@@ -227,7 +225,7 @@ export class VentaFormStore {
         this.documentErrorSignal.set(null);
         this.documentPersonSignal.set(null);
 
-        this.personaApi.getByDocument(idTipoDocumento, numeroDocumento.trim())
+        this.api.getPersonaByDocument(idTipoDocumento, numeroDocumento.trim())
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: person => {
@@ -248,7 +246,7 @@ export class VentaFormStore {
         this.createPersonErrorSignal.set(null);
         this.createdPersonSignal.set(null);
 
-        this.personaApi.create(request)
+        this.api.createPersona(request)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {
@@ -418,7 +416,7 @@ export class VentaFormStore {
 
 
     private loadInitialPerson(idPersona: number): void {
-        this.personaApi.getById(idPersona)
+        this.api.getPersonaById(idPersona)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: person => this.initialPersonSignal.set(person),

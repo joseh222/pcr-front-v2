@@ -15,6 +15,8 @@ import { PersonaSearchItem } from '../../../personas/data-access/models/persona-
 import { VentaFormStore } from '../../data-access/models/venta-form.store';
 import { VentaProductoBusqueda, VentaSolicitudPendiente } from '../../data-access/models/venta-lookup.models';
 import { VentaCreateRequest } from '../../data-access/models/venta-write.models';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-venta-form',
@@ -39,6 +41,8 @@ export class VentaFormPage implements OnInit {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreatePerson = () => this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE);
 
     protected readonly form = this.fb.group({
         idPersona: this.fb.control<number | null>(null, Validators.required),
@@ -166,6 +170,7 @@ export class VentaFormPage implements OnInit {
     }
 
     protected registerPerson(): void {
+        if (!this.canCreatePerson()) return;
         this.form.controls.nombre.markAsTouched();
         if (!this.form.controls.nombre.value.trim()) return;
 

@@ -23,4 +23,9 @@ describe('ProductoDetailStore', () => {
         expect(store.detail()?.codProducto).toBe('P2026-00000005');
         expect(store.inventory()?.stockActual).toBe(10);
     });
+
+    it('should load product without inventory when access is not available', () => {
+        store.load(5, false);
+        expect(productoApiMock.getById).toHaveBeenCalledWith(5); expect(inventarioApiMock.getByProducto).not.toHaveBeenCalled(); expect(store.detail()?.idProducto).toBe(5);
+    });
 });

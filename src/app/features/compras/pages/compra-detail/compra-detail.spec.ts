@@ -5,11 +5,14 @@ import { of } from 'rxjs';
 import { CompraCancellationService } from '../../data-access/compra-cancellation.service';
 import { CompraDetailStore } from '../../data-access/models/compra-detail.store';
 import { CompraDetailPage } from './compra-detail';
+import { AuthStore } from '../../../auth/data-access/auth.store';
 
 const DETAIL = {
     idCompra: 5, codCompra: 'CMP2026-000005', fechaCompra: '2026-08-25', razonSocialProveedor: 'Distribuidora San José SAC', tipoDocumentoProveedor: 'RUC', numeroDocumentoProveedor: '20123456789', nombreComercialProveedor: 'San José', nombreTipoComprobante: 'Factura', serieComprobante: 'F001', numeroComprobante: '000123', codigoEstadoCompra: 'REGISTRADA', nombreEstadoCompra: 'Registrada', moneda: 'PEN', total: 55, cantidadDetalles: 1, cantidadTotal: 10, observaciones: null, createdUtc: '2026-08-25T20:00:00Z', createdById: 9, puedeAnular: true, rowVersion: 'AAAAAAAABQ=', motivoAnulacion: null, anuladaUtc: null, anuladaById: null,
     detalles: [{ idCompraDetalle: 10, idProducto: 8, codigoProducto: 'P2026-000008', sku: 'VEL-001', descripcion: 'Vela blanca', cantidad: 10, costoUnitario: 5.5, subTotal: 55 }]
 } as any;
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('CompraDetailPage', () => {
     const detail = signal<any>(DETAIL);
@@ -18,7 +21,7 @@ describe('CompraDetailPage', () => {
 
     beforeEach(() => {
         storeMock.load.mockClear(); cancellationMock.cancel.mockClear(); detail.set(DETAIL);
-        TestBed.configureTestingModule({ imports: [CompraDetailPage], providers: [provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '5' }) } } }, { provide: CompraCancellationService, useValue: cancellationMock }] });
+        TestBed.configureTestingModule({ imports: [CompraDetailPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '5' }) } } }, { provide: CompraCancellationService, useValue: cancellationMock }] });
         TestBed.overrideComponent(CompraDetailPage, { set: { providers: [{ provide: CompraDetailStore, useValue: storeMock }] } });
     });
 

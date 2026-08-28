@@ -6,6 +6,9 @@ import { VentaListStore } from '../../data-access/models/venta-list.store';
 import { VentaListPage } from './venta-list';
 import { of } from 'rxjs';
 import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('VentaListPage', () => {
     const loading = signal(false);
@@ -58,7 +61,7 @@ describe('VentaListPage', () => {
 
         TestBed.configureTestingModule({
             imports: [VentaListPage],
-            providers: [provideRouter([])]
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([])]
         });
 
         TestBed.overrideComponent(VentaListPage, {

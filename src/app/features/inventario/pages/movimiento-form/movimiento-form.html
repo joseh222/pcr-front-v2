@@ -1,7 +1,7 @@
 <section class="page-shell" data-testid="movimiento-form-page">
     <header class="page-header">
         <div><p class="eyebrow">INVENTARIO</p><h1>Registrar movimiento</h1><p>Registra una entrada, salida, merma o stock inicial con trazabilidad.</p></div>
-        <a mat-stroked-button [routerLink]="['/productos', idProducto]"><mat-icon>arrow_back</mat-icon>Volver</a>
+        <a mat-stroked-button [routerLink]="backRoute()" [queryParams]="backQueryParams()"><mat-icon>arrow_back</mat-icon>Volver</a>
     </header>
 
     @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
@@ -66,7 +66,7 @@
             }
 
             <div class="form-actions">
-                <a mat-stroked-button [routerLink]="['/productos', idProducto]">Cancelar</a>
+                <a mat-stroked-button [routerLink]="backRoute()" [queryParams]="backQueryParams()">Cancelar</a>
                 <button mat-flat-button type="submit" [disabled]="!canSave()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Registrando...' : 'Registrar movimiento' }}</button>
             </div>
         </form>

@@ -14,6 +14,8 @@ import { ServicioModoPrecio } from '../../data-access/models/servicio-catalog.mo
 import { ServicioListStore } from '../../data-access/models/servicio-list.store';
 import { ServicioListFilters, ServicioListItem } from '../../data-access/models/servicio-read.models';
 import { ServicioStatusService } from '../../data-access/servicio-status.service';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-servicio-list',
@@ -26,6 +28,10 @@ export class ServicioListPage implements OnInit {
     protected readonly store = inject(ServicioListStore);
     private readonly fb = inject(FormBuilder);
     private readonly statusService = inject(ServicioStatusService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.SERVICE_CATALOG_CREATE);
+    protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.SERVICE_CATALOG_EDIT);
+    protected readonly canChangeStatus = () => this.authStore.hasPermission(PERMISSION_CODE.SERVICE_CATALOG_STATUS);
 
     readonly filterForm = this.fb.group({
         search: this.fb.nonNullable.control(''),

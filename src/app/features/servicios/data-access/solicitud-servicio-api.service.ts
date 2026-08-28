@@ -2,6 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
+import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
+import { ServicioDetail, ServicioLookupItem, ServicioPagedResponse } from './models/servicio-lookup.models';
 import { EstadoPagoSolicitudServicio, EstadoSolicitudServicio } from './models/solicitud-servicio-catalog.models';
 import { SolicitudServicioDetailResponse, SolicitudServicioListQuery, SolicitudServicioPagedResponse } from './models/solicitud-servicio-read.models';
 import { SolicitudServicioAnularRequest, SolicitudServicioAnularResponse, SolicitudServicioCreateRequest, SolicitudServicioCreateResponse, SolicitudServicioUpdateRequest, SolicitudServicioUpdateResponse } from './models/solicitud-servicio-write.models';
@@ -35,6 +37,20 @@ export class SolicitudServicioApiService {
         return this.http.get<SolicitudServicioDetailResponse>(`${this.apiUrl}/${idSolicitudServicio}`);
     }
 
+    getServicios(): Observable<ServicioPagedResponse> { const params = new HttpParams().set('pageNumber', 1).set('pageSize', 100).set('isActive', true); return this.http.get<ServicioPagedResponse>(`${this.apiUrl}/servicios`, { params }); }
+
+    searchServicios(search: string, top = 10): Observable<readonly ServicioLookupItem[]> { const params = new HttpParams().set('search', search).set('top', top); return this.http.get<readonly ServicioLookupItem[]>(`${this.apiUrl}/servicios/search`, { params }); }
+
+    getServicioById(idServicio: number): Observable<ServicioDetail> { return this.http.get<ServicioDetail>(`${this.apiUrl}/servicios/${idServicio}`); }
+
+    getPersonaTiposDocumento(): Observable<readonly PersonaTipoDocumento[]> { return this.http.get<readonly PersonaTipoDocumento[]>(`${this.apiUrl}/personas/tipos-documento`); }
+
+    searchPersonas(search: string, top = 10): Observable<readonly PersonaSearchItem[]> { const params = new HttpParams().set('search', search).set('top', top); return this.http.get<readonly PersonaSearchItem[]>(`${this.apiUrl}/personas/search`, { params }); }
+
+    getPersonaByDocument(idTipoDocumento: number, numeroDocumento: string): Observable<PersonaLookup | null> { const params = new HttpParams().set('idTipoDocumento', idTipoDocumento).set('numeroDocumento', numeroDocumento); return this.http.get<PersonaLookup | null>(`${this.apiUrl}/personas/by-document`, { params }); }
+
+    createPersona(request: PersonaCreateRequest): Observable<PersonaCreateResponse> { return this.http.post<PersonaCreateResponse>(`${this.apiUrl}/personas`, request); }
+    
     create(request: SolicitudServicioCreateRequest): Observable<SolicitudServicioCreateResponse> {
         return this.http.post<SolicitudServicioCreateResponse>(this.apiUrl, request);
     }

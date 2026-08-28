@@ -10,10 +10,9 @@
             <button mat-icon-button type="button" aria-label="Recargar ventas" (click)="reload()">
                 <mat-icon> refresh </mat-icon>
             </button>
-            <a mat-flat-button routerLink="/ventas/nueva">
-                <mat-icon>add</mat-icon>
-                Nueva venta
-            </a>
+            @if (canCreate()) {
+            <a mat-flat-button routerLink="/ventas/nueva"><mat-icon>add</mat-icon>Nueva venta</a>
+            }
         </div>
     </header>
 
@@ -206,7 +205,7 @@
                                 [attr.aria-label]="'Ver ' + venta.codVenta" title="Ver venta">
                                 <mat-icon>visibility</mat-icon>
                             </a>
-                            @if (venta.puedeAnular) {
+                            @if (canCancel(venta)) {
                             <button mat-icon-button type="button" [attr.aria-label]="'Anular ' + venta.codVenta"
                                 title="Anular venta" (click)="cancelSale(venta)">
                                 <mat-icon>cancel</mat-icon>

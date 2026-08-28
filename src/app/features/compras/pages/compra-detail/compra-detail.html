@@ -11,7 +11,7 @@
                 <p>{{ compra.fechaCompra | date:'dd/MM/yyyy' }} · {{ compra.nombreTipoComprobante }} · {{ comprobante(compra.serieComprobante, compra.numeroComprobante) }}</p>
             </div>
             <div class="header-actions">
-                @if (compra.puedeAnular) { <button mat-stroked-button class="cancel-button" type="button" (click)="cancel()"><mat-icon>cancel</mat-icon>Anular compra</button> }
+                @if (canCancel()) { <button mat-stroked-button class="cancel-button" type="button" (click)="cancel()"><mat-icon>cancel</mat-icon>Anular compra</button> }
                 <a mat-stroked-button routerLink="/compras"><mat-icon>arrow_back</mat-icon>Volver</a>
             </div>
         </header>

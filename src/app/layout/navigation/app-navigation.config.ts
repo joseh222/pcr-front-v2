@@ -1,60 +1,33 @@
-import { AUTH_ROLE } from '../../core/auth/auth-role.model';
 import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
 import { NavigationSection } from './navigation-section.model';
 
 export const APP_NAVIGATION: readonly NavigationSection[] = [
     {
-        id: 'principal',
-        label: 'Principal',
-        items: [
-            { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', route: '/dashboard', exact: true, roles: [AUTH_ROLE.ADMIN] }
-        ]
-    },
-    {
-        id: 'catalogos',
-        label: 'Catálogos',
-        items: [
-            { id: 'catalogo-servicios', label: 'Servicios', icon: 'design_services', route: '/catalogos/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
-            { id: 'catalogo-proveedores', label: 'Proveedores', icon: 'local_shipping', route: '/catalogos/proveedores', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
-        ]
-    },
-    {
-        id: 'gestion',
-        label: 'Gestión',
-        items: [
-            { id: 'personas', label: 'Personas', icon: 'groups', route: '/personas', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
-            { id: 'misas', label: 'Misas', icon: 'church', route: '/misas', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
-            { id: 'servicios', label: 'Servicios', icon: 'assignment', route: '/servicios', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
-        ]
-    },
-    {
-        id: 'venta',
-        label: 'Venta',
-        items: [
-            { id: 'ventas', label: 'Ventas', icon: 'point_of_sale', route: '/ventas', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
-        ]
-    },
-    {
-        id: 'compra',
-        label: 'Compra',
-        items: [
-            { id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
-        ]
-    },
-    {
-        id: 'inventario',
-        label: 'Inventario',
-        items: [
-            { id: 'productos', label: 'Productos', icon: 'inventory_2', route: '/productos', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] },
-            { id: 'movimientos', label: 'Movimientos', icon: 'swap_vert', route: '/inventario/movimientos', exact: true, roles: [AUTH_ROLE.ADMIN, AUTH_ROLE.USER] }
-        ]
-    },
-    {
-        id: 'seguridad',
-        label: 'Seguridad',
-        items: [
+        id: 'seguridad', label: 'Seguridad', items: [
             { id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts', route: '/seguridad/usuarios', exact: true, permissions: [PERMISSION_CODE.USER_VIEW] },
             { id: 'roles', label: 'Roles y permisos', icon: 'admin_panel_settings', route: '/seguridad/roles', exact: true, permissions: [PERMISSION_CODE.ROLE_VIEW] }
+        ]
+    },
+    { id: 'principal', label: 'Principal', items: [{ id: 'dashboard', label: 'Dashboard', icon: 'dashboard', route: '/dashboard', exact: true, permissions: [PERMISSION_CODE.DASHBOARD_VIEW] }] },
+    {
+        id: 'catalogos', label: 'Catálogos', items: [
+            { id: 'catalogo-servicios', label: 'Servicios', icon: 'design_services', route: '/catalogos/servicios', exact: true, permissions: [PERMISSION_CODE.SERVICE_CATALOG_VIEW] },
+            { id: 'catalogo-proveedores', label: 'Proveedores', icon: 'local_shipping', route: '/catalogos/proveedores', exact: true, permissions: [PERMISSION_CODE.SUPPLIER_VIEW] }
+        ]
+    },
+    {
+        id: 'gestion', label: 'Gestión', items: [
+            { id: 'personas', label: 'Personas', icon: 'groups', route: '/personas', exact: true, permissions: [PERMISSION_CODE.PERSON_VIEW] },
+            { id: 'misas', label: 'Misas', icon: 'church', route: '/misas', exact: true, permissions: [PERMISSION_CODE.MASS_VIEW] },
+            { id: 'servicios', label: 'Servicios', icon: 'assignment', route: '/servicios', exact: true, permissions: [PERMISSION_CODE.SERVICE_REQUEST_VIEW] }
+        ]
+    },
+    { id: 'venta', label: 'Venta', items: [{ id: 'ventas', label: 'Ventas', icon: 'point_of_sale', route: '/ventas', exact: true, permissions: [PERMISSION_CODE.SALE_VIEW] }] },
+    { id: 'compra', label: 'Compra', items: [{ id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, permissions: [PERMISSION_CODE.PURCHASE_VIEW] }] },
+    {
+        id: 'inventario', label: 'Inventario', items: [
+            { id: 'productos', label: 'Productos', icon: 'inventory_2', route: '/productos', exact: true, permissions: [PERMISSION_CODE.PRODUCT_VIEW] },
+            { id: 'movimientos', label: 'Movimientos', icon: 'swap_vert', route: '/inventario/movimientos', exact: true, permissions: [PERMISSION_CODE.INVENTORY_VIEW] }
         ]
     }
 ];

@@ -184,6 +184,13 @@ describe('MisaApiService', () => {
         });
     });
 
+
+    it('should use misa-scoped person lookups', () => {
+        service.getPersonaTiposDocumento().subscribe(); let request = httpTesting.expectOne(`${apiUrl}/personas/tipos-documento`); request.flush([]);
+        service.searchPersonas('jose', 10).subscribe(); request = httpTesting.expectOne(req => req.url === `${apiUrl}/personas/search`); expect(request.request.params.get('search')).toBe('jose'); request.flush([]);
+        service.getPersonaByDocument(1, '12345678').subscribe(); request = httpTesting.expectOne(req => req.url === `${apiUrl}/personas/by-document`); request.flush(null);
+    });
+
     it('should create a misa', () => {
         const body = createRequest();
 

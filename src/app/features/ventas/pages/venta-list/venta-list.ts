@@ -13,6 +13,8 @@ import { RouterLink } from '@angular/router';
 import { VentaListStore } from '../../data-access/models/venta-list.store';
 import { VentaListFilters, VentaListItem, VentaTipoItemFiltro } from '../../data-access/models/venta-read.models';
 import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-venta-list',
@@ -41,6 +43,9 @@ export class VentaListPage implements OnInit {
     protected readonly store = inject(VentaListStore);
     private readonly fb = inject(FormBuilder);
     private readonly cancellation = inject(VentaCancellationService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE);
+    protected readonly canCancel = (venta: VentaListItem) => this.authStore.hasPermission(PERMISSION_CODE.SALE_CANCEL) && venta.puedeAnular;
 
     readonly filterForm = this.fb.group({
         texto: this.fb.nonNullable.control(''),
@@ -109,7 +114,7 @@ export class VentaListPage implements OnInit {
     }
 
     protected cancelSale(venta: VentaListItem): void {
-        if (!venta.puedeAnular) return;
+        if (!this.canCancel(venta)) return;
 
         this.cancellation.cancel(venta).subscribe(result => {
             if (result) this.store.reload();

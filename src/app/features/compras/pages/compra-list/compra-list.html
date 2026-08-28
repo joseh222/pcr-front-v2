@@ -1,7 +1,7 @@
 <section class="compra-list-page" data-testid="compra-list-page">
     <header class="page-header">
         <div><p class="page-eyebrow">Compra</p><h1 class="page-title">Compras</h1><p class="page-description">Consulta las compras registradas, sus proveedores, comprobantes e importes.</p></div>
-        <div class="page-header-actions"><button mat-icon-button type="button" aria-label="Recargar compras" (click)="reload()"><mat-icon>refresh</mat-icon></button><a mat-flat-button routerLink="/compras/nueva"><mat-icon>add</mat-icon>Nueva compra</a></div>
+        <div class="page-header-actions"><button mat-icon-button type="button" aria-label="Recargar compras" (click)="reload()"><mat-icon>refresh</mat-icon></button>@if (canCreate()) { <a mat-flat-button routerLink="/compras/nueva"><mat-icon>add</mat-icon>Nueva compra</a> }</div>
     </header>
 
     <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
@@ -48,7 +48,7 @@
                 <ng-container matColumnDef="total"><th mat-header-cell *matHeaderCellDef>Total</th><td mat-cell *matCellDef="let compra"><strong>{{ compra.total | currency:'PEN':'symbol':'1.2-2' }}</strong></td></ng-container>
                 <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef aria-label="Acciones"></th><td mat-cell *matCellDef="let compra" class="actions-cell">
                     <a mat-icon-button [routerLink]="['/compras', compra.idCompra]" [attr.aria-label]="'Ver compra ' + compra.codCompra"><mat-icon>visibility</mat-icon></a>
-                    @if (compra.puedeAnular) { <button mat-icon-button class="cancel-action" type="button" [attr.aria-label]="'Anular compra ' + compra.codCompra" (click)="cancel(compra)"><mat-icon>cancel</mat-icon></button> }
+                    @if (canCancel(compra)) { <button mat-icon-button class="cancel-action" type="button" [attr.aria-label]="'Anular compra ' + compra.codCompra" (click)="cancel(compra)"><mat-icon>cancel</mat-icon></button> }
                 </td></ng-container>
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
             </table></div>

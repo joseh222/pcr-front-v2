@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { ServicioApiService } from '../servicio-api.service';
 import { SolicitudServicioApiService } from '../solicitud-servicio-api.service';
 import { SolicitudServicioListStore } from './solicitud-servicio-list.store';
 
@@ -18,18 +17,18 @@ describe('SolicitudServicioListStore', () => {
             codigo: 'ACTIVA',
             nombre: 'Activa'
         }])),
+        getServicios: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 })),
         getEstadosPago: vi.fn(() => of([{
             idEstadoPagoSolicitudServicio: 1,
             codigo: 'PENDIENTE',
             nombre: 'Pendiente'
         }]))
     };
-    const servicioMock = { getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 })) };
     let store: SolicitudServicioListStore;
 
     beforeEach(() => {
-        Object.values(apiMock).forEach(mock => mock.mockClear()); servicioMock.getList.mockClear();
-        TestBed.configureTestingModule({ providers: [SolicitudServicioListStore, { provide: SolicitudServicioApiService, useValue: apiMock }, { provide: ServicioApiService, useValue: servicioMock }] });
+        Object.values(apiMock).forEach(mock => mock.mockClear());
+        TestBed.configureTestingModule({ providers: [SolicitudServicioListStore, { provide: SolicitudServicioApiService, useValue: apiMock }] });
         store = TestBed.inject(SolicitudServicioListStore);
     });
 
@@ -37,6 +36,7 @@ describe('SolicitudServicioListStore', () => {
         store.loadCatalogs(); store.load();
         expect(apiMock.getEstados).toHaveBeenCalledOnce();
         expect(apiMock.getEstadosPago).toHaveBeenCalledOnce();
+        expect(apiMock.getServicios).toHaveBeenCalledOnce();
         expect(apiMock.getList).toHaveBeenCalledWith({
             search: null,
             idServicio: null,

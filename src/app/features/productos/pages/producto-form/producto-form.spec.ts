@@ -7,6 +7,9 @@ import { vi } from 'vitest';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ProductoFormStore } from '../../data-access/models/producto-form.store';
 import { ProductoFormPage } from './producto-form';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('ProductoFormPage', () => {
     const detail = signal<any>(null);
@@ -23,7 +26,7 @@ describe('ProductoFormPage', () => {
     async function createFixture(params: Record<string, string> = {}) {
         TestBed.configureTestingModule({
             imports: [ProductoFormPage],
-            providers: [provideRouter([{ path: 'productos', component: ProductoFormPage }, { path: 'productos/:id/movimiento', component: ProductoFormPage }]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } }, { provide: FeedbackService, useValue: feedbackMock }, { provide: MatDialog, useValue: dialogMock }]
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([{ path: 'productos', component: ProductoFormPage }, { path: 'productos/:id/movimiento', component: ProductoFormPage }]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } }, { provide: FeedbackService, useValue: feedbackMock }, { provide: MatDialog, useValue: dialogMock }]
         });
         TestBed.overrideComponent(ProductoFormPage, { set: { providers: [{ provide: ProductoFormStore, useValue: storeMock }, { provide: MatDialog, useValue: dialogMock }] } });
         await TestBed.compileComponents(); const fixture = TestBed.createComponent(ProductoFormPage); fixture.detectChanges(); return fixture;

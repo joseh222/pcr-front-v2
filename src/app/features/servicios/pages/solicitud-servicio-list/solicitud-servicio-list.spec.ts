@@ -5,6 +5,9 @@ import { of } from 'rxjs';
 import { SolicitudServicioCancellationService } from '../../data-access/solicitud-servicio-cancellation.service';
 import { SolicitudServicioListStore } from '../../data-access/models/solicitud-servicio-list.store';
 import { SolicitudServicioListPage } from './solicitud-servicio-list';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('SolicitudServicioListPage', () => {
     const items = signal<any[]>([]);
@@ -17,7 +20,7 @@ describe('SolicitudServicioListPage', () => {
 
     beforeEach(() => {
         items.set([]); Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); }); cancellationMock.cancel.mockClear();
-        TestBed.configureTestingModule({ imports: [SolicitudServicioListPage], providers: [provideRouter([]), { provide: SolicitudServicioCancellationService, useValue: cancellationMock }] });
+        TestBed.configureTestingModule({ imports: [SolicitudServicioListPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: SolicitudServicioCancellationService, useValue: cancellationMock }] });
         TestBed.overrideComponent(SolicitudServicioListPage, { set: { providers: [{ provide: SolicitudServicioListStore, useValue: storeMock }] } });
     });
 

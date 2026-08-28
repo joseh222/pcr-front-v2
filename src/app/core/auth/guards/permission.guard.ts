@@ -11,5 +11,5 @@ export const permissionGuard: CanActivateFn = route => {
     const permissions = route.data['permissions'] as readonly PermissionCode[] | undefined;
     const mode = (route.data['permissionMode'] as PermissionGuardMode | undefined) ?? 'all';
     if (!permissions?.length || (mode === 'any' ? authStore.hasAnyPermission(permissions) : authStore.hasAllPermissions(permissions))) return true;
-    return router.createUrlTree(['/dashboard']);
+    return router.createUrlTree(['/forbidden']);
 };

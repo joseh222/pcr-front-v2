@@ -8,6 +8,8 @@ import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InventarioMovementListStore } from '../../../inventario/data-access/models/inventario-movement-list.store';
 import { ProductoDetailStore } from '../../data-access/models/producto-detail.store';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-producto-detail',
@@ -21,14 +23,19 @@ export class ProductoDetailPage implements OnInit {
     protected readonly movements = inject(InventarioMovementListStore);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.PRODUCT_EDIT);
+    protected readonly canViewInventory = () => this.authStore.hasPermission(PERMISSION_CODE.INVENTORY_VIEW);
+    protected readonly canRegisterMovement = () => this.authStore.hasPermission(PERMISSION_CODE.INVENTORY_VIEW) && this.authStore.hasPermission(PERMISSION_CODE.INVENTORY_MOVEMENT_CREATE);
     protected idProducto = 0;
     protected readonly movementColumns = ['fecha', 'movimiento', 'cantidad', 'stock', 'costo', 'motivo'];
 
     ngOnInit(): void {
         this.idProducto = Number(this.route.snapshot.paramMap.get('id'));
         if (!Number.isInteger(this.idProducto) || this.idProducto <= 0) { void this.router.navigate(['/productos']); return; }
-        this.store.load(this.idProducto);
-        this.movements.search({ idProducto: this.idProducto, idTipoMovimiento: null, fechaInicio: null, fechaFin: null });
+        const includeInventory = this.canViewInventory();
+        this.store.load(this.idProducto, includeInventory);
+        if (includeInventory) this.movements.search({ idProducto: this.idProducto, idTipoMovimiento: null, fechaInicio: null, fechaFin: null });
     }
 
     protected onMovementPage(event: PageEvent): void {

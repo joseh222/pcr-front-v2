@@ -14,6 +14,8 @@ import { SolicitudServicioCancellationService } from '../../data-access/solicitu
 import { SolicitudServicioListStore } from '../../data-access/models/solicitud-servicio-list.store';
 import { SolicitudServicioListFilters, SolicitudServicioListItem } from '../../data-access/models/solicitud-servicio-read.models';
 import { canCancelSolicitud, canChargeSolicitud, canEditSolicitud, isMisaSolicitud } from '../../data-access/models/solicitud-servicio.rules';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-solicitud-servicio-list',
@@ -26,6 +28,8 @@ export class SolicitudServicioListPage implements OnInit {
     protected readonly store = inject(SolicitudServicioListStore);
     private readonly fb = inject(FormBuilder);
     private readonly cancellation = inject(SolicitudServicioCancellationService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_CREATE);
 
     protected readonly filterForm = this.fb.group({
         search: this.fb.nonNullable.control(''),
@@ -52,9 +56,9 @@ export class SolicitudServicioListPage implements OnInit {
         this.store.changePage(event.pageIndex + 1);
     }
     protected isMisa(item: SolicitudServicioListItem): boolean { return isMisaSolicitud(item); }
-    protected canEdit(item: SolicitudServicioListItem): boolean { return canEditSolicitud(item); }
-    protected canCancel(item: SolicitudServicioListItem): boolean { return canCancelSolicitud(item); }
-    protected canCharge(item: SolicitudServicioListItem): boolean { return canChargeSolicitud(item); }
+    protected canEdit(item: SolicitudServicioListItem): boolean { return this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_EDIT) && canEditSolicitud(item); }
+    protected canCancel(item: SolicitudServicioListItem): boolean { return this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_CANCEL) && canCancelSolicitud(item); }
+    protected canCharge(item: SolicitudServicioListItem): boolean { return this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE) && canChargeSolicitud(item); }
     protected cancel(item: SolicitudServicioListItem): void {
         if (!this.canCancel(item)) return;
         this.cancellation.cancel(item).subscribe(result => { if (result) this.store.reload(); });

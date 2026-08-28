@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -17,6 +17,8 @@ export class UserMenu {
 
     protected readonly authStore = inject(AuthStore);
     protected readonly isLoggingOut = signal(false);
+    protected readonly roleLabel = computed(() => { const roles = this.authStore.roleCodes(); if (!roles.length) return 'Sin rol'; return roles.length <= 2 ? roles.join(' · ') : `${roles.slice(0, 2).join(' · ')} +${roles.length - 2}`; });
+    protected readonly roleDetail = computed(() => this.authStore.roleCodes().join(' · ') || 'Sin rol');
 
     protected async logout(): Promise<void> {
         if (this.isLoggingOut()) {

@@ -81,7 +81,7 @@
                 </div>
                 }
 
-                @if (form.controls.nombre.value.trim() && !form.controls.idPersona.value) {
+                @if (canCreatePerson() && form.controls.nombre.value.trim() && !form.controls.idPersona.value) {
                 <div class="new-person-action">
                     <span>¿No está registrada?</span>
                     <button mat-stroked-button type="button" [disabled]="store.creatingPerson()"

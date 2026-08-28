@@ -8,6 +8,7 @@ import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente }
 import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
 import { VentaDetailResponse, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
 import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
+import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
 
 @Injectable({ providedIn: 'root' })
 export class VentaApiService {
@@ -28,18 +29,32 @@ export class VentaApiService {
 
     searchServiciosPendientes(search: string, top = 20): Observable<readonly VentaSolicitudPendiente[]> {
         const params = new HttpParams().set('search', search).set('top', top);
-        return this.http.get<readonly VentaSolicitudPendiente[]>(`${this.solicitudUrl}/pendientes`, { params });
+        return this.http.get<readonly VentaSolicitudPendiente[]>(`${this.ventaUrl}/solicitudes/pendientes`, { params });
     }
 
     getSolicitudById(idSolicitudServicio: number): Observable<VentaSolicitudDetalle> {
-        return this.http.get<VentaSolicitudDetalle>(`${this.solicitudUrl}/${idSolicitudServicio}`);
+        return this.http.get<VentaSolicitudDetalle>(`${this.ventaUrl}/solicitudes/${idSolicitudServicio}`);
     }
 
     searchProductos(search: string, top = 10): Observable<readonly VentaProductoBusqueda[]> {
         const params = new HttpParams().set('search', search).set('top', top);
-        return this.http.get<readonly VentaProductoBusqueda[]>(`${this.productoUrl}/search`, { params });
+        return this.http.get<readonly VentaProductoBusqueda[]>(`${this.ventaUrl}/productos/search`, { params });
     }
 
+
+    getPersonaTiposDocumento(): Observable<readonly PersonaTipoDocumento[]> { return this.http.get<readonly PersonaTipoDocumento[]>(`${this.ventaUrl}/personas/tipos-documento`); }
+    getPersonaByDocument(idTipoDocumento: number, numeroDocumento: string): Observable<PersonaLookup | null> {
+        const params = new HttpParams().set('idTipoDocumento', idTipoDocumento).set('numeroDocumento', numeroDocumento);
+        return this.http.get<PersonaLookup | null>(`${this.ventaUrl}/personas/by-document`, { params });
+    }
+    searchPersonas(search: string, top = 10): Observable<readonly PersonaSearchItem[]> {
+        const params = new HttpParams().set('search', search).set('top', top);
+        return this.http.get<readonly PersonaSearchItem[]>(`${this.ventaUrl}/personas/search`, { params });
+    }
+    getPersonaById(idPersona: number): Observable<PersonaLookup> { return this.http.get<PersonaLookup>(`${this.ventaUrl}/personas/${idPersona}`); }
+    
+    createPersona(request: PersonaCreateRequest): Observable<PersonaCreateResponse> { return this.http.post<PersonaCreateResponse>(`${this.ventaUrl}/personas`, request); }
+    
     create(request: VentaCreateRequest): Observable<VentaCreateResponse> {
         return this.http.post<VentaCreateResponse>(this.ventaUrl, request);
     }
@@ -94,6 +109,4 @@ export class VentaApiService {
     }
 
     private get ventaUrl(): string { return `${this.runtimeConfig.config.apiBaseUrl}/Venta`; }
-    private get solicitudUrl(): string { return `${this.runtimeConfig.config.apiBaseUrl}/SolicitudServicio`; }
-    private get productoUrl(): string { return `${this.runtimeConfig.config.apiBaseUrl}/Producto`; }
 }

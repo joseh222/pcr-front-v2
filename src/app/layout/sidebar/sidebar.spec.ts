@@ -18,11 +18,11 @@ describe('Sidebar', () => {
     let router: Router;
     const roleCode = signal<AuthRole>(AUTH_ROLE.ADMIN);
     const permissions = signal<readonly string[]>(['USUARIO_VER', 'ROL_VER']);
-    const grantsAllPermissions = signal(false);
+    const grantsAllPermissions = signal(true);
 
     const authStoreMock = { roleCode: roleCode.asReadonly(), permissions: permissions.asReadonly(), grantsAllPermissions: grantsAllPermissions.asReadonly() };
     beforeEach(async () => {
-        roleCode.set(AUTH_ROLE.ADMIN); permissions.set(['USUARIO_VER', 'ROL_VER']); grantsAllPermissions.set(false);
+        roleCode.set(AUTH_ROLE.ADMIN); permissions.set(['USUARIO_VER', 'ROL_VER']); grantsAllPermissions.set(true);
         await TestBed.configureTestingModule({
             imports: [Sidebar],
             providers: [
@@ -131,7 +131,7 @@ describe('Sidebar', () => {
 
 
     it('should expose security navigation by permission and not by legacy role', () => {
-        roleCode.set(AUTH_ROLE.USER); permissions.set(['USUARIO_VER']); fixture.detectChanges();
+        roleCode.set(AUTH_ROLE.USER); permissions.set(['USUARIO_VER']); grantsAllPermissions.set(false); fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-usuarios"]')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-roles"]')).toBeFalsy();
     });

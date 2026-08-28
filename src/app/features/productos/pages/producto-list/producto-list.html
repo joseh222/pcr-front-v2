@@ -7,7 +7,7 @@
         </div>
         <div class="page-header-actions">
             <button mat-icon-button type="button" aria-label="Recargar productos" (click)="reload()"><mat-icon>refresh</mat-icon></button>
-            <a mat-flat-button routerLink="/productos/nuevo"><mat-icon>add</mat-icon>Nuevo producto</a>
+            @if (canCreate()) { <a mat-flat-button routerLink="/productos/nuevo"><mat-icon>add</mat-icon>Nuevo producto</a> }
         </div>
     </header>
 
@@ -69,8 +69,8 @@
                         <th mat-header-cell *matHeaderCellDef>Acciones</th>
                         <td mat-cell *matCellDef="let producto"><div class="row-actions">
                             <a mat-icon-button [routerLink]="['/productos', producto.idProducto]" [attr.aria-label]="'Ver ' + producto.nombre" title="Ver producto"><mat-icon>visibility</mat-icon></a>
-                            <a mat-icon-button [routerLink]="['/productos', producto.idProducto, 'editar']" [attr.aria-label]="'Editar ' + producto.nombre" title="Editar producto"><mat-icon>edit</mat-icon></a>
-                            <button mat-icon-button type="button" [attr.aria-label]="(producto.isActive ? 'Desactivar ' : 'Activar ') + producto.nombre" [title]="producto.isActive ? 'Desactivar producto' : 'Activar producto'" (click)="changeStatus(producto)"><mat-icon>{{ producto.isActive ? 'block' : 'check_circle' }}</mat-icon></button>
+                            @if (canEdit()) { <a mat-icon-button [routerLink]="['/productos', producto.idProducto, 'editar']" [attr.aria-label]="'Editar ' + producto.nombre" title="Editar producto"><mat-icon>edit</mat-icon></a> }
+                            @if (canChangeStatus()) { <button mat-icon-button type="button" [attr.aria-label]="(producto.isActive ? 'Desactivar ' : 'Activar ') + producto.nombre" [title]="producto.isActive ? 'Desactivar producto' : 'Activar producto'" (click)="changeStatus(producto)"><mat-icon>{{ producto.isActive ? 'block' : 'check_circle' }}</mat-icon></button> }
                         </div></td>
                     </ng-container>
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>

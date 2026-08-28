@@ -7,8 +7,8 @@
             <div><p class="eyebrow">PRODUCTO</p><div class="title-row"><h1>{{ producto.nombre }}</h1><span class="status-badge" [class.inactive]="!producto.isActive">{{ producto.isActive ? 'Activo' : 'Inactivo' }}</span></div><p>{{ producto.codProducto }} · {{ producto.sku || 'Sin SKU' }}</p></div>
             <div class="header-actions">
                 <a mat-stroked-button routerLink="/productos"><mat-icon>arrow_back</mat-icon>Volver</a>
-                <a mat-stroked-button [routerLink]="['/productos', producto.idProducto, 'editar']"><mat-icon>edit</mat-icon>Editar</a>
-                <a mat-flat-button [routerLink]="['/productos', producto.idProducto, 'movimiento']"><mat-icon>sync_alt</mat-icon>Registrar movimiento</a>
+                @if (canEdit()) { <a mat-stroked-button [routerLink]="['/productos', producto.idProducto, 'editar']"><mat-icon>edit</mat-icon>Editar</a> }
+                @if (canRegisterMovement()) { <a mat-flat-button [routerLink]="['/productos', producto.idProducto, 'movimiento']"><mat-icon>sync_alt</mat-icon>Registrar movimiento</a> }
             </div>
         </header>
 
@@ -19,14 +19,17 @@
                 <div class="full-row"><span>Descripción</span><strong>{{ producto.descripcion || 'Sin descripción.' }}</strong></div>
             </div></article>
 
-            @if (store.inventory(); as inventory) {
-                <article class="detail-card inventory-card"><header><mat-icon>warehouse</mat-icon><h2>Inventario</h2></header><div class="detail-body inventory-body">
-                    <div class="stock-block"><span>Stock actual</span><strong [class.stock-empty]="inventory.stockActual <= 0">{{ inventory.stockActual }}</strong></div>
-                    <div class="inventory-meta"><div><span>Último movimiento</span><strong>{{ inventory.fechaUltimoMovimiento ? (inventory.fechaUltimoMovimiento | date:'dd/MM/yyyy HH:mm':'-0500') : 'Sin movimientos' }}</strong></div><div><span>Última actualización</span><strong>{{ inventory.updatedUtc ? (inventory.updatedUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div></div>
-                </div></article>
+            @if (canViewInventory()) {
+                @if (store.inventory(); as inventory) {
+                    <article class="detail-card inventory-card"><header><mat-icon>warehouse</mat-icon><h2>Inventario</h2></header><div class="detail-body inventory-body">
+                        <div class="stock-block"><span>Stock actual</span><strong [class.stock-empty]="inventory.stockActual <= 0">{{ inventory.stockActual }}</strong></div>
+                        <div class="inventory-meta"><div><span>Último movimiento</span><strong>{{ inventory.fechaUltimoMovimiento ? (inventory.fechaUltimoMovimiento | date:'dd/MM/yyyy HH:mm':'-0500') : 'Sin movimientos' }}</strong></div><div><span>Última actualización</span><strong>{{ inventory.updatedUtc ? (inventory.updatedUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div></div>
+                    </div></article>
+                }
             }
         </section>
 
+        @if (canViewInventory()) {
         <article class="detail-card history-card">
             <header><mat-icon>history</mat-icon><div><h2>Historial de movimientos</h2><p>{{ movements.totalRecords() }} movimiento{{ movements.totalRecords() === 1 ? '' : 's' }}</p></div><a mat-stroked-button routerLink="/inventario/movimientos" [queryParams]="{ productoId: producto.idProducto }"><mat-icon>open_in_new</mat-icon>Ver historial global</a></header>
             @if (movements.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
@@ -45,5 +48,6 @@
                 <mat-paginator [length]="movements.totalRecords()" [pageIndex]="movements.pageNumber() - 1" [pageSize]="movements.pageSize()" [pageSizeOptions]="[10,20,50]" [showFirstLastButtons]="true" (page)="onMovementPage($event)"></mat-paginator>
             }
         </article>
+        }
     }
 </section>

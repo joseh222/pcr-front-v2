@@ -5,7 +5,6 @@ import { forkJoin, of } from 'rxjs';
 import { MisaApiService } from '../misa-api.service';
 import { MisaModalidad, MisaSanto, MisaTipo } from './misa-catalog.models';
 import { MisaDetail } from './misa-read.models';
-import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
 import { MisaCreateRequest, MisaUpdateRequest, MisaWriteResponse } from './misa-write.models';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
@@ -14,7 +13,6 @@ import { getApiErrorMessage } from '../../../../core/feedback/api-error-message'
 export class MisaFormStore {
     private readonly api = inject(MisaApiService);
     private readonly destroyRef = inject(DestroyRef);
-    private readonly personaApi = inject(PersonaApiService);
 
     private readonly modalidadesSignal = signal<readonly MisaModalidad[]>([]);
     private readonly tiposSignal = signal<readonly MisaTipo[]>([]);
@@ -69,7 +67,7 @@ export class MisaFormStore {
             modalidades: this.api.getModalidades(),
             tipos: this.api.getTipos(),
             santos: this.api.getSantos(),
-            tiposDocumento: this.personaApi.getTiposDocumento(),
+            tiposDocumento: this.api.getPersonaTiposDocumento(),
             detail: idMisa === null ? of(null) : this.api.getById(idMisa)
         })
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -101,7 +99,7 @@ export class MisaFormStore {
         this.documentLookupStateSignal.set('idle');
         this.documentLookupErrorSignal.set(null);
 
-        this.personaApi.getByDocument(idTipoDocumento, documento)
+        this.api.getPersonaByDocument(idTipoDocumento, documento)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: person => {
@@ -140,7 +138,7 @@ export class MisaFormStore {
         this.personSearchLoadingSignal.set(true);
         this.personSearchErrorSignal.set(null);
 
-        this.personaApi.search(term, 10)
+        this.api.searchPersonas(term, 10)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {

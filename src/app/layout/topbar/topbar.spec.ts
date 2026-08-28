@@ -22,10 +22,12 @@ describe('Topbar', () => {
     });
 
     const roleCode = signal('ADMIN');
+    const roleCodes = signal<readonly string[]>(['ADMIN']);
 
     const authStoreMock = {
         currentUser: currentUser.asReadonly(),
         roleCode: roleCode.asReadonly(),
+        roleCodes: roleCodes.asReadonly(),
         logout: vi.fn()
     };
 
@@ -43,6 +45,7 @@ describe('Topbar', () => {
     };
 
     beforeEach(async () => {
+        roleCodes.set(['ADMIN']);
         await TestBed.configureTestingModule({
             imports: [Topbar],
             providers: [

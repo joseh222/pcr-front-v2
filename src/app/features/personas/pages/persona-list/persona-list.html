@@ -7,7 +7,7 @@
         </div>
         <div class="page-header-actions">
             <button mat-icon-button type="button" aria-label="Recargar personas" (click)="reload()"><mat-icon>refresh</mat-icon></button>
-            <a mat-flat-button routerLink="/personas/nueva"><mat-icon>person_add</mat-icon>Nueva persona</a>
+            @if (canCreate()) { <a mat-flat-button routerLink="/personas/nueva"><mat-icon>person_add</mat-icon>Nueva persona</a> }
         </div>
     </header>
 
@@ -69,8 +69,8 @@
                         <td mat-cell *matCellDef="let persona">
                             <div class="row-actions">
                                 <a mat-icon-button [routerLink]="['/personas', persona.idPersona]" [attr.aria-label]="'Ver ' + (persona.nombreCompleto || persona.codPersona || 'persona')" title="Ver persona"><mat-icon>visibility</mat-icon></a>
-                                <a mat-icon-button [routerLink]="['/personas', persona.idPersona, 'editar']" [attr.aria-label]="'Editar ' + (persona.nombreCompleto || persona.codPersona || 'persona')" title="Editar persona"><mat-icon>edit</mat-icon></a>
-                                <button mat-icon-button type="button" [attr.aria-label]="(persona.isActive ? 'Desactivar ' : 'Activar ') + (persona.nombreCompleto || persona.codPersona || 'persona')" [title]="persona.isActive ? 'Desactivar persona' : 'Activar persona'" (click)="changeStatus(persona)"><mat-icon>{{ persona.isActive ? 'block' : 'check_circle' }}</mat-icon></button>
+                                @if (canEdit()) { <a mat-icon-button [routerLink]="['/personas', persona.idPersona, 'editar']" [attr.aria-label]="'Editar ' + (persona.nombreCompleto || persona.codPersona || 'persona')" title="Editar persona"><mat-icon>edit</mat-icon></a> }
+                                @if (canChangeStatus()) { <button mat-icon-button type="button" [attr.aria-label]="(persona.isActive ? 'Desactivar ' : 'Activar ') + (persona.nombreCompleto || persona.codPersona || 'persona')" [title]="persona.isActive ? 'Desactivar persona' : 'Activar persona'" (click)="changeStatus(persona)"><mat-icon>{{ persona.isActive ? 'block' : 'check_circle' }}</mat-icon></button> }
                             </div>
                         </td>
                     </ng-container>

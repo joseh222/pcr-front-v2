@@ -7,6 +7,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SolicitudServicioCancellationService } from '../../data-access/solicitud-servicio-cancellation.service';
 import { SolicitudServicioDetailStore } from '../../data-access/models/solicitud-servicio-detail.store';
 import { canCancelSolicitud, canChargeSolicitud, canEditSolicitud, isMisaSolicitud } from '../../data-access/models/solicitud-servicio.rules';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-solicitud-servicio-detail',
@@ -20,6 +22,7 @@ export class SolicitudServicioDetailPage implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
     private readonly cancellation = inject(SolicitudServicioCancellationService);
+    private readonly authStore = inject(AuthStore);
     private idSolicitudServicio = 0;
 
     ngOnInit(): void {
@@ -29,9 +32,9 @@ export class SolicitudServicioDetailPage implements OnInit {
     }
 
     protected isMisa(): boolean { const item = this.store.detail(); return !!item && isMisaSolicitud(item); }
-    protected canEdit(): boolean { const item = this.store.detail(); return !!item && canEditSolicitud(item); }
-    protected canCancel(): boolean { const item = this.store.detail(); return !!item && canCancelSolicitud(item); }
-    protected canCharge(): boolean { const item = this.store.detail(); return !!item && canChargeSolicitud(item); }
+    protected canEdit(): boolean { const item = this.store.detail(); return !!item && this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_EDIT) && canEditSolicitud(item); }
+    protected canCancel(): boolean { const item = this.store.detail(); return !!item && this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_CANCEL) && canCancelSolicitud(item); }
+    protected canCharge(): boolean { const item = this.store.detail(); return !!item && this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE) && canChargeSolicitud(item); }
     protected cancel(): void {
         const item = this.store.detail();
         if (!item || !this.canCancel()) return;

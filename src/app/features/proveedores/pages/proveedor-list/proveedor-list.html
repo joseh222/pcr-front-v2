@@ -7,7 +7,7 @@
         </div>
         <div class="page-header-actions">
             <button mat-icon-button type="button" aria-label="Recargar proveedores" (click)="reload()"><mat-icon>refresh</mat-icon></button>
-            <a mat-flat-button routerLink="/catalogos/proveedores/nuevo"><mat-icon>add</mat-icon>Nuevo proveedor</a>
+            @if (canCreate()) { <a mat-flat-button routerLink="/catalogos/proveedores/nuevo"><mat-icon>add</mat-icon>Nuevo proveedor</a> }
         </div>
     </header>
 
@@ -59,8 +59,8 @@
                     <ng-container matColumnDef="acciones">
                         <th mat-header-cell *matHeaderCellDef>Acciones</th>
                         <td mat-cell *matCellDef="let proveedor"><div class="row-actions">
-                            <a mat-icon-button [routerLink]="['/catalogos/proveedores', proveedor.idProveedor, 'editar']" [attr.aria-label]="'Editar ' + proveedor.razonSocial" title="Editar proveedor"><mat-icon>edit</mat-icon></a>
-                            <button mat-icon-button type="button" [attr.aria-label]="(proveedor.isActive ? 'Desactivar ' : 'Activar ') + proveedor.razonSocial" [title]="proveedor.isActive ? 'Desactivar proveedor' : 'Activar proveedor'" (click)="changeStatus(proveedor)"><mat-icon>{{ proveedor.isActive ? 'block' : 'check_circle' }}</mat-icon></button>
+                            @if (canEdit()) { <a mat-icon-button [routerLink]="['/catalogos/proveedores', proveedor.idProveedor, 'editar']" [attr.aria-label]="'Editar ' + proveedor.razonSocial" title="Editar proveedor"><mat-icon>edit</mat-icon></a> }
+                            @if (canChangeStatus()) { <button mat-icon-button type="button" [attr.aria-label]="(proveedor.isActive ? 'Desactivar ' : 'Activar ') + proveedor.razonSocial" [title]="proveedor.isActive ? 'Desactivar proveedor' : 'Activar proveedor'" (click)="changeStatus(proveedor)"><mat-icon>{{ proveedor.isActive ? 'block' : 'check_circle' }}</mat-icon></button> }
                         </div></td>
                     </ng-container>
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
