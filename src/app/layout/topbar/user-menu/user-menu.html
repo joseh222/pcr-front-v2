@@ -11,7 +11,7 @@
                 </span>
 
                 <span class="block text-xs opacity-60" data-testid="user-role">
-                    {{ authStore.roleCode() }}
+                    {{ roleLabel() }}
                 </span>
             </span>
 
@@ -38,7 +38,7 @@
             }
 
             <p class="mt-2 text-xs font-medium text-[var(--mat-sys-primary)]">
-                {{ authStore.roleCode() }}
+                {{ roleDetail() }}
             </p>
         </div>
 

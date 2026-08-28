@@ -16,6 +16,8 @@ import { ProveedorSearchItem } from '../../../proveedores/data-access/models/pro
 import { CompraCancellationService } from '../../data-access/compra-cancellation.service';
 import { CompraListStore } from '../../data-access/models/compra-list.store';
 import { CompraListFilters, CompraListItem } from '../../data-access/models/compra-read.models';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-compra-list',
@@ -29,6 +31,9 @@ export class CompraListPage implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
     private readonly cancellation = inject(CompraCancellationService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.PURCHASE_CREATE);
+    protected readonly canCancel = (compra: CompraListItem) => this.authStore.hasPermission(PERMISSION_CODE.PURCHASE_CANCEL) && compra.puedeAnular;
     protected readonly selectedProveedor = signal<ProveedorSearchItem | null>(null);
 
     readonly filterForm = this.fb.group({
@@ -67,7 +72,7 @@ export class CompraListPage implements OnInit {
         this.store.resetFilters();
     }
 
-    protected cancel(compra: CompraListItem): void { if (!compra.puedeAnular) return; this.cancellation.cancel(compra).subscribe(result => { if (result) this.store.reload(); }); }
+    protected cancel(compra: CompraListItem): void { if (!this.canCancel(compra)) return; this.cancellation.cancel(compra).subscribe(result => { if (result) this.store.reload(); }); }
     protected reload(): void { this.store.reload(); }
     protected onPage(event: PageEvent): void { if (event.pageSize !== this.store.pageSize()) { this.store.changePageSize(event.pageSize); return; } this.store.changePage(event.pageIndex + 1); }
     protected dateRangeInvalid(): boolean { const { fechaInicio, fechaFin } = this.filterForm.getRawValue(); return !!fechaInicio && !!fechaFin && fechaInicio > fechaFin; }

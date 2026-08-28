@@ -12,6 +12,8 @@ import { RouterLink } from '@angular/router';
 import { ProveedorListStore } from '../../data-access/models/proveedor-list.store';
 import { ProveedorListFilters, ProveedorListItem } from '../../data-access/models/proveedor-read.models';
 import { ProveedorStatusService } from '../../data-access/proveedor-status.service';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-proveedor-list',
@@ -24,6 +26,10 @@ export class ProveedorListPage implements OnInit {
     protected readonly store = inject(ProveedorListStore);
     private readonly fb = inject(FormBuilder);
     private readonly statusService = inject(ProveedorStatusService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.SUPPLIER_CREATE);
+    protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.SUPPLIER_EDIT);
+    protected readonly canChangeStatus = () => this.authStore.hasPermission(PERMISSION_CODE.SUPPLIER_STATUS);
 
     readonly filterForm = this.fb.group({
         search: this.fb.nonNullable.control(''),
@@ -45,6 +51,7 @@ export class ProveedorListPage implements OnInit {
         this.store.changePage(event.pageIndex + 1);
     }
     protected changeStatus(proveedor: ProveedorListItem): void {
+        if (!this.canChangeStatus()) return;
         this.statusService.change(proveedor).subscribe(result => { if (result) this.store.reload(); });
     }
 }

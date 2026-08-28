@@ -19,6 +19,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MisaCreateRequest, MisaUpdateRequest, MisaWriteResponse } from '../../data-access/models/misa-write.models';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 
 type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nombre: FormControl<string>; observacion: FormControl<string>; }>;
@@ -48,6 +50,7 @@ export class MisaFormPage implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
     private readonly dialog = inject(MatDialog);
+    private readonly authStore = inject(AuthStore);
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
@@ -416,7 +419,7 @@ export class MisaFormPage implements OnInit {
         const wasEditMode = this.isEditMode();
         this.store.clearSaveResult();
 
-        if (!wasEditMode && result.requierePago) {
+        if (!wasEditMode && result.requierePago && this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE)) {
             const dialogRef = this.dialog.open(ConfirmActionDialog, {
                 width: '440px',
                 disableClose: true,

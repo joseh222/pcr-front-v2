@@ -8,6 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { InventarioMovementStore } from '../../data-access/models/inventario-movement.store';
 import { MovimientoInventarioCreateRequest, TipoMovimientoInventario } from '../../data-access/models/inventario.models';
@@ -26,6 +28,7 @@ export class MovimientoFormPage implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
+    private readonly authStore = inject(AuthStore);
     protected idProducto = 0;
     private requestedType: string | null = null;
     protected initialStockFlow = false;
@@ -67,7 +70,7 @@ export class MovimientoFormPage implements OnInit {
         const result = this.store.saveResult();
         if (!result) return;
         this.store.clearSaveResult();
-        const navigation = this.returnToMovements
+        const navigation = this.returnToMovements || !this.canViewProduct()
             ? this.router.navigate(['/inventario/movimientos'], { queryParams: { productoId: result.idProducto } })
             : this.router.navigate(['/productos', result.idProducto]);
         void navigation.then(() => this.feedback.success(result.mensaje || 'Movimiento registrado correctamente.'));
@@ -75,13 +78,17 @@ export class MovimientoFormPage implements OnInit {
 
     ngOnInit(): void {
         this.idProducto = Number(this.route.snapshot.paramMap.get('id'));
-        if (!Number.isInteger(this.idProducto) || this.idProducto <= 0) { void this.router.navigate(['/productos']); return; }
+        if (!Number.isInteger(this.idProducto) || this.idProducto <= 0) { void this.router.navigate(this.canViewProduct() ? ['/productos'] : ['/inventario/movimientos']); return; }
         this.requestedType = this.route.snapshot.queryParamMap.get('tipo');
         this.returnToMovements = this.route.snapshot.queryParamMap.get('origen') === 'movimientos';
         this.initialStockFlow = this.requestedType?.toUpperCase() === 'STOCK_INICIAL';
         this.form.controls.idTipoMovimiento.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.applyReasonValidators());
         this.store.initialize(this.idProducto);
     }
+
+    protected canViewProduct(): boolean { return this.authStore.hasPermission(PERMISSION_CODE.PRODUCT_VIEW); }
+    protected backRoute(): readonly any[] { return this.canViewProduct() ? ['/productos', this.idProducto] : ['/inventario/movimientos']; }
+    protected backQueryParams(): Record<string, number> | null { return this.canViewProduct() ? null : { productoId: this.idProducto }; }
 
     protected availableTypes(): readonly TipoMovimientoInventario[] {
         return this.canRegisterInitialStock() ? this.store.tipos() : this.store.tipos().filter(item => item.codigo !== 'STOCK_INICIAL');

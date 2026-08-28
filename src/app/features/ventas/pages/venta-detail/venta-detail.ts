@@ -7,6 +7,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
 import { VentaDetailStore } from '../../data-access/models/venta-detail.store';
 import { VentaDetailItem } from '../../data-access/models/venta-read.models';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-venta-detail',
@@ -19,6 +21,7 @@ export class VentaDetailPage implements OnInit {
     protected readonly store = inject(VentaDetailStore);
     private readonly route = inject(ActivatedRoute);
     private readonly cancellation = inject(VentaCancellationService);
+    private readonly authStore = inject(AuthStore);
     private idVenta = 0;
 
     ngOnInit(): void {
@@ -26,9 +29,11 @@ export class VentaDetailPage implements OnInit {
         if (Number.isInteger(this.idVenta) && this.idVenta > 0) this.store.load(this.idVenta);
     }
 
+    protected canCancel(): boolean { const venta = this.store.detail(); return !!venta && this.authStore.hasPermission(PERMISSION_CODE.SALE_CANCEL) && venta.puedeAnular; }
+
     protected cancel(): void {
         const venta = this.store.detail();
-        if (!venta?.puedeAnular) return;
+        if (!venta || !this.canCancel()) return;
 
         this.cancellation.cancel(venta).subscribe(result => {
             if (result) this.store.load(this.idVenta);

@@ -5,6 +5,9 @@ import { of } from 'rxjs';
 import { CompraCancellationService } from '../../data-access/compra-cancellation.service';
 import { CompraListStore } from '../../data-access/models/compra-list.store';
 import { CompraListPage } from './compra-list';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('CompraListPage', () => {
     const loading = signal(false); const error = signal<string | null>(null); const items = signal<any[]>([]); const totalRows = signal(0);
@@ -18,7 +21,7 @@ describe('CompraListPage', () => {
 
     beforeEach(() => {
         loading.set(false); error.set(null); items.set([]); totalRows.set(0); cancellationMock.cancel.mockClear(); Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); });
-        TestBed.configureTestingModule({ imports: [CompraListPage], providers: [provideRouter([]), { provide: CompraCancellationService, useValue: cancellationMock }] });
+        TestBed.configureTestingModule({ imports: [CompraListPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: CompraCancellationService, useValue: cancellationMock }] });
         TestBed.overrideComponent(CompraListPage, { set: { providers: [{ provide: CompraListStore, useValue: storeMock }] } });
     });
 

@@ -16,6 +16,22 @@ describe('SolicitudServicioApiService', () => {
         req = http.expectOne(r => r.url === `${apiBaseUrl}/SolicitudServicio`); expect(req.request.params.get('idServicio')).toBe('2'); expect(req.request.params.get('estadoPago')).toBe('PENDIENTE'); expect(req.request.params.get('requierePago')).toBe('true'); expect(req.request.params.get('pageNumber')).toBe('2'); req.flush({ items: [] });
     });
 
+
+    it('should use request-scoped service and person lookups', () => {
+        service.searchServicios('const', 10).subscribe(); let req = http.expectOne(r => r.url === `${apiBaseUrl}/SolicitudServicio/servicios/search`); expect(req.request.params.get('search')).toBe('const'); req.flush([]);
+        service.getServicioById(2).subscribe(); req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/servicios/2`); req.flush({ idServicio: 2 });
+        service.getPersonaTiposDocumento().subscribe(); req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/personas/tipos-documento`); req.flush([]);
+        service.searchPersonas('jose', 10).subscribe(); req = http.expectOne(r => r.url === `${apiBaseUrl}/SolicitudServicio/personas/search`); req.flush([]);
+        service.getPersonaByDocument(1, '12345678').subscribe(); req = http.expectOne(r => r.url === `${apiBaseUrl}/SolicitudServicio/personas/by-document`); req.flush(null);
+
+        const payload = { idTipoDocumento: null, numeroDocumento: null, nombreCompleto: 'SOLICITANTE PRUEBA', fechaNacimiento: null, telefono: null, email: null, direccion: null, roles: [] };
+        service.createPersona(payload).subscribe();
+        req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/personas`);
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body).toEqual(payload);
+        req.flush({ idPersona: 3, codPersona: 'PER-3', rowVersion: 'A', mensaje: 'OK' });
+    });
+
     it('should get, create, update and cancel a request', () => {
         service.getById(10).subscribe(); let req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10`); expect(req.request.method).toBe('GET'); req.flush({});
         const create = { idServicio: 2, idPersona: null, requierePago: true, importe: 20, motivoNoPago: null, observaciones: null };
@@ -25,4 +41,5 @@ describe('SolicitudServicioApiService', () => {
         const cancel = { motivo: 'Cancelado', rowVersion: 'A' };
         service.cancel(10, cancel).subscribe(); req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10/anular`); expect(req.request.method).toBe('PATCH'); expect(req.request.body).toEqual(cancel); req.flush({});
     });
+    it('should get service catalog through request module', () => { service.getServicios().subscribe(); const request = http.expectOne(req => req.url === `${apiBaseUrl}/SolicitudServicio/servicios`); expect(request.request.method).toBe('GET'); request.flush({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 }); });
 });

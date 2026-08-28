@@ -2,7 +2,6 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
-import { ServicioApiService } from '../servicio-api.service';
 import { SolicitudServicioApiService } from '../solicitud-servicio-api.service';
 import { EstadoPagoSolicitudServicio, EstadoSolicitudServicio } from './solicitud-servicio-catalog.models';
 import { ServicioListItem } from './servicio-lookup.models';
@@ -16,7 +15,6 @@ const INITIAL_RESPONSE: SolicitudServicioPagedResponse = { items: [], pageNumber
 @Injectable()
 export class SolicitudServicioListStore {
     private readonly api = inject(SolicitudServicioApiService);
-    private readonly servicioApi = inject(ServicioApiService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly querySignal = signal<SolicitudServicioListQuery>(INITIAL_QUERY);
     private readonly responseSignal = signal<SolicitudServicioPagedResponse>(INITIAL_RESPONSE);
@@ -62,7 +60,7 @@ export class SolicitudServicioListStore {
     loadCatalogs(): void {
         if (this.catalogsLoadedSignal() || this.catalogsLoadingSignal()) return;
         this.catalogsLoadingSignal.set(true); this.catalogsErrorSignal.set(null);
-        forkJoin({ servicios: this.servicioApi.getList({ search: null, idCategoriaServicio: null, modoPrecio: null, isActive: null, pageNumber: 1, pageSize: 100 }), estados: this.api.getEstados(), estadosPago: this.api.getEstadosPago() })
+        forkJoin({ servicios: this.api.getServicios(), estados: this.api.getEstados(), estadosPago: this.api.getEstadosPago() })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {

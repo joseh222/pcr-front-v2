@@ -21,10 +21,12 @@ describe('UserMenu', () => {
     });
 
     const roleCode = signal('ADMIN');
+    const roleCodes = signal<readonly string[]>(['ADMIN']);
 
     const authStoreMock = {
         currentUser: currentUser.asReadonly(),
         roleCode: roleCode.asReadonly(),
+        roleCodes: roleCodes.asReadonly(),
         logout: vi.fn()
     };
 
@@ -33,6 +35,7 @@ describe('UserMenu', () => {
     };
 
     beforeEach(async () => {
+        roleCodes.set(['ADMIN']);
         authStoreMock.logout.mockReset();
         authStoreMock.logout.mockResolvedValue(undefined);
 
@@ -62,6 +65,12 @@ describe('UserMenu', () => {
 
         expect(name?.textContent).toContain('Administrador PCR');
         expect(role?.textContent).toContain('ADMIN');
+    });
+
+    it('should display current RBAC roles instead of the legacy USER role', () => {
+        roleCodes.set(['SECRETARIA', 'TESORERIA']); fixture.detectChanges();
+        const role = fixture.nativeElement.querySelector('[data-testid="user-role"]');
+        expect(role?.textContent).toContain('SECRETARIA'); expect(role?.textContent).toContain('TESORERIA');
     });
 
     it('should logout and navigate to login', async () => {

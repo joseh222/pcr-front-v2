@@ -1,7 +1,5 @@
-import {
-    computed,
-    signal
-} from '@angular/core';
+import { computed, signal } from '@angular/core';
+import { AuthStore } from '../../../auth/data-access/auth.store';
 import {
     ComponentFixture,
     TestBed
@@ -11,6 +9,8 @@ import { MisaListStore } from '../../data-access/models/misa-list.store';
 import { MisaListItem } from '../../data-access/models/misa-read.models';
 import { MisaListPage } from './misa-list';
 import { provideRouter } from '@angular/router';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('MisaListPage', () => {
     let fixture: ComponentFixture<MisaListPage>;
@@ -101,7 +101,7 @@ describe('MisaListPage', () => {
 
         TestBed.configureTestingModule({
             imports: [MisaListPage],
-            providers: [
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, 
                 provideRouter([])
             ]
         });

@@ -13,6 +13,8 @@ import { RouterLink } from '@angular/router';
 import { ProductoListStore } from '../../data-access/models/producto-list.store';
 import { ProductoListFilters, ProductoListItem } from '../../data-access/models/producto-read.models';
 import { ProductoStatusService } from '../../data-access/producto-status.service';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-producto-list',
@@ -25,6 +27,10 @@ export class ProductoListPage implements OnInit {
     protected readonly store = inject(ProductoListStore);
     private readonly fb = inject(FormBuilder);
     private readonly statusService = inject(ProductoStatusService);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.PRODUCT_CREATE);
+    protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.PRODUCT_EDIT);
+    protected readonly canChangeStatus = () => this.authStore.hasPermission(PERMISSION_CODE.PRODUCT_STATUS);
 
     readonly filterForm = this.fb.group({
         search: this.fb.nonNullable.control(''),
@@ -47,6 +53,7 @@ export class ProductoListPage implements OnInit {
         this.store.changePage(event.pageIndex + 1);
     }
     protected changeStatus(producto: ProductoListItem): void {
+        if (!this.canChangeStatus()) return;
         this.statusService.change(producto).subscribe(result => { if (result) this.store.reload(); });
     }
 }

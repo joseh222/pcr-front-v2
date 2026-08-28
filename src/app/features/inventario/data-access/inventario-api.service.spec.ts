@@ -47,6 +47,14 @@ describe('InventarioApiService', () => {
         request.flush({ items: [], pageNumber: 2, pageSize: 20, totalRecords: 0, totalPages: 0 });
     });
 
+
+    it('should request inventory-scoped product catalog', () => {
+        service.getProductos({ search: null, idCategoriaProducto: null, idMarcaProducto: null, isActive: null, pageNumber: 1, pageSize: 100 }).subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Inventario/productos`);
+        expect(request.request.method).toBe('GET'); expect(request.request.params.get('pageSize')).toBe('100');
+        request.flush({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 });
+    });
+
     it('should request product inventory', () => {
         service.getByProducto(5).subscribe();
         const request = httpTesting.expectOne(`${apiBaseUrl}/Inventario/productos/5`);

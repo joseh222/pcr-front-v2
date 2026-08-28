@@ -4,7 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthStore } from '../../features/auth/data-access/auth.store';
 import { APP_NAVIGATION } from '../navigation/app-navigation.config';
-import { filterNavigationByRole } from '../navigation/navigation-access';
+import { filterNavigationByAccess } from '../navigation/navigation-access';
 
 @Component({
     selector: 'pcr-sidebar',
@@ -20,10 +20,7 @@ export class Sidebar {
     readonly closeRequested = output<void>();
 
     protected readonly navigationSections = computed(() =>
-        filterNavigationByRole(
-            APP_NAVIGATION,
-            this.authStore.roleCode()
-        )
+        filterNavigationByAccess(APP_NAVIGATION, this.authStore.roleCode(), this.authStore.permissions(), this.authStore.grantsAllPermissions())
     );
 
     protected navigate(): void {

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
-import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 import { VentaApiService } from '../venta-api.service';
 import { VentaFormStore } from './venta-form.store';
 
@@ -9,6 +8,10 @@ describe('VentaFormStore', () => {
     const ventaApiMock = {
         getMetodosPago: vi.fn(() => of([{ idMetodoPago: 1, codigo: 'EFECTIVO', nombre: 'Efectivo', isActive: true }])),
         getTiposComprobante: vi.fn(() => of([{ idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true }])),
+        getPersonaTiposDocumento: vi.fn(() => of([{ idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }])),
+        getPersonaById: vi.fn(() => of({ idPersona: 10, idTipoDocumento: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE HUAMAN', telefono: '999999999' })),
+        getPersonaByDocument: vi.fn(() => of(null)),
+        searchPersonas: vi.fn(() => of([])),
         getSolicitudById: vi.fn(() => of({
             idSolicitudServicio: 50, codSolicitudServicio: 'SS2026-00050', idServicio: 1, codigoServicio: 'MISA', nombreServicio: 'Misa',
             idPersona: 10, numeroDocumento: '12345678', nombreCompleto: 'JOSE HUAMAN', telefono: '999999999', importe: 30,
@@ -22,28 +25,19 @@ describe('VentaFormStore', () => {
         create: vi.fn(() => of({
             idVenta: 1, codVenta: 'V2026-00001', serie: 'R001', correlativo: 1, numeroComprobante: 'R001-000001',
             fechaVentaUtc: '2026-08-20T00:00:00', subTotal: 30, impuesto: 0, total: 30, estadoVenta: 'EMITIDA', rowVersion: 'AAAA', mensaje: 'Venta registrada.'
-        }))
-    };
-
-    const personaApiMock = {
-        getTiposDocumento: vi.fn(() => of([{ idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }])),
-        getById: vi.fn(() => of({ idPersona: 10, idTipoDocumento: 1, numeroDocumento: '12345678', nombreCompleto: 'JOSE HUAMAN', telefono: '999999999' })),
-        getByDocument: vi.fn(() => of(null)),
-        search: vi.fn(() => of([])),
-        create: vi.fn(() => of({ idPersona: 20, codPersona: 'PER-20', rowVersion: 'AAAA', mensaje: 'Persona registrada.' }))
+        })),
+        createPersona: vi.fn(() => of({ idPersona: 20, codPersona: 'PER-20', rowVersion: 'AAAA', mensaje: 'Persona registrada.' })),
     };
 
     let store: VentaFormStore;
 
     beforeEach(() => {
         Object.values(ventaApiMock).forEach(mock => mock.mockClear());
-        Object.values(personaApiMock).forEach(mock => mock.mockClear());
 
         TestBed.configureTestingModule({
             providers: [
                 VentaFormStore,
-                { provide: VentaApiService, useValue: ventaApiMock },
-                { provide: PersonaApiService, useValue: personaApiMock }
+                { provide: VentaApiService, useValue: ventaApiMock }
             ]
         });
         store = TestBed.inject(VentaFormStore);

@@ -39,7 +39,7 @@ describe('VentaApiService', () => {
 
     it('should search pending services', () => {
         service.searchServiciosPendientes('SS2026', 20).subscribe();
-        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/SolicitudServicio/pendientes`);
+        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/solicitudes/pendientes`);
         expect(request.request.params.get('search')).toBe('SS2026');
         expect(request.request.params.get('top')).toBe('20');
         request.flush([]);
@@ -47,7 +47,7 @@ describe('VentaApiService', () => {
 
     it('should search products', () => {
         service.searchProductos('vela', 10).subscribe();
-        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Producto/search`);
+        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/productos/search`);
         expect(request.request.params.get('search')).toBe('vela');
         expect(request.request.params.get('top')).toBe('10');
         request.flush([]);
@@ -55,9 +55,24 @@ describe('VentaApiService', () => {
 
     it('should request a service by id', () => {
         service.getSolicitudById(25).subscribe();
-        const request = httpTesting.expectOne(`${apiBaseUrl}/SolicitudServicio/25`);
+        const request = httpTesting.expectOne(`${apiBaseUrl}/Venta/solicitudes/25`);
         expect(request.request.method).toBe('GET');
         request.flush({ idSolicitudServicio: 25 });
+    });
+
+
+    it('should use sale-scoped person lookups', () => {
+        service.getPersonaTiposDocumento().subscribe(); let request = httpTesting.expectOne(`${apiBaseUrl}/Venta/personas/tipos-documento`); request.flush([]);
+        service.searchPersonas('jose', 10).subscribe(); request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/personas/search`); expect(request.request.params.get('search')).toBe('jose'); request.flush([]);
+        service.getPersonaByDocument(1, '12345678').subscribe(); request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/personas/by-document`); expect(request.request.params.get('idTipoDocumento')).toBe('1'); request.flush(null);
+        service.getPersonaById(5).subscribe(); request = httpTesting.expectOne(`${apiBaseUrl}/Venta/personas/5`); request.flush({ idPersona: 5 });
+
+        const payload = { idTipoDocumento: 1, numeroDocumento: '12345678', nombreCompleto: 'CLIENTE PRUEBA', fechaNacimiento: null, telefono: null, email: null, direccion: null, roles: [] };
+        service.createPersona(payload).subscribe();
+        request = httpTesting.expectOne(`${apiBaseUrl}/Venta/personas`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual(payload);
+        request.flush({ idPersona: 20, codPersona: 'PER-20', rowVersion: 'A', mensaje: 'Persona registrada.' });
     });
 
     it('should create a sale', () => {

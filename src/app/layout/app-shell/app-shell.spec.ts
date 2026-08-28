@@ -25,12 +25,18 @@ describe('AppShell', () => {
     });
 
     const roleCode = signal('ADMIN');
+    const roleCodes = signal<readonly string[]>(['ADMIN']);
+    const permissions = signal<readonly string[]>([]);
+    const grantsAllPermissions = signal(true);
     const themePreference = signal<ThemePreference>('system');
     const resolvedTheme = signal<'light' | 'dark'>('light');
 
     const authStoreMock = {
         currentUser: currentUser.asReadonly(),
         roleCode: roleCode.asReadonly(),
+        roleCodes: roleCodes.asReadonly(),
+        permissions: permissions.asReadonly(),
+        grantsAllPermissions: grantsAllPermissions.asReadonly(),
         logout: vi.fn()
     };
 
@@ -53,6 +59,7 @@ describe('AppShell', () => {
         });
 
         roleCode.set('ADMIN');
+        roleCodes.set(['ADMIN']); permissions.set([]); grantsAllPermissions.set(true);
         themePreference.set('system');
         resolvedTheme.set('light');
 

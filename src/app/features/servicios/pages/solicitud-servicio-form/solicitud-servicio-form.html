@@ -44,10 +44,10 @@
                             <mat-form-field appearance="outline"><mat-label>Buscar persona</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="personaSearch" [matAutocomplete]="personAutocomplete" autocomplete="off" placeholder="Nombre o documento">@if (store.searchingPersons()) { <mat-icon matSuffix>hourglass_top</mat-icon> }
                                 <mat-autocomplete #personAutocomplete="matAutocomplete">@for (person of store.personResults(); track person.idPersona) { <mat-option [value]="person.nombreCompleto ?? ''" (onSelectionChange)="$event.source.selected && selectPerson(person)"><div class="option-content"><strong>{{ person.nombreCompleto || 'Sin nombre' }}</strong><span>{{ person.codigoTipoDocumento || '' }} {{ person.numeroDocumento || '' }}</span></div></mat-option> }</mat-autocomplete>
                             </mat-form-field>
-                            <button mat-stroked-button type="button" (click)="toggleNewPerson()"><mat-icon>person_add</mat-icon>{{ showNewPerson() ? 'Cancelar registro' : 'Nueva persona' }}</button>
+                            @if (canCreatePerson()) { <button mat-stroked-button type="button" (click)="toggleNewPerson()"><mat-icon>person_add</mat-icon>{{ showNewPerson() ? 'Cancelar registro' : 'Nueva persona' }}</button> }
                         </div>
 
-                        @if (showNewPerson()) {
+                        @if (canCreatePerson() && showNewPerson()) {
                             <div class="new-person-panel" [formGroup]="personForm">
                                 <div class="form-grid">
                                     <mat-form-field appearance="outline"><mat-label>Tipo de documento</mat-label><mat-select formControlName="idTipoDocumento"><mat-option [value]="null">Sin documento</mat-option>@for (tipo of store.tiposDocumento(); track tipo.idTipoDocumento) { <mat-option [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</mat-option> }</mat-select></mat-form-field>

@@ -1,20 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { ProveedorApiService } from '../../../proveedores/data-access/proveedor-api.service';
 import { CompraApiService } from '../compra-api.service';
 import { CompraListStore } from './compra-list.store';
 
 describe('CompraListStore', () => {
-    const apiMock = {
+    const apiMock = { searchProveedores: vi.fn(() => of([])),
         getEstados: vi.fn(() => of([{ idEstadoCompra: 1, codigo: 'REGISTRADA', nombre: 'Registrada', isActive: true }])),
         getTiposComprobante: vi.fn(() => of([])),
         getList: vi.fn(() => of({ pageNumber: 1, pageSize: 20, totalRows: 1, totalPages: 1, items: [{ idCompra: 1, codCompra: 'CMP2026-000001' }] }))
     };
-    const proveedorApiMock = { search: vi.fn(() => of([])) };
 
     beforeEach(() => {
-        Object.values(apiMock).forEach(mock => mock.mockClear()); proveedorApiMock.search.mockClear();
-        TestBed.configureTestingModule({ providers: [CompraListStore, { provide: CompraApiService, useValue: apiMock }, { provide: ProveedorApiService, useValue: proveedorApiMock }] });
+        Object.values(apiMock).forEach(mock => mock.mockClear());
+        TestBed.configureTestingModule({ providers: [CompraListStore, { provide: CompraApiService, useValue: apiMock }] });
     });
 
     it('should load catalogs and purchases', () => {
@@ -34,7 +32,7 @@ describe('CompraListStore', () => {
 
     it('should search suppliers only with at least two characters', () => {
         const store = TestBed.inject(CompraListStore);
-        store.searchProveedores('s'); expect(proveedorApiMock.search).not.toHaveBeenCalled();
-        store.searchProveedores('san'); expect(proveedorApiMock.search).toHaveBeenCalledWith('san', 10);
+        store.searchProveedores('s'); expect(apiMock.searchProveedores).not.toHaveBeenCalled();
+        store.searchProveedores('san'); expect(apiMock.searchProveedores).toHaveBeenCalledWith('san', 10);
     });
 });

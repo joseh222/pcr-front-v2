@@ -19,6 +19,8 @@ import { SolicitudServicioFormStore } from '../../data-access/models/solicitud-s
 import { ServicioLookupItem } from '../../data-access/models/servicio-lookup.models';
 import { canEditSolicitud, isMisaSolicitud } from '../../data-access/models/solicitud-servicio.rules';
 import { SolicitudServicioCreateRequest, SolicitudServicioUpdateRequest } from '../../data-access/models/solicitud-servicio-write.models';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 interface SelectedPerson {
     readonly idPersona: number;
@@ -42,6 +44,8 @@ export class SolicitudServicioFormPage implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
     private readonly dialog = inject(MatDialog);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreatePerson = () => this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_CREATE);
 
     protected readonly idSolicitudServicio = signal<number | null>(null);
     protected readonly selectedService = signal<ServicioLookupItem | null>(null);
@@ -120,7 +124,7 @@ export class SolicitudServicioFormPage implements OnInit {
         this.store.clearSaveResult();
         this.feedback.success(result.mensaje || (editing ? 'Solicitud actualizada correctamente.' : 'Solicitud registrada correctamente.'));
         if (editing) { void this.router.navigate(['/servicios', result.idSolicitudServicio]); return; }
-        if (result.requierePago && result.estadoPago === 'PENDIENTE') {
+        if (result.requierePago && result.estadoPago === 'PENDIENTE' && this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE)) {
             this.dialog.open(ConfirmActionDialog, {
                 width: 'min(460px, calc(100vw - 2rem))',
                 data: { title: 'Solicitud registrada', message: `La solicitud ${result.codSolicitudServicio} requiere pago. ¿Deseas registrar la venta ahora?`, cancelText: 'Más tarde', confirmText: 'Vender ahora', icon: 'payments' }
@@ -170,11 +174,13 @@ export class SolicitudServicioFormPage implements OnInit {
     }
 
     protected toggleNewPerson(): void {
+        if (!this.canCreatePerson()) return;
         this.showNewPerson.update(value => !value);
         if (!this.showNewPerson()) this.personForm.reset({ idTipoDocumento: null, numeroDocumento: '', nombreCompleto: '', telefono: '' });
     }
 
     protected registerPerson(): void {
+        if (!this.canCreatePerson()) return;
         this.personForm.markAllAsTouched();
         if (this.personForm.invalid) return;
         const value = this.personForm.getRawValue();

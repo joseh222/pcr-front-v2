@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { SKIP_AUTH } from '../../../core/auth/auth-http-context';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
-import { AuthenticationResponse, LoginRequest, LogoutResponse, RefreshSessionRequest } from './auth-api.models';
+import { AuthenticationResponse, CurrentAccessResponse, LoginRequest, LogoutResponse, RefreshSessionRequest } from './auth-api.models';
 
 @Injectable({
     providedIn: 'root'
@@ -21,6 +21,10 @@ export class AuthApiService {
     refreshSession(request: RefreshSessionRequest): Observable<AuthenticationResponse> {
         const context = new HttpContext().set(SKIP_AUTH, true);
         return this.http.post<AuthenticationResponse>(`${this.apiUrl}/RefreshSession`, request, { context });
+    }
+
+    access(): Observable<CurrentAccessResponse> {
+        return this.http.get<CurrentAccessResponse>(`${this.apiUrl}/Access`);
     }
 
     logout(): Observable<LogoutResponse> {

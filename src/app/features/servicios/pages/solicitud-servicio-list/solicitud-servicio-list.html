@@ -1,7 +1,7 @@
 <section class="servicio-list-page" data-testid="solicitud-servicio-list-page">
     <header class="page-header">
         <div><p class="page-eyebrow">Gestión</p><h1 class="page-title">Servicios</h1><p class="page-description">Consulta y administra las solicitudes de servicio de la parroquia.</p></div>
-        <div class="page-header-actions"><a mat-flat-button routerLink="/servicios/nueva"><mat-icon>add</mat-icon>Nueva solicitud</a></div>
+        <div class="page-header-actions">@if (canCreate()) { <a mat-flat-button routerLink="/servicios/nueva"><mat-icon>add</mat-icon>Nueva solicitud</a> }</div>
     </header>
 
     <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">

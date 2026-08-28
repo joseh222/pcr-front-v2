@@ -12,6 +12,8 @@ import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { ProductoFormStore } from '../../data-access/models/producto-form.store';
 import { ProductoCreateRequest, ProductoUpdateRequest } from '../../data-access/models/producto-write.models';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-producto-form',
@@ -27,6 +29,7 @@ export class ProductoFormPage implements OnInit {
     private readonly fb = inject(FormBuilder);
     private readonly feedback = inject(FeedbackService);
     private readonly dialog = inject(MatDialog);
+    private readonly authStore = inject(AuthStore);
     protected readonly idProducto = signal<number | null>(null);
     protected readonly isEditMode = computed(() => this.idProducto() !== null);
     protected readonly pageTitle = computed(() => this.isEditMode() ? 'Editar producto' : 'Nuevo producto');
@@ -69,6 +72,7 @@ export class ProductoFormPage implements OnInit {
         this.store.clearSaveResult();
 
         if (!wasEditMode) {
+            if (!(this.authStore.hasPermission(PERMISSION_CODE.INVENTORY_VIEW) && this.authStore.hasPermission(PERMISSION_CODE.INVENTORY_MOVEMENT_CREATE))) { void this.router.navigate(['/productos']).then(() => this.feedback.success(result.mensaje || 'Producto registrado correctamente.')); return; }
             const dialogRef = this.dialog.open(ConfirmActionDialog, {
                 width: '440px', disableClose: true,
                 data: {

@@ -5,6 +5,9 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { VentaFormStore } from '../../data-access/models/venta-form.store';
 import { VentaFormPage } from './venta-form';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('VentaFormPage', () => {
     const loading = signal(false);
@@ -247,7 +250,7 @@ describe('VentaFormPage', () => {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
             imports: [VentaFormPage],
-            providers: [
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, 
                 provideRouter([]),
                 { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(queryParams) } } },
                 { provide: FeedbackService, useValue: feedbackMock }

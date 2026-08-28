@@ -2,7 +2,6 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
-import { ProveedorApiService } from '../../../proveedores/data-access/proveedor-api.service';
 import { ProveedorSearchItem } from '../../../proveedores/data-access/models/proveedor-read.models';
 import { CompraApiService } from '../compra-api.service';
 import { EstadoCompra, TipoComprobanteCompra } from './compra-catalog.models';
@@ -16,7 +15,6 @@ const INITIAL_RESPONSE: CompraPagedResponse = { pageNumber: 1, pageSize: DEFAULT
 @Injectable()
 export class CompraListStore {
     private readonly api = inject(CompraApiService);
-    private readonly proveedorApi = inject(ProveedorApiService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly querySignal = signal<CompraListQuery>(INITIAL_QUERY);
     private readonly responseSignal = signal<CompraPagedResponse>(INITIAL_RESPONSE);
@@ -77,7 +75,7 @@ export class CompraListStore {
         const value = search.trim();
         if (value.length < 2) { this.proveedorResultsSignal.set([]); this.proveedorErrorSignal.set(null); return; }
         this.proveedorLoadingSignal.set(true); this.proveedorErrorSignal.set(null);
-        this.proveedorApi.search(value, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        this.api.searchProveedores(value, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => { this.proveedorResultsSignal.set(result); this.proveedorLoadingSignal.set(false); },
             error: error => { this.proveedorResultsSignal.set([]); this.proveedorLoadingSignal.set(false); this.proveedorErrorSignal.set(getApiErrorMessage(error, 'No se pudieron buscar proveedores.')); }
         });

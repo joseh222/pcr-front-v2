@@ -8,6 +8,8 @@ describe('JWT user parser', () => {
             Nombre: 'José Huamán',
             email: 'jose@example.com',
             role: 'ADMIN',
+            roles: ['ADMIN', 'SECRETARIA'],
+            permission: ['USUARIO_VER', 'ROL_VER'],
             sid: '5e986957-6d4b-4717-9cb6-985eb433723d',
             must_change_password: 'false',
             exp: 4102444800
@@ -20,6 +22,8 @@ describe('JWT user parser', () => {
         expect(user?.username).toBe('JHUAMAN');
         expect(user?.displayName).toBe('José Huamán');
         expect(user?.roleCode).toBe('ADMIN');
+        expect(user?.roleCodes).toEqual(['ADMIN', 'SECRETARIA']);
+        expect(user?.permissions).toEqual(['USUARIO_VER', 'ROL_VER']);
         expect(user?.mustChangePassword).toBe(false);
     });
 

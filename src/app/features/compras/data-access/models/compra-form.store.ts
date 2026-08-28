@@ -1,9 +1,7 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
-import { ProductoApiService } from '../../../productos/data-access/producto-api.service';
 import { ProductoSearchItem } from '../../../productos/data-access/models/producto-read.models';
-import { ProveedorApiService } from '../../../proveedores/data-access/proveedor-api.service';
 import { ProveedorSearchItem } from '../../../proveedores/data-access/models/proveedor-read.models';
 import { CompraApiService } from '../compra-api.service';
 import { TipoComprobanteCompra } from './compra-catalog.models';
@@ -13,8 +11,6 @@ import { CompraCreateRequest, CompraCreateResponse } from './compra-write.models
 @Injectable()
 export class CompraFormStore {
     private readonly api = inject(CompraApiService);
-    private readonly proveedorApi = inject(ProveedorApiService);
-    private readonly productoApi = inject(ProductoApiService);
     private readonly destroyRef = inject(DestroyRef);
 
     private readonly tiposComprobanteSignal = signal<readonly TipoComprobanteCompra[]>([]);
@@ -64,7 +60,7 @@ export class CompraFormStore {
         this.proveedorErrorSignal.set(null);
         if (term.length < 2) { this.proveedorResultsSignal.set([]); this.proveedorLoadingSignal.set(false); return; }
         this.proveedorLoadingSignal.set(true);
-        this.proveedorApi.search(term, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        this.api.searchProveedores(term, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => { if (version !== this.proveedorSearchVersion) return; this.proveedorResultsSignal.set(result.filter(item => item.isActive)); this.proveedorLoadingSignal.set(false); },
             error: error => { if (version !== this.proveedorSearchVersion) return; this.proveedorLoadingSignal.set(false); this.proveedorErrorSignal.set(getApiErrorMessage(error, 'No se pudieron buscar proveedores.')); }
         });
@@ -78,7 +74,7 @@ export class CompraFormStore {
         this.productoErrorSignal.set(null);
         if (term.length < 2) { this.productoResultsSignal.set([]); this.productoLoadingSignal.set(false); return; }
         this.productoLoadingSignal.set(true);
-        this.productoApi.search(term, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        this.api.searchProductos(term, 10).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: result => { if (version !== this.productoSearchVersion) return; this.productoResultsSignal.set(result); this.productoLoadingSignal.set(false); },
             error: error => { if (version !== this.productoSearchVersion) return; this.productoLoadingSignal.set(false); this.productoErrorSignal.set(getApiErrorMessage(error, 'No se pudieron buscar productos.')); }
         });
@@ -89,7 +85,7 @@ export class CompraFormStore {
         if (this.itemsSignal().length >= 100) return 'LIMIT';
 
         this.productoErrorSignal.set(null); this.productoLoadingSignal.set(true);
-        this.productoApi.getById(product.idProducto).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        this.api.getProductoById(product.idProducto).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
             next: detail => {
                 this.productoLoadingSignal.set(false);
                 if (this.itemsSignal().some(item => item.idProducto === detail.idProducto)) return;

@@ -6,6 +6,8 @@ import { EstadoCompra, TipoComprobanteCompra } from './models/compra-catalog.mod
 import { CompraCancelRequest, CompraCancelResponse } from './models/compra-cancel.models';
 import { CompraDetailResponse, CompraListQuery, CompraPagedResponse } from './models/compra-read.models';
 import { CompraCreateRequest, CompraCreateResponse } from './models/compra-write.models';
+import { ProveedorSearchItem } from '../../proveedores/data-access/models/proveedor-read.models';
+import { ProductoDetail, ProductoSearchItem } from '../../productos/data-access/models/producto-read.models';
 
 @Injectable({ providedIn: 'root' })
 export class CompraApiService {
@@ -25,6 +27,10 @@ export class CompraApiService {
         if (query.fechaFin) params = params.set('fechaFin', query.fechaFin);
         return this.http.get<CompraPagedResponse>(this.url, { params });
     }
+
+    searchProveedores(search: string, top = 10): Observable<readonly ProveedorSearchItem[]> { const params = new HttpParams().set('search', search).set('top', top); return this.http.get<readonly ProveedorSearchItem[]>(`${this.url}/proveedores/search`, { params }); }
+    searchProductos(search: string, top = 10): Observable<readonly ProductoSearchItem[]> { const params = new HttpParams().set('search', search).set('top', top); return this.http.get<readonly ProductoSearchItem[]>(`${this.url}/productos/search`, { params }); }
+    getProductoById(idProducto: number): Observable<ProductoDetail> { return this.http.get<ProductoDetail>(`${this.url}/productos/${idProducto}`); }
 
     getById(idCompra: number): Observable<CompraDetailResponse> { return this.http.get<CompraDetailResponse>(`${this.url}/${idCompra}`); }
     create(request: CompraCreateRequest): Observable<CompraCreateResponse> { return this.http.post<CompraCreateResponse>(this.url, request); }

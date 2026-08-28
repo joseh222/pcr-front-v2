@@ -8,6 +8,9 @@ import { By } from '@angular/platform-browser';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EMPTY, of } from 'rxjs';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('MisaFormPage', () => {
     const modalidades = signal([{ idModalidad: 1, nombre: 'Personal' }]);
@@ -360,7 +363,7 @@ describe('MisaFormPage', () => {
 
         TestBed.configureTestingModule({
             imports: [MisaFormPage],
-            providers: [
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, 
                 provideRouter([]),
                 { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
                 {

@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
 import { VentaDetailStore } from '../../data-access/models/venta-detail.store';
 import { VentaDetailPage } from './venta-detail';
+import { AuthStore } from '../../../auth/data-access/auth.store';
 
 const DETAIL = {
     idVenta: 15,
@@ -43,6 +44,8 @@ const DETAIL = {
     }]
 } as any;
 
+const authStoreMock = { hasPermission: vi.fn(() => true) };
+
 describe('VentaDetailPage', () => {
     const detail = signal<any>(DETAIL);
 
@@ -64,7 +67,7 @@ describe('VentaDetailPage', () => {
 
         TestBed.configureTestingModule({
             imports: [VentaDetailPage],
-            providers: [
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, 
                 provideRouter([]),
                 {
                     provide: ActivatedRoute,

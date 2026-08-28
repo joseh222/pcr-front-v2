@@ -6,6 +6,9 @@ import { vi } from 'vitest';
 import { ProductoListStore } from '../../data-access/models/producto-list.store';
 import { ProductoStatusService } from '../../data-access/producto-status.service';
 import { ProductoListPage } from './producto-list';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+
+const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('ProductoListPage', () => {
     const items = signal<any[]>([]);
@@ -19,7 +22,7 @@ describe('ProductoListPage', () => {
 
     beforeEach(() => {
         items.set([]); Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); }); statusMock.change.mockClear();
-        TestBed.configureTestingModule({ imports: [ProductoListPage], providers: [provideRouter([]), { provide: ProductoStatusService, useValue: statusMock }] });
+        TestBed.configureTestingModule({ imports: [ProductoListPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: ProductoStatusService, useValue: statusMock }] });
         TestBed.overrideComponent(ProductoListPage, { set: { providers: [{ provide: ProductoListStore, useValue: storeMock }] } });
     });
 

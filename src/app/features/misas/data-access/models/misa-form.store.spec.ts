@@ -3,7 +3,6 @@ import { of } from 'rxjs';
 
 import { MisaApiService } from '../misa-api.service';
 import { MisaFormStore } from './misa-form.store';
-import { PersonaApiService } from '../../../personas/data-access/persona-api.service';
 
 describe('MisaFormStore', () => {
 
@@ -46,12 +45,12 @@ describe('MisaFormStore', () => {
                         getTipos: getTiposMock,
                         getById: getByIdMock,
                         getSantos: getSantosMock,
+                        getPersonaTiposDocumento: getTiposDocumentoMock,
+                        getPersonaByDocument: getByDocumentMock,
+                        searchPersonas: searchPersonsMock,
                         create: createMock,
                         update: updateMock
                     }
-                },
-                {
-                    provide: PersonaApiService, useValue: { getTiposDocumento: getTiposDocumentoMock, getByDocument: getByDocumentMock, search: searchPersonsMock },
                 }
             ]
         });

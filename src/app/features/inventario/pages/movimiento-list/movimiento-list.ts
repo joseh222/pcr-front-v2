@@ -11,12 +11,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { forkJoin } from 'rxjs';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
-import { ProductoApiService } from '../../../productos/data-access/producto-api.service';
 import { ProductoListItem } from '../../../productos/data-access/models/producto-read.models';
 import { InventarioApiService } from '../../data-access/inventario-api.service';
 import { InventarioMovementListStore } from '../../data-access/models/inventario-movement-list.store';
 import { MovimientoInventarioListFilters, TipoMovimientoInventario } from '../../data-access/models/inventario.models';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-movimiento-list',
@@ -28,10 +29,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class MovimientoListPage implements OnInit {
     protected readonly store = inject(InventarioMovementListStore);
     private readonly inventoryApi = inject(InventarioApiService);
-    private readonly productApi = inject(ProductoApiService);
     private readonly feedback = inject(FeedbackService);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canRegisterMovement = () => this.authStore.hasPermission(PERMISSION_CODE.INVENTORY_MOVEMENT_CREATE);
     private readonly fb = inject(FormBuilder);
     protected readonly tipos = signal<readonly TipoMovimientoInventario[]>([]);
     protected readonly productos = signal<readonly ProductoListItem[]>([]);
@@ -41,7 +43,7 @@ export class MovimientoListPage implements OnInit {
     ngOnInit(): void {
         const productId = Number(this.route.snapshot.queryParamMap.get('productoId'));
         if (Number.isInteger(productId) && productId > 0) this.filterForm.controls.idProducto.setValue(productId);
-        forkJoin({ tipos: this.inventoryApi.getTiposMovimientoHistorial(), productos: this.productApi.getList({ search: null, idCategoriaProducto: null, idMarcaProducto: null, isActive: null, pageNumber: 1, pageSize: 100 }) }).subscribe({
+        forkJoin({ tipos: this.inventoryApi.getTiposMovimientoHistorial(), productos: this.inventoryApi.getProductos({ search: null, idCategoriaProducto: null, idMarcaProducto: null, isActive: null, pageNumber: 1, pageSize: 100 }) }).subscribe({
             next: ({ tipos, productos }) => { this.tipos.set(tipos); this.productos.set(productos.items); },
             error: () => this.feedback.warning('No se pudieron cargar algunos filtros de inventario.')
         });
@@ -52,6 +54,7 @@ export class MovimientoListPage implements OnInit {
     protected clearFilters(): void { this.filterForm.reset({ idProducto: null, idTipoMovimiento: null, fechaInicio: null, fechaFin: null }); this.search(); }
     protected reload(): void { this.store.reload(); }
     protected registerMovement(): void {
+        if (!this.canRegisterMovement()) return;
         const idProducto = this.filterForm.controls.idProducto.value;
         if (!idProducto) { this.feedback.warning('Selecciona primero el producto al que registrarás el movimiento.'); return; }
         void this.router.navigate(['/productos', idProducto, 'movimiento'], { queryParams: { origen: 'movimientos' } });

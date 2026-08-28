@@ -8,8 +8,8 @@
         <div class="header-actions">
             <a mat-stroked-button routerLink="/personas"><mat-icon>arrow_back</mat-icon>Volver</a>
             @if (store.detail(); as person) {
-                <button mat-stroked-button type="button" (click)="changeStatus()"><mat-icon>{{ person.isActive ? 'block' : 'check_circle' }}</mat-icon>{{ person.isActive ? 'Desactivar' : 'Activar' }}</button>
-                <a mat-flat-button [routerLink]="['/personas', person.idPersona, 'editar']"><mat-icon>edit</mat-icon>Editar</a>
+                @if (canChangeStatus()) { <button mat-stroked-button type="button" (click)="changeStatus()"><mat-icon>{{ person.isActive ? 'block' : 'check_circle' }}</mat-icon>{{ person.isActive ? 'Desactivar' : 'Activar' }}</button> }
+                @if (canEdit()) { <a mat-flat-button [routerLink]="['/personas', person.idPersona, 'editar']"><mat-icon>edit</mat-icon>Editar</a> }
             }
         </div>
     </header>

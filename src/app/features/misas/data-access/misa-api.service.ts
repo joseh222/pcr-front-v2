@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
+import { PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
 import {
     MisaEstado,
     MisaModalidad,
@@ -79,6 +80,18 @@ export class MisaApiService {
             `${this.apiUrl}/precio-calculo`,
             { params }
         );
+    }
+
+    getPersonaTiposDocumento(): Observable<readonly PersonaTipoDocumento[]> { return this.http.get<readonly PersonaTipoDocumento[]>(`${this.apiUrl}/personas/tipos-documento`); }
+
+    getPersonaByDocument(idTipoDocumento: number, numeroDocumento: string): Observable<PersonaLookup | null> {
+        const params = new HttpParams().set('idTipoDocumento', idTipoDocumento).set('numeroDocumento', numeroDocumento);
+        return this.http.get<PersonaLookup | null>(`${this.apiUrl}/personas/by-document`, { params });
+    }
+
+    searchPersonas(search: string, top = 10): Observable<readonly PersonaSearchItem[]> {
+        const params = new HttpParams().set('search', search).set('top', top);
+        return this.http.get<readonly PersonaSearchItem[]>(`${this.apiUrl}/personas/search`, { params });
     }
 
     create(request: MisaCreateRequest): Observable<MisaCreateResponse> {

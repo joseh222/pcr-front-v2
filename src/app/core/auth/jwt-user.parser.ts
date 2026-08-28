@@ -19,6 +19,8 @@ export function parseAuthenticatedUser(accessToken: string): AuthenticatedUser |
     const displayName = readString(payload, ['Nombre']) ?? username;
     const email = readString(payload, ['email', EMAIL_CLAIM]);
     const roleCode = readString(payload, ['role', ROLE_CLAIM]);
+    const roleCodes = readStringList(payload['roles']);
+    const permissions = readStringList(payload['permission']);
     const sessionId = readString(payload, ['sid']);
     const mustChangePassword = readBoolean(payload['must_change_password']);
     const expiresAtUnix = readNumber(payload['exp']);
@@ -34,6 +36,8 @@ export function parseAuthenticatedUser(accessToken: string): AuthenticatedUser |
         displayName,
         email,
         roleCode,
+        roleCodes: roleCodes.length ? roleCodes : [roleCode],
+        permissions,
         sessionId,
         mustChangePassword,
         expiresAtUnix
@@ -78,6 +82,12 @@ function readString(payload: JwtPayload, keys: readonly string[]): string | null
     }
 
     return null;
+}
+
+
+function readStringList(value: unknown): readonly string[] {
+    const values = Array.isArray(value) ? value : [value];
+    return [...new Set(values.filter((item): item is string => typeof item === 'string' && !!item.trim()).map(item => item.trim().toUpperCase()))];
 }
 
 function readNumber(value: unknown): number | null {

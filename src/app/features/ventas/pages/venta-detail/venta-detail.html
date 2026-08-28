@@ -36,7 +36,7 @@
                 Volver
             </a>
 
-            @if (venta.puedeAnular) {
+            @if (canCancel()) {
             <button mat-flat-button type="button" (click)="cancel()">
                 <mat-icon>cancel</mat-icon>
                 Anular venta

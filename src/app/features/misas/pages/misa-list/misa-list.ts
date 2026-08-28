@@ -13,6 +13,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MisaListStore } from '../../data-access/models/misa-list.store';
 import { MisaListFilters } from '../../data-access/models/misa-read.models';
 import { RouterLink } from '@angular/router';
+import { AuthStore } from '../../../auth/data-access/auth.store';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 
 @Component({
     selector: 'pcr-misa-list',
@@ -37,8 +39,10 @@ export class MisaListPage implements OnInit {
     protected readonly store =
         inject(MisaListStore);
 
-    private readonly fb =
-        inject(FormBuilder);
+    private readonly fb = inject(FormBuilder);
+    private readonly authStore = inject(AuthStore);
+    protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_CREATE);
+    protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_EDIT);
 
     readonly filterForm = this.fb.group({
         texto: this.fb.nonNullable.control(''),
