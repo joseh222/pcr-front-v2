@@ -29,6 +29,7 @@ export interface UsuarioListItem {
     readonly personaNumeroDocumento: string | null;
     readonly personaNombreCompleto: string | null;
     readonly rolesSistema: string | null;
+    readonly hasFullAccessRole: boolean;
     readonly isActive: boolean;
     readonly mustChangePassword: boolean;
     readonly isLocked: boolean;

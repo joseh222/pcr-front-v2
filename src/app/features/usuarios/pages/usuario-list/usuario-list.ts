@@ -26,8 +26,9 @@ export class UsuarioListPage implements OnInit {
     protected clearFilters(): void { this.filterForm.reset({ search: '', idRole: null, isActive: true }); this.store.resetFilters(); }
     protected reload(): void { this.store.reload(); }
     protected isSelf(user: UsuarioListItem): boolean { return this.authStore.currentUser()?.idUser === user.idUser; }
-    protected changeStatus(user: UsuarioListItem): void { if (!this.canChangeStatus() || this.isSelf(user)) return; this.actions.changeStatus(user).subscribe(changed => { if (changed) this.store.reload(); }); }
-    protected resetPassword(user: UsuarioListItem): void { if (!this.canResetPassword() || this.isSelf(user)) return; this.actions.resetPassword(user).subscribe(changed => { if (changed) this.store.reload(); }); }
-    protected revokeSession(user: UsuarioListItem): void { if (!this.canRevokeSession() || this.isSelf(user)) return; this.actions.revokeSession(user).subscribe(changed => { if (changed) this.store.reload(); }); }
+    protected isProtectedAdmin(user: UsuarioListItem): boolean { return user.hasFullAccessRole && !this.authStore.grantsAllPermissions(); }
+    protected changeStatus(user: UsuarioListItem): void { if (!this.canChangeStatus() || this.isSelf(user) || this.isProtectedAdmin(user)) return; this.actions.changeStatus(user).subscribe(changed => { if (changed) this.store.reload(); }); }
+    protected resetPassword(user: UsuarioListItem): void { if (!this.canResetPassword() || this.isSelf(user) || this.isProtectedAdmin(user)) return; this.actions.resetPassword(user).subscribe(changed => { if (changed) this.store.reload(); }); }
+    protected revokeSession(user: UsuarioListItem): void { if (!this.canRevokeSession() || this.isSelf(user) || this.isProtectedAdmin(user)) return; this.actions.revokeSession(user).subscribe(changed => { if (changed) this.store.reload(); }); }
     protected onPage(event: PageEvent): void { if (event.pageSize !== this.store.pageSize()) { this.store.changePageSize(event.pageSize); return; } this.store.changePage(event.pageIndex + 1); }
 }

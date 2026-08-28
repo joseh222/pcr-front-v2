@@ -31,6 +31,7 @@
                 </div>
             </section>
 
+            @if (isProtectedAdmin()) { <section class="user-note"><mat-icon>lock</mat-icon><div><strong>Cuenta protegida de acceso total</strong><span>Solo otro administrador con acceso total puede modificar esta cuenta.</span></div></section> }
             @if (isEditMode() && store.detail(); as detail) {
                 <section class="user-note"><mat-icon>info</mat-icon><div><strong>{{ detail.username }} · {{ detail.isActive ? 'Activo' : 'Inactivo' }}</strong><span>{{ detail.hasActiveSession ? 'Tiene una sesión activa.' : 'No tiene sesiones activas.' }}{{ detail.mustChangePassword ? ' Tiene pendiente cambiar su contraseña.' : '' }}</span></div></section>
             }
