@@ -36,6 +36,18 @@
                 Volver
             </a>
 
+            <button mat-stroked-button type="button" (click)="openTicket()" [disabled]="generatingTicket()">
+                <mat-icon>print</mat-icon>
+                {{ generatingTicket() ? 'Generando...' : 'Ver / imprimir ticket' }}
+            </button>
+
+            @if (documents()?.tieneDocumentosAdicionales) {
+            <button mat-flat-button type="button" (click)="openDocuments()" [disabled]="generatingDocuments()">
+                <mat-icon>print</mat-icon>
+                {{ generatingDocuments() ? 'Generando...' : 'Ver paquete completo' }}
+            </button>
+            }
+
             @if (canCancel()) {
             <button mat-flat-button type="button" (click)="cancel()">
                 <mat-icon>cancel</mat-icon>
@@ -94,6 +106,27 @@
             </div>
         </article>
     </section>
+
+    @if (documents(); as docs) {
+    <article class="detail-card documents-card" data-testid="venta-documents">
+        <header>
+            <mat-icon>description</mat-icon>
+            <div><h2>Documentos generados</h2><p>{{ docs.totalDocumentos }} documento{{ docs.totalDocumentos === 1 ? '' : 's' }} generado{{ docs.totalDocumentos === 1 ? '' : 's' }} automáticamente</p></div>
+        </header>
+        <div class="detail-body document-list">
+            @for (documento of docs.documentos; track documento.orden) {
+            <div class="document-row">
+                <div class="document-info"><strong>{{ documento.titulo }}</strong><span>{{ documento.codigoReferencia || 'Documento de venta' }}</span><small>Solicitudes de impresión: {{ documento.cantidadSolicitudesImpresion }}@if (documento.cantidadImpresionesConfirmadas > 0) { · Enviadas al spooler: {{ documento.cantidadImpresionesConfirmadas }} }</small>@if (documento.estadoUltimoTrabajo) { <small class="print-job-status" [class.error]="documento.estadoUltimoTrabajo === 'ERROR'">Cola: {{ printJobLabel(documento) }}@if (documento.intentosUltimoTrabajo) { · Intento {{ documento.intentosUltimoTrabajo }}/{{ documento.maxIntentosUltimoTrabajo }} }</small> }@if (documento.estadoUltimoTrabajo === 'ERROR' && documento.ultimoErrorTrabajo) { <small class="print-job-error">{{ documento.ultimoErrorTrabajo }}</small> }</div>
+                <div class="document-actions">
+                    <button mat-stroked-button type="button" (click)="openDocument(documento)"><mat-icon>visibility</mat-icon>Ver</button>
+                    <button mat-flat-button type="button" (click)="printDocument(documento)"><mat-icon>print</mat-icon>{{ documento.cantidadSolicitudesImpresion > 0 ? 'Reimprimir' : 'Imprimir' }}</button>
+                    @if (documento.tipo === 'MISA_REGISTRO' && canCorrectMisa() && documento.misas.length > 0) { <button mat-stroked-button type="button" (click)="correctIntentions(documento)"><mat-icon>edit_note</mat-icon>Corregir intenciones</button> }
+                </div>
+            </div>
+            }
+        </div>
+    </article>
+    }
 
     <article class="detail-card">
         <header>

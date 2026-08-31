@@ -20,6 +20,8 @@ import {
     MisaCreateRequest,
     MisaCreateResponse,
     MisaDeleteResponse,
+    MisaIntencionCorreccionRequest,
+    MisaIntencionCorreccionResponse,
     MisaUpdateRequest,
     MisaUpdateResponse
 } from './models/misa-write.models';
@@ -109,6 +111,10 @@ export class MisaApiService {
             `${this.apiUrl}/${idMisa}`,
             request
         );
+    }
+
+    correctIntenciones(idMisa: number, request: MisaIntencionCorreccionRequest): Observable<MisaIntencionCorreccionResponse> {
+        return this.http.patch<MisaIntencionCorreccionResponse>(`${this.apiUrl}/${idMisa}/intenciones`, request);
     }
 
     delete(idMisa: number): Observable<MisaDeleteResponse> {

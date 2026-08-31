@@ -111,9 +111,13 @@ export class VentaFormPage implements OnInit {
         this.store.clearSaveResult();
 
         this.feedback.success(message);
+        if (result.impresionAutomatica?.intentada) {
+            if (result.impresionAutomatica.exitosa) this.feedback.info(result.impresionAutomatica.mensaje);
+            else this.feedback.warning(result.impresionAutomatica.mensaje);
+        }
 
         if (fromMisa) {
-            void this.router.navigate(['/misas']);
+            void this.router.navigate(['/ventas', result.idVenta], { queryParams: { origen: 'misa' } });
             return;
         }
 

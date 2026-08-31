@@ -8,6 +8,7 @@ import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente }
 import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
 import { VentaDetailResponse, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
 import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
+import { DocumentoImpresionEjecucionResponse, DocumentoImpresionResponse, VentaDocumentoTipo, VentaDocumentosResponse, VentaImpresionModoResponse } from './models/venta-document.models';
 import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +63,14 @@ export class VentaApiService {
     getById(idVenta: number): Observable<VentaDetailResponse> {
         return this.http.get<VentaDetailResponse>(`${this.ventaUrl}/${idVenta}`);
     }
+
+    getTicket(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/ticket`, { responseType: 'blob' }); }
+    getDocuments(idVenta: number): Observable<VentaDocumentosResponse> { return this.http.get<VentaDocumentosResponse>(`${this.ventaUrl}/${idVenta}/documentos`); }
+    getDocumentsPdf(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/documentos/pdf`, { responseType: 'blob' }); }
+    getMisasTicket(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/documentos/misas`, { responseType: 'blob' }); }
+    requestPrint(idVenta: number, tipoDocumento: VentaDocumentoTipo): Observable<DocumentoImpresionResponse> { return this.http.post<DocumentoImpresionResponse>(`${this.ventaUrl}/${idVenta}/documentos/${tipoDocumento}/solicitudes-impresion`, null); }
+    getPrintMode(): Observable<VentaImpresionModoResponse> { return this.http.get<VentaImpresionModoResponse>(`${this.ventaUrl}/impresion/configuracion`); }
+    printDocument(idVenta: number, tipoDocumento: VentaDocumentoTipo): Observable<DocumentoImpresionEjecucionResponse> { return this.http.post<DocumentoImpresionEjecucionResponse>(`${this.ventaUrl}/${idVenta}/documentos/${tipoDocumento}/imprimir`, null); }
 
     cancel(idVenta: number, request: VentaCancelRequest): Observable<VentaCancelResponse> {
         return this.http.patch<VentaCancelResponse>(`${this.ventaUrl}/${idVenta}/anular`, request);

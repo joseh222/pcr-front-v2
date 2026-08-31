@@ -8,6 +8,7 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
             { id: 'roles', label: 'Roles y permisos', icon: 'admin_panel_settings', route: '/seguridad/roles', exact: true, permissions: [PERMISSION_CODE.ROLE_VIEW] }
         ]
     },
+    { id: 'configuracion', label: 'Configuración', items: [{ id: 'configuracion-general', label: 'Parámetros del sistema', icon: 'settings', route: '/configuracion/impresion', exact: true, permissions: [PERMISSION_CODE.CONFIGURATION_VIEW] }] },
     { id: 'principal', label: 'Principal', items: [{ id: 'dashboard', label: 'Dashboard', icon: 'dashboard', route: '/dashboard', exact: true, permissions: [PERMISSION_CODE.DASHBOARD_VIEW] }] },
     {
         id: 'catalogos', label: 'Catálogos', items: [

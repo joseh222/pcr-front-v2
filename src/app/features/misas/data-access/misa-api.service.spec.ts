@@ -15,7 +15,7 @@ import {
 describe('MisaApiService', () => {
     let service: MisaApiService;
     let httpTesting: HttpTestingController;
-
+    const apiBaseUrl = 'https://localhost:7002/api';
     const apiUrl = 'https://localhost:7002/api/Misa';
 
     const runtimeConfigMock = {
@@ -305,4 +305,13 @@ describe('MisaApiService', () => {
             ]
         };
     }
+
+    it('should correct existing intentions without full misa update', () => {
+        const payload = { intenciones: [{ idIntencion: 10, nombre: 'JUAN CORREGIDO', observacion: null }] };
+        service.correctIntenciones(5, payload).subscribe();
+        const req = httpTesting.expectOne(`${apiBaseUrl}/Misa/5/intenciones`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual(payload);
+        req.flush({ idMisa: 5, codMisa: 'M2026-0005', cantidadCorregida: 1, mensaje: 'OK' });
+    });
 });
