@@ -6,8 +6,9 @@ import { RuntimeConfigService } from '../../../core/config/runtime-config.servic
 import { VentaMetodoPago, VentaTipoComprobante } from './models/venta-catalog.models';
 import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente } from './models/venta-lookup.models';
 import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
-import { VentaDetailResponse, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
+import { VentaDetailResponse, VentaListFilters, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
 import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
+import { DocumentoImpresionEjecucionResponse, DocumentoImpresionResponse, VentaDocumentoTipo, VentaDocumentosResponse, VentaImpresionModoResponse } from './models/venta-document.models';
 import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -63,47 +64,43 @@ export class VentaApiService {
         return this.http.get<VentaDetailResponse>(`${this.ventaUrl}/${idVenta}`);
     }
 
+    getTicket(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/ticket`, { responseType: 'blob' }); }
+    getDocuments(idVenta: number): Observable<VentaDocumentosResponse> { return this.http.get<VentaDocumentosResponse>(`${this.ventaUrl}/${idVenta}/documentos`); }
+    getDocumentsPdf(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/documentos/pdf`, { responseType: 'blob' }); }
+    getMisasTicket(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/documentos/misas`, { responseType: 'blob' }); }
+    requestPrint(idVenta: number, tipoDocumento: VentaDocumentoTipo): Observable<DocumentoImpresionResponse> { return this.http.post<DocumentoImpresionResponse>(`${this.ventaUrl}/${idVenta}/documentos/${tipoDocumento}/solicitudes-impresion`, null); }
+    getPrintMode(): Observable<VentaImpresionModoResponse> { return this.http.get<VentaImpresionModoResponse>(`${this.ventaUrl}/impresion/configuracion`); }
+    printDocument(idVenta: number, tipoDocumento: VentaDocumentoTipo): Observable<DocumentoImpresionEjecucionResponse> { return this.http.post<DocumentoImpresionEjecucionResponse>(`${this.ventaUrl}/${idVenta}/documentos/${tipoDocumento}/imprimir`, null); }
+
     cancel(idVenta: number, request: VentaCancelRequest): Observable<VentaCancelResponse> {
         return this.http.patch<VentaCancelResponse>(`${this.ventaUrl}/${idVenta}/anular`, request);
     }
 
     getList(query: VentaListQuery): Observable<VentaPagedResponse> {
-        return this.http.get<VentaPagedResponse>(this.ventaUrl,
-            {
-                params: this.buildListParams(query)
-            }
-        );
+        return this.http.get<VentaPagedResponse>(this.ventaUrl, {
+            params: this.buildFilterParams(query)
+                .set('pagina', query.pagina)
+                .set('tamanoPagina', query.tamanoPagina)
+        });
     }
 
-    private buildListParams(query: VentaListQuery): HttpParams {
-        let params = new HttpParams()
-            .set('pagina', query.pagina)
-            .set('tamanoPagina', query.tamanoPagina);
+    exportExcel(filters: VentaListFilters): Observable<Blob> {
+        return this.http.get(`${this.ventaUrl}/exportar/excel`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
 
-        if (query.fechaInicio) {
-            params = params.set('fechaInicio', query.fechaInicio);
-        }
+    exportPdf(filters: VentaListFilters): Observable<Blob> {
+        return this.http.get(`${this.ventaUrl}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
 
-        if (query.fechaFin) {
-            params = params.set('fechaFin', query.fechaFin);
-        }
+    private buildFilterParams(filters: VentaListFilters): HttpParams {
+        let params = new HttpParams();
 
-        if (
-            query.idMetodoPago != null) {
-            params = params.set('idMetodoPago', query.idMetodoPago);
-        }
-
-        if (query.idTipoComprobante != null) {
-            params = params.set('idTipoComprobante', query.idTipoComprobante);
-        }
-
-        if (query.tipoItem) {
-            params = params.set('tipoItem', query.tipoItem);
-        }
-
-        if (query.texto?.trim()) {
-            params = params.set('texto', query.texto.trim());
-        }
+        if (filters.fechaInicio) params = params.set('fechaInicio', filters.fechaInicio);
+        if (filters.fechaFin) params = params.set('fechaFin', filters.fechaFin);
+        if (filters.idMetodoPago != null) params = params.set('idMetodoPago', filters.idMetodoPago);
+        if (filters.idTipoComprobante != null) params = params.set('idTipoComprobante', filters.idTipoComprobante);
+        if (filters.tipoItem) params = params.set('tipoItem', filters.tipoItem);
+        if (filters.texto?.trim()) params = params.set('texto', filters.texto.trim());
 
         return params;
     }

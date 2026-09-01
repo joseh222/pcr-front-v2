@@ -5,23 +5,30 @@ import { of } from 'rxjs';
 import { CompraCancellationService } from '../../data-access/compra-cancellation.service';
 import { CompraListStore } from '../../data-access/models/compra-list.store';
 import { CompraListPage } from './compra-list';
+import { CompraApiService } from '../../data-access/compra-api.service';
+import { FileDownloadService } from '../../../../core/files/file-download.service';
+import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
 
 describe('CompraListPage', () => {
+    const query = signal<any>({ search: null, idProveedor: null, idTipoComprobanteCompra: null, idEstadoCompra: null, fechaInicio: null, fechaFin: null, pageNumber: 1, pageSize: 20 });
     const loading = signal(false); const error = signal<string | null>(null); const items = signal<any[]>([]); const totalRows = signal(0);
     const storeMock = {
-        loading: loading.asReadonly(), error: error.asReadonly(), catalogsLoading: signal(false).asReadonly(), catalogsError: signal<string | null>(null).asReadonly(),
+        query: query.asReadonly(), loading: loading.asReadonly(), error: error.asReadonly(), catalogsLoading: signal(false).asReadonly(), catalogsError: signal<string | null>(null).asReadonly(),
         estados: signal<any[]>([]).asReadonly(), tiposComprobante: signal<any[]>([]).asReadonly(), proveedorResults: signal<any[]>([]).asReadonly(), proveedorLoading: signal(false).asReadonly(), proveedorError: signal<string | null>(null).asReadonly(),
         items: items.asReadonly(), totalRows: totalRows.asReadonly(), pageNumber: signal(1).asReadonly(), pageSize: signal(20).asReadonly(), isEmpty: () => !loading() && !error() && items().length === 0,
         loadCatalogs: vi.fn(), load: vi.fn(), searchProveedores: vi.fn(), clearProveedorResults: vi.fn(), search: vi.fn(), resetFilters: vi.fn(), reload: vi.fn(), changePage: vi.fn(), changePageSize: vi.fn()
     };
     const cancellationMock = { cancel: vi.fn(() => of({ idCompra: 5 })) };
+    const apiMock = { exportExcel: vi.fn(() => of(new Blob(['excel']))), exportPdf: vi.fn(() => of(new Blob(['pdf']))) };
+    const fileDownloadMock = { download: vi.fn() };
+    const feedbackMock = { success: vi.fn(), error: vi.fn() };
 
     beforeEach(() => {
         loading.set(false); error.set(null); items.set([]); totalRows.set(0); cancellationMock.cancel.mockClear(); Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); });
-        TestBed.configureTestingModule({ imports: [CompraListPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: CompraCancellationService, useValue: cancellationMock }] });
+        TestBed.configureTestingModule({ imports: [CompraListPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: CompraCancellationService, useValue: cancellationMock }, { provide: CompraApiService, useValue: apiMock }, { provide: FileDownloadService, useValue: fileDownloadMock }, { provide: FeedbackService, useValue: feedbackMock }] });
         TestBed.overrideComponent(CompraListPage, { set: { providers: [{ provide: CompraListStore, useValue: storeMock }] } });
     });
 
@@ -56,4 +63,13 @@ describe('CompraListPage', () => {
         fixture.componentInstance['selectProveedor'](proveedor);
         expect(fixture.componentInstance.filterForm.controls.idProveedor.value).toBe(2); expect(fixture.componentInstance['selectedProveedor']()?.razonSocial).toBe('Proveedor SAC');
     });
+
+    it('should export using the current store query without pagination parameters in the API layer', () => {
+        totalRows.set(4); query.set({ search: 'PROVEEDOR', idProveedor: 2, idTipoComprobanteCompra: null, idEstadoCompra: 1, fechaInicio: '2026-08-01', fechaFin: '2026-08-31', pageNumber: 3, pageSize: 20 });
+        const fixture = TestBed.createComponent(CompraListPage); fixture.detectChanges();
+        fixture.componentInstance['exportPdf']();
+        expect(apiMock.exportPdf).toHaveBeenCalledWith(query());
+        expect(fileDownloadMock.download).toHaveBeenCalledOnce();
+    });
+
 });

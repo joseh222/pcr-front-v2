@@ -232,3 +232,14 @@
         grid-column: auto;
     }
 }
+.document-list { display: grid; gap: .7rem; }
+.document-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem .8rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: .75rem; }
+.document-info { display: grid; gap: .15rem; min-width: 0; }
+.document-row span { font-size: .72rem; opacity: .65; }
+.document-actions { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; justify-content: flex-end; }
+@media (max-width: 700px) { .document-row { align-items: stretch; flex-direction: column; } .document-actions { display: grid; grid-template-columns: 1fr; } .document-actions button { width: 100%; } }
+.document-row small { display: block; margin-top: 4px; opacity: .7; }
+
+.print-job-status { color: var(--mat-sys-primary); font-weight: 600; }
+.print-job-status.error, .print-job-error { color: var(--mat-sys-error); }
+.print-job-error { max-width: 48rem; overflow-wrap: anywhere; }

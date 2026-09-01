@@ -18,6 +18,7 @@ describe('APP_NAVIGATION', () => {
         expect(items.get('catalogo-proveedores')?.permissions).toEqual([PERMISSION_CODE.SUPPLIER_VIEW]);
         expect(items.get('usuarios')?.permissions).toEqual([PERMISSION_CODE.USER_VIEW]);
         expect(items.get('roles')?.permissions).toEqual([PERMISSION_CODE.ROLE_VIEW]);
+        expect(items.get('configuracion-general')?.permissions).toEqual([PERMISSION_CODE.CONFIGURATION_VIEW]);
     });
-    it('should place security before dashboard', () => { expect(APP_NAVIGATION[0]?.id).toBe('seguridad'); expect(APP_NAVIGATION[1]?.id).toBe('principal'); });
+    it('should place security and configuration before dashboard', () => { expect(APP_NAVIGATION[0]?.id).toBe('seguridad'); expect(APP_NAVIGATION[1]?.id).toBe('configuracion'); expect(APP_NAVIGATION[2]?.id).toBe('principal'); });
 });

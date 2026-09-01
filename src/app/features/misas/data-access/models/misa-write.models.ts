@@ -77,3 +77,13 @@ export interface MisaDeleteResponse extends MisaCrudResponse {
     readonly codSolicitudServicio: string;
     readonly estadoSolicitud: string;
 }
+export interface MisaIntencionCorreccionRequest {
+    readonly intenciones: readonly MisaUpdateIntencionRequest[];
+}
+
+export interface MisaIntencionCorreccionResponse {
+    readonly idMisa: number;
+    readonly codMisa: string | null;
+    readonly cantidadCorregida: number;
+    readonly mensaje: string;
+}

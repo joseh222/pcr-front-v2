@@ -101,6 +101,18 @@
                     {{ store.totalRegistros() }} registro{{ store.totalRegistros() === 1 ? '' : 's' }}
                 </p>
             </div>
+            @if (canExport()) {
+            <div class="table-export-actions">
+                <button mat-stroked-button type="button" [disabled]="store.loading() || store.totalRegistros() === 0 || exportingExcel() || exportingPdf()" (click)="exportExcel()">
+                    <mat-icon>table_view</mat-icon>
+                    {{ exportingExcel() ? 'Generando...' : 'Excel' }}
+                </button>
+                <button mat-stroked-button type="button" [disabled]="store.loading() || store.totalRegistros() === 0 || exportingExcel() || exportingPdf()" (click)="exportPdf()">
+                    <mat-icon>picture_as_pdf</mat-icon>
+                    {{ exportingPdf() ? 'Generando...' : 'PDF' }}
+                </button>
+            </div>
+            }
         </div>
 
         @if (store.loading()) {

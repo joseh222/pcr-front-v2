@@ -121,6 +121,13 @@ describe('Application routes', () => {
             })
         ),
 
+        getDocuments: vi.fn(() => of({ idVenta: 15, codVenta: 'V2026-00015', totalDocumentos: 1, tieneDocumentosAdicionales: false, documentos: [{ tipo: 'VENTA_TICKET', titulo: 'Ticket de venta', orden: 1, codigoReferencia: 'R001-000015', cantidadSolicitudesImpresion: 0, cantidadImpresionesConfirmadas: 0, ultimaSolicitudUtc: null, misas: [] }] })),
+        getPrintMode: vi.fn(() => of({ modo: 'MANUAL', isActive: true })),
+        getTicket: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
+        getDocumentsPdf: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
+        getMisasTicket: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
+        requestPrint: vi.fn(() => of({ tipoDocumento: 'VENTA_TICKET', numeroSolicitud: 1, esReimpresion: false, fechaUtc: '2026-08-28T10:00:00Z', mensaje: 'OK' })),
+        printDocument: vi.fn(() => of({ tipoDocumento: 'VENTA_TICKET', numeroSolicitud: 1, exitosa: true, impresora: '80mm Series Printer', mensaje: 'OK' })),
         getById: vi.fn(() => of({
             idVenta: 15,
             codVenta: 'V2026-00015',

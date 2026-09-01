@@ -119,6 +119,39 @@ describe('VentaApiService', () => {
         });
     });
 
+    it('should export the filtered sales without pagination', () => {
+        const filters = {
+            fechaInicio: '2026-08-01',
+            fechaFin: '2026-08-31',
+            idMetodoPago: 1,
+            idTipoComprobante: 2,
+            tipoItem: 'SERVICIO' as const,
+            texto: 'JOSE'
+        };
+
+        service.exportExcel(filters).subscribe();
+        let request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/exportar/excel`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-01');
+        expect(request.request.params.get('fechaFin')).toBe('2026-08-31');
+        expect(request.request.params.get('idMetodoPago')).toBe('1');
+        expect(request.request.params.get('idTipoComprobante')).toBe('2');
+        expect(request.request.params.get('tipoItem')).toBe('SERVICIO');
+        expect(request.request.params.get('texto')).toBe('JOSE');
+        expect(request.request.params.has('pagina')).toBe(false);
+        expect(request.request.params.has('tamanoPagina')).toBe(false);
+        request.flush(new Blob(['xlsx']));
+
+        service.exportPdf(filters).subscribe();
+        request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/exportar/pdf`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.has('pagina')).toBe(false);
+        expect(request.request.params.has('tamanoPagina')).toBe(false);
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
     it('should request cancellation reasons and sale detail', () => {
         service.getRazonesAnulacion().subscribe();
 
@@ -131,6 +164,28 @@ describe('VentaApiService', () => {
         request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15`);
         expect(request.request.method).toBe('GET');
         request.flush({ idVenta: 15, detalles: [] });
+    });
+
+    it('should request the sale ticket as pdf blob', () => {
+        service.getTicket(15).subscribe();
+        const request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/ticket`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
+    it('should request automatic sale documents', () => {
+        service.getDocuments(15).subscribe();
+        let request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/documentos`);
+        expect(request.request.method).toBe('GET'); request.flush({ idVenta: 15, documentos: [] });
+
+        service.getDocumentsPdf(15).subscribe();
+        request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/documentos/pdf`);
+        expect(request.request.responseType).toBe('blob'); request.flush(new Blob(['pdf']));
+
+        service.getMisasTicket(15).subscribe();
+        request = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/documentos/misas`);
+        expect(request.request.responseType).toBe('blob'); request.flush(new Blob(['misas']));
     });
 
     it('should cancel a sale', () => {
@@ -149,4 +204,20 @@ describe('VentaApiService', () => {
 
         request.flush({ idVenta: 15 });
     });
+
+    it('should register a manual print request', () => {
+        service.requestPrint(15, 'MISA_REGISTRO').subscribe();
+        const req = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/documentos/MISA_REGISTRO/solicitudes-impresion`);
+        expect(req.request.method).toBe('POST');
+        req.flush({ tipoDocumento: 'MISA_REGISTRO', numeroSolicitud: 2, esReimpresion: true, fechaUtc: '2026-08-28T10:00:00Z', mensaje: 'Reimpresión solicitada.' });
+    });
+    it('should get print mode and request automatic print', () => {
+        service.getPrintMode().subscribe();
+        let req = httpTesting.expectOne(`${apiBaseUrl}/Venta/impresion/configuracion`);
+        expect(req.request.method).toBe('GET'); req.flush({ modo: 'AUTOMATICO', isActive: true });
+        service.printDocument(15, 'VENTA_TICKET').subscribe();
+        req = httpTesting.expectOne(`${apiBaseUrl}/Venta/15/documentos/VENTA_TICKET/imprimir`);
+        expect(req.request.method).toBe('POST'); req.flush({ tipoDocumento: 'VENTA_TICKET', numeroSolicitud: 1, exitosa: true, impresora: '80mm Series Printer', mensaje: 'OK' });
+    });
+
 });

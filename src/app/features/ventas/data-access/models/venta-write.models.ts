@@ -28,4 +28,5 @@ export interface VentaCreateResponse {
     readonly estadoVenta: string;
     readonly rowVersion: string;
     readonly mensaje: string;
+    readonly impresionAutomatica?: { readonly intentada: boolean; readonly exitosa: boolean; readonly documentosSolicitados: number; readonly documentosImpresos: number; readonly documentosEnCola: number; readonly mensaje: string } | null;
 }

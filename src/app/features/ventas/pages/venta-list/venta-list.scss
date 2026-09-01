@@ -93,6 +93,17 @@
     opacity: 0.6;
 }
 
+
+.table-export-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.table-export-actions button {
+    white-space: nowrap;
+}
+
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -215,6 +226,21 @@
 
     .filters-grid {
         grid-template-columns: 1fr;
+    }
+
+    .table-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .table-export-actions {
+        width: 100%;
+    }
+
+    .table-export-actions button {
+        flex: 1;
     }
 
     .filter-search {

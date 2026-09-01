@@ -64,6 +64,15 @@ describe('VentaFormPage', () => {
         expect(storeMock.initialize).toHaveBeenCalledWith(50);
     });
 
+    it('should open the sale detail after paying a misa', async () => {
+        const fixture = await createFixture({ origen: 'misa' });
+        const router = TestBed.inject(Router);
+        const navigate = vi.spyOn(router, 'navigate');
+        saveResult.set({ idVenta: 25, mensaje: 'Venta registrada.', numeroComprobante: 'R001-000025' });
+        fixture.detectChanges();
+        expect(navigate).toHaveBeenCalledWith(['/ventas', 25], { queryParams: { origen: 'misa' } });
+    });
+
     it('should return to services after saving a sale from a service request', async () => {
         const fixture = await createFixture({ origen: 'servicio' });
         const router = TestBed.inject(Router);

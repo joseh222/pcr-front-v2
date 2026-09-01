@@ -7,6 +7,9 @@ import { VentaListPage } from './venta-list';
 import { of } from 'rxjs';
 import { VentaCancellationService } from '../../data-access/venta-cancellation.service';
 import { AuthStore } from '../../../auth/data-access/auth.store';
+import { VentaApiService } from '../../data-access/venta-api.service';
+import { FileDownloadService } from '../../../../core/files/file-download.service';
+import { FeedbackService } from '../../../../core/feedback/feedback.service';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
 
@@ -18,12 +21,18 @@ describe('VentaListPage', () => {
     const totalRegistros = signal(0);
     const pagina = signal(1);
     const tamanoPagina = signal(20);
+    const query = signal<any>({ fechaInicio: null, fechaFin: null, idMetodoPago: null, idTipoComprobante: null, tipoItem: null, texto: null, pagina: 1, tamanoPagina: 20 });
 
     const cancellationMock = {
         cancel: vi.fn(() => of({ idVenta: 1 }))
     };
 
+    const apiMock = { exportExcel: vi.fn(() => of(new Blob(['xlsx']))), exportPdf: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))) };
+    const fileDownloadMock = { download: vi.fn() };
+    const feedbackMock = { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() };
+
     const storeMock = {
+        query: query.asReadonly(),
         loading: loading.asReadonly(),
         error: error.asReadonly(),
         catalogsError: catalogsError.asReadonly(),
@@ -51,7 +60,11 @@ describe('VentaListPage', () => {
         totalRegistros.set(0);
         pagina.set(1);
         tamanoPagina.set(20);
+        query.set({ fechaInicio: null, fechaFin: null, idMetodoPago: null, idTipoComprobante: null, tipoItem: null, texto: null, pagina: 1, tamanoPagina: 20 });
         cancellationMock.cancel.mockClear();
+        apiMock.exportExcel.mockClear(); apiMock.exportPdf.mockClear();
+        fileDownloadMock.download.mockClear();
+        feedbackMock.success.mockClear(); feedbackMock.error.mockClear();
 
         Object.values(storeMock).forEach(value => {
             if (typeof value === 'function' && 'mockClear' in value) {
@@ -61,7 +74,13 @@ describe('VentaListPage', () => {
 
         TestBed.configureTestingModule({
             imports: [VentaListPage],
-            providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([])]
+            providers: [
+                { provide: AuthStore, useValue: authStoreMock },
+                { provide: VentaApiService, useValue: apiMock },
+                { provide: FileDownloadService, useValue: fileDownloadMock },
+                { provide: FeedbackService, useValue: feedbackMock },
+                provideRouter([])
+            ]
         });
 
         TestBed.overrideComponent(VentaListPage, {
@@ -103,6 +122,22 @@ describe('VentaListPage', () => {
                 tipoItem: 'SERVICIO'
             })
         );
+    });
+
+    it('should export the applied filters to Excel and PDF', () => {
+        totalRegistros.set(3);
+        query.set({ fechaInicio: '2026-08-01', fechaFin: '2026-08-31', idMetodoPago: 1, idTipoComprobante: null, tipoItem: 'SERVICIO', texto: 'misa', pagina: 2, tamanoPagina: 20 });
+        const fixture = TestBed.createComponent(VentaListPage);
+        fixture.detectChanges();
+
+        fixture.componentInstance['exportExcel']();
+        expect(apiMock.exportExcel).toHaveBeenCalledWith(query());
+        expect(fileDownloadMock.download).toHaveBeenCalledWith(expect.any(Blob), expect.stringMatching(/^Ventas_\d{8}_\d{6}\.xlsx$/));
+
+        fixture.componentInstance['exportPdf']();
+        expect(apiMock.exportPdf).toHaveBeenCalledWith(query());
+        expect(fileDownloadMock.download).toHaveBeenCalledWith(expect.any(Blob), expect.stringMatching(/^Ventas_\d{8}_\d{6}\.pdf$/));
+        expect(feedbackMock.success).toHaveBeenCalledTimes(2);
     });
 
     it('should describe mixed content', () => {
