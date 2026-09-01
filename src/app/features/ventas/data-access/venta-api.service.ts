@@ -6,7 +6,7 @@ import { RuntimeConfigService } from '../../../core/config/runtime-config.servic
 import { VentaMetodoPago, VentaTipoComprobante } from './models/venta-catalog.models';
 import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente } from './models/venta-lookup.models';
 import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
-import { VentaDetailResponse, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
+import { VentaDetailResponse, VentaListFilters, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
 import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
 import { DocumentoImpresionEjecucionResponse, DocumentoImpresionResponse, VentaDocumentoTipo, VentaDocumentosResponse, VentaImpresionModoResponse } from './models/venta-document.models';
 import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
@@ -77,42 +77,30 @@ export class VentaApiService {
     }
 
     getList(query: VentaListQuery): Observable<VentaPagedResponse> {
-        return this.http.get<VentaPagedResponse>(this.ventaUrl,
-            {
-                params: this.buildListParams(query)
-            }
-        );
+        return this.http.get<VentaPagedResponse>(this.ventaUrl, {
+            params: this.buildFilterParams(query)
+                .set('pagina', query.pagina)
+                .set('tamanoPagina', query.tamanoPagina)
+        });
     }
 
-    private buildListParams(query: VentaListQuery): HttpParams {
-        let params = new HttpParams()
-            .set('pagina', query.pagina)
-            .set('tamanoPagina', query.tamanoPagina);
+    exportExcel(filters: VentaListFilters): Observable<Blob> {
+        return this.http.get(`${this.ventaUrl}/exportar/excel`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
 
-        if (query.fechaInicio) {
-            params = params.set('fechaInicio', query.fechaInicio);
-        }
+    exportPdf(filters: VentaListFilters): Observable<Blob> {
+        return this.http.get(`${this.ventaUrl}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
 
-        if (query.fechaFin) {
-            params = params.set('fechaFin', query.fechaFin);
-        }
+    private buildFilterParams(filters: VentaListFilters): HttpParams {
+        let params = new HttpParams();
 
-        if (
-            query.idMetodoPago != null) {
-            params = params.set('idMetodoPago', query.idMetodoPago);
-        }
-
-        if (query.idTipoComprobante != null) {
-            params = params.set('idTipoComprobante', query.idTipoComprobante);
-        }
-
-        if (query.tipoItem) {
-            params = params.set('tipoItem', query.tipoItem);
-        }
-
-        if (query.texto?.trim()) {
-            params = params.set('texto', query.texto.trim());
-        }
+        if (filters.fechaInicio) params = params.set('fechaInicio', filters.fechaInicio);
+        if (filters.fechaFin) params = params.set('fechaFin', filters.fechaFin);
+        if (filters.idMetodoPago != null) params = params.set('idMetodoPago', filters.idMetodoPago);
+        if (filters.idTipoComprobante != null) params = params.set('idTipoComprobante', filters.idTipoComprobante);
+        if (filters.tipoItem) params = params.set('tipoItem', filters.tipoItem);
+        if (filters.texto?.trim()) params = params.set('texto', filters.texto.trim());
 
         return params;
     }

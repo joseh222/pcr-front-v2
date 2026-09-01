@@ -48,4 +48,21 @@ describe('CompraApiService', () => {
         service.cancel(5, body).subscribe(); const request = httpTesting.expectOne(`${apiBaseUrl}/Compra/5/anular`);
         expect(request.request.method).toBe('PATCH'); expect(request.request.body).toEqual(body); request.flush({ idCompra: 5, codCompra: 'CMP2026-000005', estadoCompra: 'ANULADA' });
     });
+
+    it('should export purchases without pagination and with applied filters', () => {
+        const filters = { search: 'CMP', idProveedor: 2, idTipoComprobanteCompra: 1, idEstadoCompra: 1, fechaInicio: '2026-08-01', fechaFin: '2026-08-31' };
+        service.exportExcel(filters).subscribe();
+        let request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Compra/exportar/excel`);
+        expect(request.request.method).toBe('GET'); expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.get('search')).toBe('CMP'); expect(request.request.params.get('idProveedor')).toBe('2');
+        expect(request.request.params.has('pageNumber')).toBe(false); expect(request.request.params.has('pageSize')).toBe(false);
+        request.flush(new Blob());
+
+        service.exportPdf(filters).subscribe();
+        request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Compra/exportar/pdf`);
+        expect(request.request.method).toBe('GET'); expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.has('pageNumber')).toBe(false);
+        request.flush(new Blob());
+    });
+
 });

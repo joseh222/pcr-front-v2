@@ -13,6 +13,7 @@ import {
 } from './models/misa-catalog.models';
 import {
     MisaDetail,
+    MisaListFilters,
     MisaListQuery,
     MisaPagedResponse
 } from './models/misa-read.models';
@@ -36,8 +37,16 @@ export class MisaApiService {
     getList(query: MisaListQuery): Observable<MisaPagedResponse> {
         return this.http.get<MisaPagedResponse>(
             this.apiUrl,
-            { params: this.buildListParams(query) }
+            { params: this.buildFilterParams(query).set('pagina', query.pagina).set('tamanoPagina', query.tamanoPagina) }
         );
+    }
+
+    exportExcel(filters: MisaListFilters): Observable<Blob> {
+        return this.http.get(`${this.apiUrl}/exportar/excel`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
+
+    exportPdf(filters: MisaListFilters): Observable<Blob> {
+        return this.http.get(`${this.apiUrl}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
     }
 
     getById(idMisa: number): Observable<MisaDetail> {
@@ -123,44 +132,16 @@ export class MisaApiService {
         );
     }
 
-    private buildListParams(query: MisaListQuery): HttpParams {
-        let params = new HttpParams()
-            .set('pagina', query.pagina)
-            .set('tamanoPagina', query.tamanoPagina);
+    private buildFilterParams(filters: MisaListFilters): HttpParams {
+        let params = new HttpParams();
 
-        if (query.fechaInicio) {
-            params = params.set('fechaInicio', query.fechaInicio);
-        }
-
-        if (query.fechaFin) {
-            params = params.set('fechaFin', query.fechaFin);
-        }
-
-        if (query.idModalidad != null) {
-            params = params.set('idModalidad', query.idModalidad);
-        }
-
-        if (query.idTipo != null) {
-            params = params.set('idTipo', query.idTipo);
-        }
-
-        if (query.idEstado != null) {
-            params = params.set('idEstado', query.idEstado);
-        }
-
-        if (query.estadoPago?.trim()) {
-            params = params.set(
-                'estadoPago',
-                query.estadoPago.trim()
-            );
-        }
-
-        if (query.texto?.trim()) {
-            params = params.set(
-                'texto',
-                query.texto.trim()
-            );
-        }
+        if (filters.fechaInicio) params = params.set('fechaInicio', filters.fechaInicio);
+        if (filters.fechaFin) params = params.set('fechaFin', filters.fechaFin);
+        if (filters.idModalidad != null) params = params.set('idModalidad', filters.idModalidad);
+        if (filters.idTipo != null) params = params.set('idTipo', filters.idTipo);
+        if (filters.idEstado != null) params = params.set('idEstado', filters.idEstado);
+        if (filters.estadoPago?.trim()) params = params.set('estadoPago', filters.estadoPago.trim());
+        if (filters.texto?.trim()) params = params.set('texto', filters.texto.trim());
 
         return params;
     }

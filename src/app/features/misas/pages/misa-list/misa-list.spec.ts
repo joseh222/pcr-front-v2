@@ -9,8 +9,15 @@ import { MisaListStore } from '../../data-access/models/misa-list.store';
 import { MisaListItem } from '../../data-access/models/misa-read.models';
 import { MisaListPage } from './misa-list';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { MisaApiService } from '../../data-access/misa-api.service';
+import { FileDownloadService } from '../../../../core/files/file-download.service';
+import { FeedbackService } from '../../../../core/feedback/feedback.service';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
+const apiMock = { exportExcel: vi.fn(() => of(new Blob(['excel']))), exportPdf: vi.fn(() => of(new Blob(['pdf']))) };
+const fileDownloadMock = { download: vi.fn() };
+const feedbackMock = { success: vi.fn(), error: vi.fn() };
 
 describe('MisaListPage', () => {
     let fixture: ComponentFixture<MisaListPage>;
@@ -101,7 +108,7 @@ describe('MisaListPage', () => {
 
         TestBed.configureTestingModule({
             imports: [MisaListPage],
-            providers: [{ provide: AuthStore, useValue: authStoreMock }, 
+            providers: [{ provide: AuthStore, useValue: authStoreMock }, { provide: MisaApiService, useValue: apiMock }, { provide: FileDownloadService, useValue: fileDownloadMock }, { provide: FeedbackService, useValue: feedbackMock },
                 provideRouter([])
             ]
         });
@@ -265,6 +272,18 @@ describe('MisaListPage', () => {
         totalRegistros.set(1);
         fixture.detectChanges();
         expect(fixture.nativeElement.querySelector('[data-testid="edit-misa-1"]')).toBeTruthy();
+    });
+
+
+    it('should export using the filters that were actually searched', () => {
+        totalRegistros.set(3);
+        component.filterForm.patchValue({ texto: 'JUAN', fechaInicio: '2026-08-01', fechaFin: '2026-08-31', estadoPago: 'PAGADO' });
+        component['search']();
+        component.filterForm.patchValue({ texto: 'CAMBIO SIN BUSCAR' });
+        component['exportExcel']();
+
+        expect(apiMock.exportExcel).toHaveBeenCalledWith(expect.objectContaining({ texto: 'JUAN', fechaInicio: '2026-08-01', fechaFin: '2026-08-31', estadoPago: 'PAGADO' }));
+        expect(fileDownloadMock.download).toHaveBeenCalledOnce();
     });
 
     function misa(): MisaListItem {

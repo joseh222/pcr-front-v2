@@ -119,6 +119,39 @@ describe('VentaApiService', () => {
         });
     });
 
+    it('should export the filtered sales without pagination', () => {
+        const filters = {
+            fechaInicio: '2026-08-01',
+            fechaFin: '2026-08-31',
+            idMetodoPago: 1,
+            idTipoComprobante: 2,
+            tipoItem: 'SERVICIO' as const,
+            texto: 'JOSE'
+        };
+
+        service.exportExcel(filters).subscribe();
+        let request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/exportar/excel`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-01');
+        expect(request.request.params.get('fechaFin')).toBe('2026-08-31');
+        expect(request.request.params.get('idMetodoPago')).toBe('1');
+        expect(request.request.params.get('idTipoComprobante')).toBe('2');
+        expect(request.request.params.get('tipoItem')).toBe('SERVICIO');
+        expect(request.request.params.get('texto')).toBe('JOSE');
+        expect(request.request.params.has('pagina')).toBe(false);
+        expect(request.request.params.has('tamanoPagina')).toBe(false);
+        request.flush(new Blob(['xlsx']));
+
+        service.exportPdf(filters).subscribe();
+        request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/Venta/exportar/pdf`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.has('pagina')).toBe(false);
+        expect(request.request.params.has('tamanoPagina')).toBe(false);
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
     it('should request cancellation reasons and sale detail', () => {
         service.getRazonesAnulacion().subscribe();
 

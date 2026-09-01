@@ -31,7 +31,7 @@
     @if (store.catalogsError()) { <div class="catalog-error"><mat-icon>warning_amber</mat-icon><span>{{ store.catalogsError() }}</span></div> }
 
     <section class="table-card">
-        <div class="table-header"><div><h2>Resultados</h2><p>{{ store.totalRows() }} registro{{ store.totalRows() === 1 ? '' : 's' }}</p></div></div>
+        <div class="table-header"><div><h2>Resultados</h2><p>{{ store.totalRows() }} registro{{ store.totalRows() === 1 ? '' : 's' }}</p></div>@if (canExport()) { <div class="page-header-actions"><button mat-stroked-button type="button" data-testid="export-compras-excel" [disabled]="store.totalRows() === 0 || exportingExcel() || exportingPdf()" (click)="exportExcel()"><mat-icon>table_view</mat-icon>{{ exportingExcel() ? 'Generando...' : 'Excel' }}</button><button mat-stroked-button type="button" data-testid="export-compras-pdf" [disabled]="store.totalRows() === 0 || exportingExcel() || exportingPdf()" (click)="exportPdf()"><mat-icon>picture_as_pdf</mat-icon>{{ exportingPdf() ? 'Generando...' : 'PDF' }}</button></div> }</div>
         @if (store.loading() || store.catalogsLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
         @if (store.error()) {
             <div class="message-state error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudieron cargar las compras.</strong><p>{{ store.error() }}</p></div><button mat-stroked-button type="button" (click)="reload()">Reintentar</button></div>

@@ -15,7 +15,7 @@ import {
 describe('MisaApiService', () => {
     let service: MisaApiService;
     let httpTesting: HttpTestingController;
-    const apiBaseUrl = 'https://localhost:7002/api';
+
     const apiUrl = 'https://localhost:7002/api/Misa';
 
     const runtimeConfigMock = {
@@ -309,9 +309,31 @@ describe('MisaApiService', () => {
     it('should correct existing intentions without full misa update', () => {
         const payload = { intenciones: [{ idIntencion: 10, nombre: 'JUAN CORREGIDO', observacion: null }] };
         service.correctIntenciones(5, payload).subscribe();
-        const req = httpTesting.expectOne(`${apiBaseUrl}/Misa/5/intenciones`);
+        const req = httpTesting.expectOne(`${apiUrl}/5/intenciones`);
         expect(req.request.method).toBe('PATCH');
         expect(req.request.body).toEqual(payload);
         req.flush({ idMisa: 5, codMisa: 'M2026-0005', cantidadCorregida: 1, mensaje: 'OK' });
     });
+    it('should export misas without pagination and with applied filters', () => {
+        const filters = { fechaInicio: '2026-08-01', fechaFin: '2026-08-31', idModalidad: 1, idTipo: 2, idEstado: 3, estadoPago: 'PAGADO', texto: 'JUAN' };
+
+        service.exportExcel(filters).subscribe();
+        let request = httpTesting.expectOne(req => req.url === `${apiUrl}/exportar/excel`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-01');
+        expect(request.request.params.get('estadoPago')).toBe('PAGADO');
+        expect(request.request.params.get('texto')).toBe('JUAN');
+        expect(request.request.params.has('pagina')).toBe(false);
+        expect(request.request.params.has('tamanoPagina')).toBe(false);
+        request.flush(new Blob());
+
+        service.exportPdf(filters).subscribe();
+        request = httpTesting.expectOne(req => req.url === `${apiUrl}/exportar/pdf`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.has('pagina')).toBe(false);
+        request.flush(new Blob());
+    });
+
 });

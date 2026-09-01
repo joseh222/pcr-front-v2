@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,6 +15,11 @@ import { MisaListFilters } from '../../data-access/models/misa-read.models';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
+import { MisaApiService } from '../../data-access/misa-api.service';
+import { FileDownloadService } from '../../../../core/files/file-download.service';
+import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'pcr-misa-list',
@@ -41,8 +46,15 @@ export class MisaListPage implements OnInit {
 
     private readonly fb = inject(FormBuilder);
     private readonly authStore = inject(AuthStore);
+    private readonly api = inject(MisaApiService);
+    private readonly fileDownload = inject(FileDownloadService);
+    private readonly feedback = inject(FeedbackService);
+    protected readonly exportingExcel = signal(false);
+    protected readonly exportingPdf = signal(false);
+    private readonly appliedFilters = signal<MisaListFilters>({ texto: '', fechaInicio: null, fechaFin: null, idModalidad: null, idTipo: null, idEstado: null, estadoPago: null });
     protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_CREATE);
     protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_EDIT);
+    protected readonly canExport = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_EXPORT);
 
     readonly filterForm = this.fb.group({
         texto: this.fb.nonNullable.control(''),
@@ -90,6 +102,7 @@ export class MisaListPage implements OnInit {
         const filters: MisaListFilters =
             this.filterForm.getRawValue();
 
+        this.appliedFilters.set(filters);
         this.store.search(filters);
     }
 
@@ -104,11 +117,37 @@ export class MisaListPage implements OnInit {
             estadoPago: null
         });
 
+        this.appliedFilters.set({ texto: '', fechaInicio: null, fechaFin: null, idModalidad: null, idTipo: null, idEstado: null, estadoPago: null });
         this.store.resetFilters();
     }
 
     protected reload(): void {
         this.store.reload();
+    }
+
+    protected exportExcel(): void {
+        if (!this.canExport() || this.store.totalRegistros() === 0 || this.exportingExcel() || this.exportingPdf()) return;
+        this.exportingExcel.set(true);
+        this.api.exportExcel(this.appliedFilters()).pipe(finalize(() => this.exportingExcel.set(false))).subscribe({
+            next: blob => { this.fileDownload.download(blob, this.buildExportFileName('xlsx')); this.feedback.success('Excel de misas generado correctamente.'); },
+            error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo exportar las misas a Excel.'))
+        });
+    }
+
+    protected exportPdf(): void {
+        if (!this.canExport() || this.store.totalRegistros() === 0 || this.exportingExcel() || this.exportingPdf()) return;
+        this.exportingPdf.set(true);
+        this.api.exportPdf(this.appliedFilters()).pipe(finalize(() => this.exportingPdf.set(false))).subscribe({
+            next: blob => { this.fileDownload.download(blob, this.buildExportFileName('pdf')); this.feedback.success('PDF de misas generado correctamente.'); },
+            error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo exportar las misas a PDF.'))
+        });
+    }
+
+    private buildExportFileName(extension: 'xlsx' | 'pdf'): string {
+        const now = new Date();
+        const two = (value: number) => value.toString().padStart(2, '0');
+        const stamp = `${now.getFullYear()}${two(now.getMonth() + 1)}${two(now.getDate())}_${two(now.getHours())}${two(now.getMinutes())}${two(now.getSeconds())}`;
+        return `Misas_${stamp}.${extension}`;
     }
 
     protected onPage(event: PageEvent): void {
