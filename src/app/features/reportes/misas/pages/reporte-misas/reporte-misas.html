@@ -1,0 +1,89 @@
+<section class="report-page" data-testid="reporte-misas-page">
+    <header class="page-header">
+        <div>
+            <p class="page-eyebrow">Reportes</p>
+            <h1 class="page-title">Reporte de misas</h1>
+            <p class="page-description">Consulta volumen de misas, pagos, estados, modalidades, tipos y comportamiento diario.</p>
+        </div>
+        <div class="header-actions">
+            <button mat-stroked-button type="button" data-testid="export-reporte-excel" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportExcel()"><mat-icon>table_view</mat-icon>{{ exportingExcel() ? 'Generando...' : 'Excel' }}</button>
+            <button mat-stroked-button type="button" data-testid="export-reporte-pdf" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportPdf()"><mat-icon>picture_as_pdf</mat-icon>{{ exportingPdf() ? 'Generando...' : 'PDF' }}</button>
+            <button mat-stroked-button type="button" (click)="currentDay()"><mat-icon>today</mat-icon>Día actual</button>
+            <button mat-stroked-button type="button" (click)="currentMonth()"><mat-icon>date_range</mat-icon>Mes actual</button>
+        </div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline"><mat-label>Desde</mat-label><input matInput type="date" formControlName="fechaInicio"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Hasta</mat-label><input matInput type="date" formControlName="fechaFin"></mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Modalidad</mat-label>
+                <mat-select formControlName="idModalidad"><mat-option [value]="null">Todas</mat-option>@for (item of report()?.modalidades ?? []; track item.idModalidad) { <mat-option [value]="item.idModalidad">{{ item.nombreModalidad }}</mat-option> }</mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Tipo</mat-label>
+                <mat-select formControlName="idTipo"><mat-option [value]="null">Todos</mat-option>@for (item of report()?.tipos ?? []; track item.idTipo) { <mat-option [value]="item.idTipo">{{ item.nombreTipo }}</mat-option> }</mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Estado de misa</mat-label>
+                <mat-select formControlName="idEstado"><mat-option [value]="null">Todos</mat-option>@for (item of report()?.estados ?? []; track item.idEstado) { <mat-option [value]="item.idEstado">{{ item.nombreEstado }}</mat-option> }</mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Estado de pago</mat-label>
+                <mat-select formControlName="estadoPago"><mat-option [value]="null">Todos</mat-option>@for (item of estadosPago; track item.codigo) { <mat-option [value]="item.codigo">{{ item.nombre }}</mat-option> }</mat-select>
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="loading()"><mat-icon>analytics</mat-icon>Generar reporte</button>
+        </div>
+    </form>
+
+    @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (report(); as data) {
+        <section class="kpi-grid" aria-label="Indicadores de misas">
+            <article class="kpi-card primary"><span class="kpi-label">Total de misas</span><strong>{{ data.cantidadMisas | number }}</strong><small>{{ data.cantidadCelebradas | number }} celebradas</small></article>
+            <article class="kpi-card"><span class="kpi-label">Misas pagadas</span><strong>{{ data.cantidadPagadas | number }}</strong><small>{{ data.montoPagado | currency:'PEN':'symbol':'1.2-2' }} cobrado</small></article>
+            <article class="kpi-card warning"><span class="kpi-label">Pendientes de pago</span><strong>{{ data.cantidadPendientesPago | number }}</strong><small>{{ data.montoPendiente | currency:'PEN':'symbol':'1.2-2' }} pendiente</small></article>
+            <article class="kpi-card"><span class="kpi-label">Sin cobro</span><strong>{{ data.cantidadNoRequierenPago | number }}</strong><small>{{ data.cantidadSinSolicitud | number }} sin solicitud asociada</small></article>
+        </section>
+
+        <div class="report-grid two-columns">
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Distribución</p><h2>Por modalidad</h2></div><mat-icon>church</mat-icon></div>
+                @if (data.modalidades.length === 0) { <p class="empty-state">No hay misas para el periodo seleccionado.</p> }
+                @for (item of data.modalidades; track item.idModalidad) {
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreModalidad }}</span><strong>{{ item.cantidadMisas | number }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxModalidad())"></span></div></div>
+                }
+            </section>
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Distribución</p><h2>Por tipo</h2></div><mat-icon>category</mat-icon></div>
+                @if (data.tipos.length === 0) { <p class="empty-state">No hay tipos de misa para mostrar.</p> }
+                @for (item of data.tipos; track item.idTipo) {
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreTipo }}</span><strong>{{ item.cantidadMisas | number }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxTipo())"></span></div><small>{{ item.codigoTipo }}</small></div>
+                }
+            </section>
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Situación</p><h2>Estado de la misa</h2></div><mat-icon>event_available</mat-icon></div>
+                @if (data.estados.length === 0) { <p class="empty-state">No hay estados para mostrar.</p> }
+                @for (item of data.estados; track item.idEstado) {
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreEstado }}</span><strong>{{ item.cantidadMisas | number }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxEstado())"></span></div></div>
+                }
+            </section>
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Cobranza</p><h2>Estado de pago</h2></div><mat-icon>payments</mat-icon></div>
+                @if (data.estadosPago.length === 0) { <p class="empty-state">No hay información de pago para mostrar.</p> }
+                @for (item of data.estadosPago; track item.estadoPago) {
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreEstadoPago }}</span><strong>{{ item.cantidadMisas | number }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxEstadoPago())"></span></div><small>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</small></div>
+                }
+            </section>
+        </div>
+
+        <section class="report-card trend-card">
+            <div class="card-heading"><div><p class="card-eyebrow">Tendencia</p><h2>Misas por día</h2></div><mat-icon>show_chart</mat-icon></div>
+            @if (data.tendenciaDiaria.length === 0) { <p class="empty-state">No hay misas para mostrar en la tendencia.</p> }
+            @for (item of data.tendenciaDiaria; track item.fecha) {
+                <div class="trend-row"><time>{{ formatDate(item.fecha) }}</time><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxDia())"></span></div><strong>{{ item.cantidadMisas | number }} misa{{ item.cantidadMisas === 1 ? '' : 's' }}</strong><small>{{ item.cantidadPagadas }} pagadas · {{ item.montoPagado | currency:'PEN':'symbol':'1.2-2' }}</small></div>
+            }
+        </section>
+    }
+</section>

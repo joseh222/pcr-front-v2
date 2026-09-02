@@ -1,0 +1,73 @@
+<section class="report-page" data-testid="reporte-compras-page">
+    <header class="page-header">
+        <div>
+            <p class="page-eyebrow">Reportes</p>
+            <h1 class="page-title">Reporte de compras</h1>
+            <p class="page-description">Analiza egresos por compras, proveedores, productos adquiridos y comportamiento diario.</p>
+        </div>
+        <div class="header-actions">
+            <button mat-stroked-button type="button" data-testid="export-reporte-excel" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportExcel()"><mat-icon>table_view</mat-icon>{{ exportingExcel() ? 'Generando...' : 'Excel' }}</button>
+            <button mat-stroked-button type="button" data-testid="export-reporte-pdf" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportPdf()"><mat-icon>picture_as_pdf</mat-icon>{{ exportingPdf() ? 'Generando...' : 'PDF' }}</button>
+            <button mat-stroked-button type="button" (click)="currentDay()"><mat-icon>today</mat-icon>Día actual</button>
+            <button mat-stroked-button type="button" (click)="currentMonth()"><mat-icon>date_range</mat-icon>Mes actual</button>
+        </div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline"><mat-label>Desde</mat-label><input matInput type="date" formControlName="fechaInicio"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Hasta</mat-label><input matInput type="date" formControlName="fechaFin"></mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="loading()"><mat-icon>analytics</mat-icon>Generar reporte</button>
+        </div>
+    </form>
+
+    @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (report(); as data) {
+        <section class="kpi-grid" aria-label="Indicadores de compras">
+            <article class="kpi-card primary"><span class="kpi-label">Total comprado</span><strong>{{ data.totalComprado | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Compras vigentes del periodo</small></article>
+            <article class="kpi-card"><span class="kpi-label">Compras realizadas</span><strong>{{ data.cantidadCompras | number }}</strong><small>Sin considerar anuladas</small></article>
+            <article class="kpi-card"><span class="kpi-label">Compra promedio</span><strong>{{ data.compraPromedio | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Promedio por compra vigente</small></article>
+            <article class="kpi-card warning"><span class="kpi-label">Compras anuladas</span><strong>{{ data.cantidadAnuladas | number }}</strong><small>{{ data.totalAnulado | currency:'PEN':'symbol':'1.2-2' }} anulados</small></article>
+        </section>
+
+        <div class="report-grid two-columns">
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Distribución</p><h2>Compras por proveedor</h2></div><mat-icon>local_shipping</mat-icon></div>
+                @if (data.proveedores.length === 0) { <p class="empty-state">No hay compras vigentes para el periodo seleccionado.</p> }
+                @for (item of data.proveedores; track item.idProveedor) {
+                    <div class="bar-row">
+                        <div class="bar-label"><span>{{ item.nombreProveedor }}</span><strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                        <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxProveedor())"></span></div>
+                        <small>{{ item.cantidadCompras }} compra{{ item.cantidadCompras === 1 ? '' : 's' }}</small>
+                    </div>
+                }
+            </section>
+
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Inventario</p><h2>Productos comprados</h2></div><mat-icon>inventory_2</mat-icon></div>
+                @if (data.productos.length === 0) { <p class="empty-state">No hay productos comprados para el periodo seleccionado.</p> }
+                @for (item of data.productos; track item.idProducto) {
+                    <div class="bar-row">
+                        <div class="bar-label"><span>{{ item.descripcionProducto }}</span><strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                        <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxProducto())"></span></div>
+                        <small>{{ item.cantidad | number:'1.0-2' }} und. · {{ item.codigoProducto }}</small>
+                    </div>
+                }
+            </section>
+        </div>
+
+        <section class="report-card trend-card">
+            <div class="card-heading"><div><p class="card-eyebrow">Tendencia</p><h2>Compras por día</h2></div><mat-icon>show_chart</mat-icon></div>
+            @if (data.tendenciaDiaria.length === 0) { <p class="empty-state">No hay compras vigentes para mostrar la tendencia.</p> }
+            @for (item of data.tendenciaDiaria; track item.fecha) {
+                <div class="trend-row">
+                    <span>{{ formatDate(item.fecha) }}</span>
+                    <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxDia())"></span></div>
+                    <strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                    <small>{{ item.cantidadCompras }} compra{{ item.cantidadCompras === 1 ? '' : 's' }}</small>
+                </div>
+            }
+        </section>
+    }
+</section>

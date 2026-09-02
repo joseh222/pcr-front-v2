@@ -1,0 +1,81 @@
+<section class="report-page" data-testid="reporte-ventas-page">
+    <header class="page-header">
+        <div>
+            <p class="page-eyebrow">Reportes</p>
+            <h1 class="page-title">Reporte de ventas</h1>
+            <p class="page-description">Analiza ingresos, ticket promedio, métodos de pago y comportamiento diario de las ventas.</p>
+        </div>
+        <div class="header-actions">
+            <button mat-stroked-button type="button" data-testid="export-reporte-excel" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportExcel()"><mat-icon>table_view</mat-icon>{{ exportingExcel() ? 'Generando...' : 'Excel' }}</button>
+            <button mat-stroked-button type="button" data-testid="export-reporte-pdf" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportPdf()"><mat-icon>picture_as_pdf</mat-icon>{{ exportingPdf() ? 'Generando...' : 'PDF' }}</button>
+            <button mat-stroked-button type="button" (click)="currentDay()"><mat-icon>today</mat-icon>Día actual</button>
+            <button mat-stroked-button type="button" (click)="currentMonth()"><mat-icon>date_range</mat-icon>Mes actual</button>
+        </div>
+    </header>
+
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline"><mat-label>Desde</mat-label><input matInput type="date" formControlName="fechaInicio"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Hasta</mat-label><input matInput type="date" formControlName="fechaFin"></mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Contenido</mat-label>
+                <mat-select formControlName="tipoItem">
+                    <mat-option [value]="null">Todos</mat-option>
+                    <mat-option value="PRODUCTO">Productos</mat-option>
+                    <mat-option value="SERVICIO">Servicios</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="loading()"><mat-icon>analytics</mat-icon>Generar reporte</button>
+        </div>
+    </form>
+
+    @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (report(); as data) {
+        <section class="kpi-grid" aria-label="Indicadores de ventas">
+            <article class="kpi-card primary"><span class="kpi-label">Total vendido</span><strong>{{ data.totalVendido | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Ventas vigentes del periodo</small></article>
+            <article class="kpi-card"><span class="kpi-label">Ventas realizadas</span><strong>{{ data.cantidadVentas | number }}</strong><small>Sin considerar anuladas</small></article>
+            <article class="kpi-card"><span class="kpi-label">Ticket promedio</span><strong>{{ data.ticketPromedio | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Promedio por venta vigente</small></article>
+            <article class="kpi-card warning"><span class="kpi-label">Ventas anuladas</span><strong>{{ data.cantidadAnuladas | number }}</strong><small>{{ data.totalAnulado | currency:'PEN':'symbol':'1.2-2' }} anulados</small></article>
+        </section>
+
+        <div class="report-grid two-columns">
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Distribución</p><h2>Métodos de pago</h2></div><mat-icon>payments</mat-icon></div>
+                @if (data.metodosPago.length === 0) { <p class="empty-state">No hay ventas vigentes para el periodo seleccionado.</p> }
+                @for (item of data.metodosPago; track item.idMetodoPago) {
+                    <div class="bar-row">
+                        <div class="bar-label"><span>{{ item.nombreMetodoPago }}</span><strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                        <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxMetodoPago())"></span></div>
+                        <small>{{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small>
+                    </div>
+                }
+            </section>
+
+            <section class="report-card">
+                <div class="card-heading"><div><p class="card-eyebrow">Composición</p><h2>Contenido vendido</h2></div><mat-icon>category</mat-icon></div>
+                @if (data.contenidos.length === 0) { <p class="empty-state">No hay contenido vendido para el periodo seleccionado.</p> }
+                @for (item of data.contenidos; track item.contenido) {
+                    <div class="bar-row">
+                        <div class="bar-label"><span>{{ item.contenido }}</span><strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                        <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxContenido())"></span></div>
+                        <small>{{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small>
+                    </div>
+                }
+            </section>
+        </div>
+
+        <section class="report-card trend-card">
+            <div class="card-heading"><div><p class="card-eyebrow">Tendencia</p><h2>Ventas por día</h2></div><mat-icon>show_chart</mat-icon></div>
+            @if (data.tendenciaDiaria.length === 0) { <p class="empty-state">No hay ventas vigentes para mostrar en la tendencia.</p> }
+            @for (item of data.tendenciaDiaria; track item.fecha) {
+                <div class="trend-row">
+                    <time>{{ formatDate(item.fecha) }}</time>
+                    <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxDia())"></span></div>
+                    <strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                    <small>{{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small>
+                </div>
+            }
+        </section>
+    }
+</section>

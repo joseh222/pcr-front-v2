@@ -36,6 +36,30 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/configuracion/pages/configuracion-impresion/configuracion-impresion').then(module => module.ConfiguracionImpresionPage)
             },
             {
+                path: 'reportes/ventas',
+                title: 'Reporte de ventas | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.REPORT_SALES_VIEW] },
+                loadComponent: () => import('./features/reportes/ventas/pages/reporte-ventas/reporte-ventas').then(module => module.ReporteVentasPage)
+            },
+            {
+                path: 'reportes/compras',
+                title: 'Reporte de compras | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.REPORT_PURCHASES_VIEW] },
+                loadComponent: () => import('./features/reportes/compras/pages/reporte-compras/reporte-compras').then(module => module.ReporteComprasPage)
+            },
+            {
+                path: 'reportes/misas',
+                title: 'Reporte de misas | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.REPORT_MASSES_VIEW] },
+                loadComponent: () => import('./features/reportes/misas/pages/reporte-misas/reporte-misas').then(module => module.ReporteMisasPage)
+            },
+            {
+                path: 'reportes/resumen-economico',
+                title: 'Resumen económico | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.REPORT_ECONOMIC_SUMMARY_VIEW] },
+                loadComponent: () => import('./features/reportes/resumen-economico/pages/resumen-economico/resumen-economico').then(module => module.ResumenEconomicoPage)
+            },
+            {
                 path: 'personas/nueva',
                 title: 'Nueva persona | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.PERSON_VIEW, PERMISSION_CODE.PERSON_CREATE] },
