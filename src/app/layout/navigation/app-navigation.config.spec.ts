@@ -8,6 +8,9 @@ describe('APP_NAVIGATION', () => {
         const items = new Map(APP_NAVIGATION.flatMap(section => section.items.map(item => [item.id, item] as const)));
         expect(items.get('dashboard')?.permissions).toEqual([PERMISSION_CODE.DASHBOARD_VIEW]);
         expect(items.get('reporte-ventas')?.permissions).toEqual([PERMISSION_CODE.REPORT_SALES_VIEW]);
+        expect(items.get('reporte-compras')?.permissions).toEqual([PERMISSION_CODE.REPORT_PURCHASES_VIEW]);
+        expect(items.get('reporte-misas')?.permissions).toEqual([PERMISSION_CODE.REPORT_MASSES_VIEW]);
+        expect(items.get('resumen-economico')?.permissions).toEqual([PERMISSION_CODE.REPORT_ECONOMIC_SUMMARY_VIEW]);
         expect(items.get('personas')?.permissions).toEqual([PERMISSION_CODE.PERSON_VIEW]);
         expect(items.get('misas')?.permissions).toEqual([PERMISSION_CODE.MASS_VIEW]);
         expect(items.get('catalogo-servicios')?.permissions).toEqual([PERMISSION_CODE.SERVICE_CATALOG_VIEW]);

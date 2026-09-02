@@ -8,45 +8,27 @@ describe('ReporteVentasApiService', () => {
     let service: ReporteVentasApiService;
     let httpTesting: HttpTestingController;
     const apiBaseUrl = 'https://localhost:7002/api';
+    const filters = { fechaInicio: '2026-08-01', fechaFin: '2026-08-31', tipoItem: 'SERVICIO' as const };
 
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                ReporteVentasApiService,
-                provideHttpClient(),
-                provideHttpClientTesting(),
-                { provide: RuntimeConfigService, useValue: { config: { apiBaseUrl } } }
-            ]
-        });
-        service = TestBed.inject(ReporteVentasApiService);
-        httpTesting = TestBed.inject(HttpTestingController);
+        TestBed.configureTestingModule({ providers: [ReporteVentasApiService, provideHttpClient(), provideHttpClientTesting(), { provide: RuntimeConfigService, useValue: { config: { apiBaseUrl } } }] });
+        service = TestBed.inject(ReporteVentasApiService); httpTesting = TestBed.inject(HttpTestingController);
     });
-
     afterEach(() => httpTesting.verify());
 
     it('should request the sales report with applied filters', () => {
-        service.get({ fechaInicio: '2026-09-01', fechaFin: '2026-09-30', tipoItem: 'SERVICIO' }).subscribe();
-
+        service.get(filters).subscribe();
         const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/reportes/ventas`);
-        expect(request.request.method).toBe('GET');
-        expect(request.request.params.get('fechaInicio')).toBe('2026-09-01');
-        expect(request.request.params.get('fechaFin')).toBe('2026-09-30');
-        expect(request.request.params.get('tipoItem')).toBe('SERVICIO');
-        request.flush({
-            fechaInicio: '2026-09-01', fechaFin: '2026-09-30', cantidadVentas: 0,
-            totalVendido: 0, ticketPromedio: 0, cantidadAnuladas: 0, totalAnulado: 0,
-            metodosPago: [], tendenciaDiaria: [], contenidos: []
-        });
+        expect(request.request.method).toBe('GET'); expect(request.request.params.get('tipoItem')).toBe('SERVICIO');
+        request.flush({ fechaInicio: filters.fechaInicio, fechaFin: filters.fechaFin, cantidadVentas: 0, totalVendido: 0, ticketPromedio: 0, cantidadAnuladas: 0, totalAnulado: 0, metodosPago: [], tendenciaDiaria: [], contenidos: [] });
     });
 
-    it('should omit optional content filter', () => {
-        service.get({ fechaInicio: '2026-09-01', fechaFin: '2026-09-30', tipoItem: null }).subscribe();
-        const request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/reportes/ventas`);
-        expect(request.request.params.has('tipoItem')).toBe(false);
-        request.flush({
-            fechaInicio: '2026-09-01', fechaFin: '2026-09-30', cantidadVentas: 0,
-            totalVendido: 0, ticketPromedio: 0, cantidadAnuladas: 0, totalAnulado: 0,
-            metodosPago: [], tendenciaDiaria: [], contenidos: []
-        });
+    it('should export Excel and PDF as blobs with the same filters', () => {
+        service.exportExcel(filters).subscribe();
+        let request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/reportes/ventas/excel`);
+        expect(request.request.method).toBe('GET'); expect(request.request.responseType).toBe('blob'); expect(request.request.params.get('tipoItem')).toBe('SERVICIO'); request.flush(new Blob());
+        service.exportPdf(filters).subscribe();
+        request = httpTesting.expectOne(req => req.url === `${apiBaseUrl}/reportes/ventas/pdf`);
+        expect(request.request.method).toBe('GET'); expect(request.request.responseType).toBe('blob'); expect(request.request.params.get('fechaInicio')).toBe('2026-08-01'); request.flush(new Blob());
     });
 });

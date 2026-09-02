@@ -6,65 +6,54 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
 import { finalize } from 'rxjs';
+import { getApiErrorMessage } from '../../../../../core/feedback/api-error-message';
 import { FeedbackService } from '../../../../../core/feedback/feedback.service';
 import { FileDownloadService } from '../../../../../core/files/file-download.service';
-import { getApiErrorMessage } from '../../../../../core/feedback/api-error-message';
-import { ReporteVentasApiService } from '../../data-access/reporte-ventas-api.service';
-import { ReporteVentasFilters, ReporteVentasResponse } from '../../data-access/reporte-ventas.models';
+import { ReporteComprasApiService } from '../../data-access/reporte-compras-api.service';
+import { ReporteComprasFilters, ReporteComprasResponse } from '../../data-access/reporte-compras.models';
 
 @Component({
-    selector: 'pcr-reporte-ventas',
-    imports: [CurrencyPipe, DecimalPipe, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule],
-    templateUrl: './reporte-ventas.html',
-    styleUrl: './reporte-ventas.scss'
+    selector: 'pcr-reporte-compras',
+    imports: [CurrencyPipe, DecimalPipe, ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule],
+    templateUrl: './reporte-compras.html',
+    styleUrl: './reporte-compras.scss'
 })
-export class ReporteVentasPage implements OnInit {
+export class ReporteComprasPage implements OnInit {
     private readonly fb = inject(FormBuilder);
-    private readonly api = inject(ReporteVentasApiService);
+    private readonly api = inject(ReporteComprasApiService);
     private readonly feedback = inject(FeedbackService);
     private readonly fileDownload = inject(FileDownloadService);
 
     protected readonly loading = signal(false);
     protected readonly exportingExcel = signal(false);
     protected readonly exportingPdf = signal(false);
-    protected readonly report = signal<ReporteVentasResponse | null>(null);
-    protected readonly maxMetodoPago = computed(() => Math.max(0, ...(this.report()?.metodosPago.map(item => item.total) ?? [])));
+    protected readonly report = signal<ReporteComprasResponse | null>(null);
+    protected readonly maxProveedor = computed(() => Math.max(0, ...(this.report()?.proveedores.map(item => item.total) ?? [])));
     protected readonly maxDia = computed(() => Math.max(0, ...(this.report()?.tendenciaDiaria.map(item => item.total) ?? [])));
-    protected readonly maxContenido = computed(() => Math.max(0, ...(this.report()?.contenidos.map(item => item.total) ?? [])));
+    protected readonly maxProducto = computed(() => Math.max(0, ...(this.report()?.productos.map(item => item.total) ?? [])));
 
     private readonly initialRange = this.currentMonthRange();
-    readonly filterForm = this.fb.group({
-        fechaInicio: this.fb.nonNullable.control(this.initialRange.fechaInicio),
-        fechaFin: this.fb.nonNullable.control(this.initialRange.fechaFin),
-        tipoItem: this.fb.control<'PRODUCTO' | 'SERVICIO' | null>(null)
-    });
+    readonly filterForm = this.fb.group({ fechaInicio: this.fb.nonNullable.control(this.initialRange.fechaInicio), fechaFin: this.fb.nonNullable.control(this.initialRange.fechaFin) });
 
     ngOnInit(): void { this.load(); }
 
     protected search(): void {
         const filters = this.filterForm.getRawValue();
-        if (!filters.fechaInicio || !filters.fechaFin) {
-            this.feedback.warning('Selecciona el rango de fechas del reporte.');
-            return;
-        }
-        if (filters.fechaInicio > filters.fechaFin) {
-            this.feedback.warning('La fecha desde no puede ser mayor que la fecha hasta.');
-            return;
-        }
+        if (!filters.fechaInicio || !filters.fechaFin) { this.feedback.warning('Selecciona el rango de fechas del reporte.'); return; }
+        if (filters.fechaInicio > filters.fechaFin) { this.feedback.warning('La fecha desde no puede ser mayor que la fecha hasta.'); return; }
         this.load();
     }
 
     protected currentDay(): void {
         const today = this.toDateInput(new Date());
-        this.filterForm.reset({ fechaInicio: today, fechaFin: today, tipoItem: null });
+        this.filterForm.reset({ fechaInicio: today, fechaFin: today });
         this.load();
     }
 
     protected currentMonth(): void {
         const range = this.currentMonthRange();
-        this.filterForm.reset({ fechaInicio: range.fechaInicio, fechaFin: range.fechaFin, tipoItem: null });
+        this.filterForm.reset(range);
         this.load();
     }
 
@@ -72,7 +61,7 @@ export class ReporteVentasPage implements OnInit {
         if (!this.canExport() || this.exportingExcel() || this.exportingPdf()) return;
         this.exportingExcel.set(true);
         this.api.exportExcel(this.currentFilters()).pipe(finalize(() => this.exportingExcel.set(false))).subscribe({
-            next: blob => { this.fileDownload.download(blob, this.buildExportFileName('xlsx')); this.feedback.success('Excel del reporte de ventas generado correctamente.'); },
+            next: blob => { this.fileDownload.download(blob, this.buildExportFileName('xlsx')); this.feedback.success('Excel del reporte de compras generado correctamente.'); },
             error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo exportar el reporte a Excel.'))
         });
     }
@@ -81,12 +70,12 @@ export class ReporteVentasPage implements OnInit {
         if (!this.canExport() || this.exportingExcel() || this.exportingPdf()) return;
         this.exportingPdf.set(true);
         this.api.exportPdf(this.currentFilters()).pipe(finalize(() => this.exportingPdf.set(false))).subscribe({
-            next: blob => { this.fileDownload.download(blob, this.buildExportFileName('pdf')); this.feedback.success('PDF del reporte de ventas generado correctamente.'); },
+            next: blob => { this.fileDownload.download(blob, this.buildExportFileName('pdf')); this.feedback.success('PDF del reporte de compras generado correctamente.'); },
             error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo exportar el reporte a PDF.'))
         });
     }
 
-    protected canExport(): boolean { return (this.report()?.cantidadVentas ?? 0) > 0 || (this.report()?.cantidadAnuladas ?? 0) > 0; }
+    protected canExport(): boolean { return (this.report()?.cantidadCompras ?? 0) > 0 || (this.report()?.cantidadAnuladas ?? 0) > 0; }
 
     protected percentage(value: number, max: number): number {
         if (max <= 0 || value <= 0) return 0;
@@ -104,20 +93,20 @@ export class ReporteVentasPage implements OnInit {
         this.loading.set(true);
         this.api.get(filters).pipe(finalize(() => this.loading.set(false))).subscribe({
             next: response => this.report.set(response),
-            error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo cargar el reporte de ventas.'))
+            error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo cargar el reporte de compras.'))
         });
     }
 
-    private currentFilters(): ReporteVentasFilters {
+    private currentFilters(): ReporteComprasFilters {
         const raw = this.filterForm.getRawValue();
-        return { fechaInicio: raw.fechaInicio, fechaFin: raw.fechaFin, tipoItem: raw.tipoItem };
+        return { fechaInicio: raw.fechaInicio, fechaFin: raw.fechaFin };
     }
 
     private buildExportFileName(extension: 'xlsx' | 'pdf'): string {
         const now = new Date();
         const two = (value: number) => value.toString().padStart(2, '0');
         const stamp = `${now.getFullYear()}${two(now.getMonth() + 1)}${two(now.getDate())}_${two(now.getHours())}${two(now.getMinutes())}${two(now.getSeconds())}`;
-        return `Reporte_Ventas_${stamp}.${extension}`;
+        return `Reporte_Compras_${stamp}.${extension}`;
     }
 
     private currentMonthRange(): { fechaInicio: string; fechaFin: string } {

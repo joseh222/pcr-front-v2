@@ -7,13 +7,13 @@
 .page-description { margin: .4rem 0 0; color: var(--mat-sys-on-surface-variant); max-width: 52rem; }
 .filters-card, .report-card, .kpi-card { border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; background: var(--mat-sys-surface-container-lowest); }
 .filters-card { padding: 1rem; }
-.filters-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: .75rem; align-items: start; }
+.filters-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; align-items: start; }
 .filters-grid button { min-height: 56px; }
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 .kpi-card { padding: 1.1rem; display: grid; gap: .35rem; min-height: 7.5rem; align-content: center; }
 .kpi-card strong { font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.1; }
 .kpi-label { color: var(--mat-sys-on-surface-variant); font-weight: 600; }
-.kpi-card small { color: var(--mat-sys-on-surface-variant); }
+.kpi-card small, .bar-row small, .trend-row small { color: var(--mat-sys-on-surface-variant); }
 .kpi-card.primary { border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant)); }
 .kpi-card.warning { border-color: color-mix(in srgb, var(--mat-sys-error) 35%, var(--mat-sys-outline-variant)); }
 .report-grid.two-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
@@ -26,9 +26,7 @@
 .bar-label span { min-width: 0; overflow-wrap: anywhere; }
 .bar-track { height: .65rem; border-radius: 999px; background: var(--mat-sys-surface-container-high); overflow: hidden; }
 .bar-fill { display: block; height: 100%; border-radius: inherit; background: var(--mat-sys-primary); transition: width .2s ease; }
-.bar-row small, .trend-row small { color: var(--mat-sys-on-surface-variant); }
-.trend-card { overflow: hidden; }
-.trend-row { display: grid; grid-template-columns: 7rem minmax(8rem, 1fr) 7rem 5.5rem; gap: .75rem; align-items: center; padding: .75rem 0; border-top: 1px solid var(--mat-sys-outline-variant); }
+.trend-row { display: grid; grid-template-columns: 7rem minmax(8rem, 1fr) 8rem minmax(9rem, auto); gap: .75rem; align-items: center; padding: .75rem 0; border-top: 1px solid var(--mat-sys-outline-variant); }
 .trend-row:first-of-type { border-top: 0; }
 .trend-row strong { text-align: right; }
 .empty-state { margin: 1rem 0 0; padding: 1rem; border-radius: .75rem; background: var(--mat-sys-surface-container-low); color: var(--mat-sys-on-surface-variant); }

@@ -7,7 +7,7 @@
 .page-description { margin: .4rem 0 0; color: var(--mat-sys-on-surface-variant); max-width: 52rem; }
 .filters-card, .report-card, .kpi-card { border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; background: var(--mat-sys-surface-container-lowest); }
 .filters-card { padding: 1rem; }
-.filters-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: .75rem; align-items: start; }
+.filters-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) auto; gap: .75rem; align-items: start; }
 .filters-grid button { min-height: 56px; }
 .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 .kpi-card { padding: 1.1rem; display: grid; gap: .35rem; min-height: 7.5rem; align-content: center; }

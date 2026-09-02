@@ -5,7 +5,12 @@
             <h1 class="page-title">Reporte de ventas</h1>
             <p class="page-description">Analiza ingresos, ticket promedio, métodos de pago y comportamiento diario de las ventas.</p>
         </div>
-        <button mat-stroked-button type="button" (click)="currentMonth()"><mat-icon>today</mat-icon>Mes actual</button>
+        <div class="header-actions">
+            <button mat-stroked-button type="button" data-testid="export-reporte-excel" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportExcel()"><mat-icon>table_view</mat-icon>{{ exportingExcel() ? 'Generando...' : 'Excel' }}</button>
+            <button mat-stroked-button type="button" data-testid="export-reporte-pdf" [disabled]="!canExport() || exportingExcel() || exportingPdf()" (click)="exportPdf()"><mat-icon>picture_as_pdf</mat-icon>{{ exportingPdf() ? 'Generando...' : 'PDF' }}</button>
+            <button mat-stroked-button type="button" (click)="currentDay()"><mat-icon>today</mat-icon>Día actual</button>
+            <button mat-stroked-button type="button" (click)="currentMonth()"><mat-icon>date_range</mat-icon>Mes actual</button>
+        </div>
     </header>
 
     <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
