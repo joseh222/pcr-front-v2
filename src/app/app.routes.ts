@@ -60,6 +60,30 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/reportes/resumen-economico/pages/resumen-economico/resumen-economico').then(module => module.ResumenEconomicoPage)
             },
             {
+                path: 'sacramentos/bautismos/nuevo',
+                title: 'Nueva partida de bautismo | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW, PERMISSION_CODE.BAPTISM_CREATE] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-form/bautismo-form').then(module => module.BautismoFormPage)
+            },
+            {
+                path: 'sacramentos/bautismos/:id/editar',
+                title: 'Editar partida de bautismo | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW, PERMISSION_CODE.BAPTISM_EDIT] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-form/bautismo-form').then(module => module.BautismoFormPage)
+            },
+            {
+                path: 'sacramentos/bautismos/:id',
+                title: 'Detalle de bautismo | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-detail/bautismo-detail').then(module => module.BautismoDetailPage)
+            },
+            {
+                path: 'sacramentos/bautismos',
+                title: 'Bautismos | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-list/bautismo-list').then(module => module.BautismoListPage)
+            },
+            {
                 path: 'sacramentos/libros/nuevo',
                 title: 'Nuevo libro sacramental | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW, PERMISSION_CODE.SACRAMENTAL_BOOK_CREATE] },

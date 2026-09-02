@@ -31,7 +31,10 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
             { id: 'servicios', label: 'Servicios', icon: 'assignment', route: '/servicios', exact: true, permissions: [PERMISSION_CODE.SERVICE_REQUEST_VIEW] }
         ]
     },
-    { id: 'registros-sacramentales', label: 'Registros sacramentales', items: [{ id: 'libros-sacramentales', label: 'Libros sacramentales', icon: 'auto_stories', route: '/sacramentos/libros', exact: true, permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW] }] },
+    { id: 'registros-sacramentales', label: 'Registros sacramentales', items: [
+        { id: 'libros-sacramentales', label: 'Libros sacramentales', icon: 'auto_stories', route: '/sacramentos/libros', exact: true, permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW] },
+        { id: 'bautismos', label: 'Bautismos', icon: 'water_drop', route: '/sacramentos/bautismos', exact: true, permissions: [PERMISSION_CODE.BAPTISM_VIEW] }
+    ] },
     { id: 'venta', label: 'Venta', items: [{ id: 'ventas', label: 'Ventas', icon: 'point_of_sale', route: '/ventas', exact: true, permissions: [PERMISSION_CODE.SALE_VIEW] }] },
     { id: 'compra', label: 'Compra', items: [{ id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, permissions: [PERMISSION_CODE.PURCHASE_VIEW] }] },
     {
