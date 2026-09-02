@@ -1,0 +1,25 @@
+<section class="page-shell" data-testid="libro-sacramental-form-page">
+    <header class="page-header"><div><p class="eyebrow">REGISTROS SACRAMENTALES</p><h1>{{ title() }}</h1><p>{{ isEdit ? 'Corrige los datos permitidos del libro físico.' : 'Registra un libro físico y genera automáticamente sus folios virtuales.' }}</p></div><a mat-stroked-button routerLink="/sacramentos/libros"><mat-icon>arrow_back</mat-icon>Volver</a></header>
+    @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (completed()) { <div class="notice warning"><mat-icon>lock</mat-icon><div><strong>Digitalización completada</strong><p>Este libro está bloqueado. Debes reabrir su digitalización desde el detalle para realizar correcciones autorizadas.</p></div></div> }
+    @else if (structureLocked()) { <div class="notice"><mat-icon>info</mat-icon><div><strong>Estructura protegida</strong><p>Como la digitalización ya inició, tipo de sacramento, número y rango de folios no pueden cambiarse. Sí puedes corregir metadatos físicos.</p></div></div> }
+    @if (error()) { <div class="notice error"><mat-icon>error_outline</mat-icon><div><strong>No se pudo completar la operación</strong><p>{{ error() }}</p></div></div> }
+    @if (!loading()) { <form class="book-form" [formGroup]="form" (ngSubmit)="save()">
+        <section class="form-card"><header class="section-header"><span class="section-icon"><mat-icon>auto_stories</mat-icon></span><div><h2>Identificación y folios</h2><p>Estos datos representan la estructura física del libro.</p></div></header><div class="section-body"><div class="form-grid">
+            <mat-form-field appearance="outline"><mat-label>Sacramento</mat-label><mat-select formControlName="idTipoSacramento">@for (tipo of tipos(); track tipo.idTipoSacramento) { <mat-option [value]="tipo.idTipoSacramento">{{ tipo.nombre }}</mat-option> }</mat-select>@if (form.controls.idTipoSacramento.touched && form.controls.idTipoSacramento.invalid) { <mat-error>Selecciona el sacramento.</mat-error> }</mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Número de libro</mat-label><input matInput formControlName="numeroLibro" maxlength="30" placeholder="Ej. 11"><mat-hint>Único dentro del sacramento.</mat-hint>@if (form.controls.numeroLibro.touched && form.controls.numeroLibro.invalid) { <mat-error>Indica el número del libro.</mat-error> }</mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Folio inicial</mat-label><input matInput type="number" formControlName="folioInicial" min="1"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Folio final</mat-label><input matInput type="number" formControlName="folioFinal" min="1"><mat-hint>Se generarán todos los folios correlativos.</mat-hint></mat-form-field>
+            @if (!validFolios()) { <div class="form-error full-width"><mat-icon>error_outline</mat-icon>El rango debe ser correlativo y contener entre 1 y 10000 folios.</div> }
+            @if (!isEdit) { <mat-form-field appearance="outline" class="full-width"><mat-label>Estado físico inicial</mat-label><mat-select formControlName="codigoEstadoFisico">@for (estado of estadosFisicos(); track estado.codigo) { <mat-option [value]="estado.codigo">{{ estado.nombre }}</mat-option> }</mat-select><mat-hint>Un libro histórico puede registrarse directamente como cerrado.</mat-hint></mat-form-field> }
+        </div></div></section>
+        <section class="form-card"><header class="section-header"><span class="section-icon"><mat-icon>inventory_2</mat-icon></span><div><h2>Control físico</h2><p>Datos auxiliares para localizar y documentar el libro real.</p></div></header><div class="section-body"><div class="form-grid">
+            <mat-form-field appearance="outline"><mat-label>Fecha de apertura</mat-label><input matInput type="date" formControlName="fechaAperturaFisica"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Fecha de cierre</mat-label><input matInput type="date" formControlName="fechaCierreFisica"></mat-form-field>
+            @if (!validDates()) { <div class="form-error full-width"><mat-icon>error_outline</mat-icon>La fecha de cierre no puede ser anterior a la fecha de apertura.</div> }
+            <mat-form-field appearance="outline" class="full-width"><mat-label>Ubicación física</mat-label><input matInput formControlName="ubicacionFisica" maxlength="250" placeholder="Ej. Archivo parroquial - estante 2"></mat-form-field>
+            <mat-form-field appearance="outline" class="full-width"><mat-label>Observaciones</mat-label><textarea matInput formControlName="observaciones" maxlength="1000" rows="4"></textarea></mat-form-field>
+        </div></div></section>
+        <div class="form-actions"><a mat-stroked-button routerLink="/sacramentos/libros">Cancelar</a><button mat-flat-button type="submit" [disabled]="saving() || completed()"><mat-icon>save</mat-icon>{{ saving() ? 'Guardando...' : 'Guardar libro' }}</button></div>
+    </form> }
+</section>

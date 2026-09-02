@@ -60,6 +60,30 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/reportes/resumen-economico/pages/resumen-economico/resumen-economico').then(module => module.ResumenEconomicoPage)
             },
             {
+                path: 'sacramentos/libros/nuevo',
+                title: 'Nuevo libro sacramental | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW, PERMISSION_CODE.SACRAMENTAL_BOOK_CREATE] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-form/libro-form').then(module => module.LibroSacramentalFormPage)
+            },
+            {
+                path: 'sacramentos/libros/:id/editar',
+                title: 'Editar libro sacramental | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW, PERMISSION_CODE.SACRAMENTAL_BOOK_EDIT] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-form/libro-form').then(module => module.LibroSacramentalFormPage)
+            },
+            {
+                path: 'sacramentos/libros/:id',
+                title: 'Libro sacramental | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-detail/libro-detail').then(module => module.LibroSacramentalDetailPage)
+            },
+            {
+                path: 'sacramentos/libros',
+                title: 'Libros sacramentales | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-list/libro-list').then(module => module.LibroSacramentalListPage)
+            },
+            {
                 path: 'personas/nueva',
                 title: 'Nueva persona | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.PERSON_VIEW, PERMISSION_CODE.PERSON_CREATE] },

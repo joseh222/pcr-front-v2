@@ -1,0 +1,37 @@
+import { DatePipe } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { PERMISSION_CODE } from '../../../../../core/auth/permission-code.model';
+import { getApiErrorMessage } from '../../../../../core/feedback/api-error-message';
+import { AuthStore } from '../../../../auth/data-access/auth.store';
+import { LibroSacramentalActionsService } from '../../data-access/libro-sacramental-actions.service';
+import { LibroSacramentalApiService } from '../../data-access/libro-sacramental-api.service';
+import { FolioSacramental, LibroSacramentalDetail } from '../../data-access/models/libro-sacramental.models';
+
+@Component({ selector: 'pcr-libro-sacramental-detail', imports: [DatePipe, ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule], templateUrl: './libro-detail.html', styleUrl: './libro-detail.scss' })
+export class LibroSacramentalDetailPage implements OnInit {
+    private readonly api = inject(LibroSacramentalApiService); private readonly actions = inject(LibroSacramentalActionsService); private readonly authStore = inject(AuthStore); private readonly fb = inject(FormBuilder); private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id') ?? 0);
+    protected readonly loading = signal(true); protected readonly foliosLoading = signal(false); protected readonly error = signal<string | null>(null); protected readonly folioError = signal<string | null>(null); protected readonly book = signal<LibroSacramentalDetail | null>(null); protected readonly folios = signal<readonly FolioSacramental[]>([]); protected readonly selectedFolio = signal<FolioSacramental | null>(null); protected readonly page = signal(0); protected readonly pageSize = 60;
+    protected readonly canEdit = computed(() => this.authStore.hasPermission(PERMISSION_CODE.SACRAMENTAL_BOOK_EDIT) && this.book()?.codigoEstadoDigitalizacion !== 'COMPLETADA'); protected readonly canChangeState = computed(() => this.authStore.hasPermission(PERMISSION_CODE.SACRAMENTAL_BOOK_STATE)); protected readonly canReopen = computed(() => this.authStore.hasPermission(PERMISSION_CODE.SACRAMENTAL_BOOK_REOPEN));
+    protected readonly pageCount = computed(() => Math.max(1, Math.ceil(this.folios().length / this.pageSize))); protected readonly visibleFolios = computed(() => this.folios().slice(this.page() * this.pageSize, (this.page() + 1) * this.pageSize));
+    readonly folioForm = this.fb.group({ numeroFolio: this.fb.nonNullable.control('') });
+    ngOnInit(): void { this.reload(); }
+    protected reload(): void { this.loading.set(true); this.error.set(null); this.api.getById(this.id).subscribe({ next: book => { this.book.set(book); this.loading.set(false); this.loadFolios(); }, error: error => { this.error.set(getApiErrorMessage(error, 'No se pudo cargar el libro sacramental.')); this.loading.set(false); } }); }
+    protected searchFolio(): void { this.page.set(0); this.loadFolios(this.folioForm.controls.numeroFolio.value); }
+    protected clearFolioSearch(): void { this.folioForm.reset({ numeroFolio: '' }); this.page.set(0); this.selectedFolio.set(null); this.loadFolios(); }
+    protected selectFolio(folio: FolioSacramental): void { this.selectedFolio.set(folio); }
+    protected previousPage(): void { if (this.page() > 0) this.page.update(value => value - 1); }
+    protected nextPage(): void { if (this.page() + 1 < this.pageCount()) this.page.update(value => value + 1); }
+    protected putInUse(): void { const book = this.book(); if (!book || !this.canChangeState()) return; this.actions.changePhysicalStatus(book, 'EN_USO').subscribe(changed => { if (changed) this.reload(); }); }
+    protected closeBook(): void { const book = this.book(); if (!book || !this.canChangeState()) return; this.actions.changePhysicalStatus(book, 'CERRADO').subscribe(changed => { if (changed) this.reload(); }); }
+    protected startDigitization(): void { const book = this.book(); if (!book || !this.canChangeState()) return; this.actions.changeDigitizationStatus(book, 'EN_PROCESO').subscribe(changed => { if (changed) this.reload(); }); }
+    protected completeDigitization(): void { const book = this.book(); if (!book || !this.canChangeState() || book.codigoEstadoFisico !== 'CERRADO') return; this.actions.changeDigitizationStatus(book, 'COMPLETADA').subscribe(changed => { if (changed) this.reload(); }); }
+    protected reopenDigitization(): void { const book = this.book(); if (!book || !this.canReopen()) return; this.actions.reopenDigitization(book).subscribe(changed => { if (changed) this.reload(); }); }
+    private loadFolios(numeroFolio?: string | null): void { this.foliosLoading.set(true); this.folioError.set(null); this.api.getFolios(this.id, numeroFolio).subscribe({ next: folios => { this.folios.set(folios); this.foliosLoading.set(false); if (folios.length === 1) this.selectedFolio.set(folios[0]); else if (this.selectedFolio() && !folios.some(item => item.idFolioSacramental === this.selectedFolio()!.idFolioSacramental)) this.selectedFolio.set(null); }, error: error => { this.folios.set([]); this.folioError.set(getApiErrorMessage(error, 'No se pudieron cargar los folios.')); this.foliosLoading.set(false); } }); }
+}
