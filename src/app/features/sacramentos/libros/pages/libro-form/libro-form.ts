@@ -13,7 +13,8 @@ import { FeedbackService } from '../../../../../core/feedback/feedback.service';
 import { LibroSacramentalApiService } from '../../data-access/libro-sacramental-api.service';
 import { EstadoFisicoCatalogItem, LibroSacramentalDetail, SacramentoCatalogItem } from '../../data-access/models/libro-sacramental.models';
 
-@Component({ selector: 'pcr-libro-sacramental-form', imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule], templateUrl: './libro-form.html', styleUrl: './libro-form.scss' })
+import { SacramentalUppercaseDirective } from '../../../shared/sacramental-uppercase.directive';
+@Component({ selector: 'pcr-libro-sacramental-form', imports: [ReactiveFormsModule, RouterLink, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule,SacramentalUppercaseDirective], templateUrl: './libro-form.html', styleUrl: './libro-form.scss' })
 export class LibroSacramentalFormPage implements OnInit {
     private readonly api = inject(LibroSacramentalApiService); private readonly fb = inject(FormBuilder); private readonly route = inject(ActivatedRoute); private readonly router = inject(Router); private readonly feedback = inject(FeedbackService);
     private readonly id = Number(this.route.snapshot.paramMap.get('id') ?? 0); protected readonly isEdit = this.id > 0; protected readonly loading = signal(this.isEdit); protected readonly saving = signal(false); protected readonly error = signal<string | null>(null); protected readonly detail = signal<LibroSacramentalDetail | null>(null); protected readonly tipos = signal<readonly SacramentoCatalogItem[]>([]); protected readonly estadosFisicos = signal<readonly EstadoFisicoCatalogItem[]>([]);

@@ -25,6 +25,8 @@ describe('APP_NAVIGATION', () => {
         expect(items.get('configuracion-general')?.permissions).toEqual([PERMISSION_CODE.CONFIGURATION_VIEW]);
         expect(items.get('libros-sacramentales')?.permissions).toEqual([PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW]);
         expect(items.get('bautismos')?.permissions).toEqual([PERMISSION_CODE.BAPTISM_VIEW]);
+        expect(items.get('confirmaciones')?.permissions).toEqual([PERMISSION_CODE.CONFIRMATION_VIEW]);
+        expect(items.get('matrimonios')?.permissions).toEqual([PERMISSION_CODE.MARRIAGE_VIEW]);
     });
     it('should place security, configuration, dashboard and reports in the expected order', () => { expect(APP_NAVIGATION[0]?.id).toBe('seguridad'); expect(APP_NAVIGATION[1]?.id).toBe('configuracion'); expect(APP_NAVIGATION[2]?.id).toBe('principal'); expect(APP_NAVIGATION[3]?.id).toBe('reportes'); });
 });

@@ -5,6 +5,8 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { AuthStore } from '../../../../auth/data-access/auth.store';
 import { BautismoApiService } from '../../../bautismos/data-access/bautismo-api.service';
+import { ConfirmacionApiService } from '../../../confirmaciones/data-access/confirmacion-api.service';
+import { MatrimonioApiService } from '../../../matrimonios/data-access/matrimonio-api.service';
 import { LibroSacramentalActionsService } from '../../data-access/libro-sacramental-actions.service';
 import { LibroSacramentalApiService } from '../../data-access/libro-sacramental-api.service';
 import { LibroSacramentalDetailPage } from './libro-detail';
@@ -14,6 +16,6 @@ describe('LibroSacramentalDetailPage', () => {
     const folios = Array.from({ length: 120 }, (_, i) => ({ idFolioSacramental: i + 1, idLibroSacramental: 7, numeroLibro: '11', numeroFolio: String(i + 1), ordenFolio: i + 1, isActive: true, rowVersion: 'A' }));
     const bautismoApi = { getByFolio: vi.fn(() => of([])) };
     const api = { getById: vi.fn(() => of(detail)), getFolios: vi.fn(() => of(folios)) }; const actions = { changePhysicalStatus: vi.fn(() => of(false)), changeDigitizationStatus: vi.fn(() => of(false)), reopenDigitization: vi.fn(() => of(false)) }; const auth = { hasPermission: vi.fn(() => true), permissions: signal<readonly string[]>([]), grantsAllPermissions: signal(true) };
-    beforeEach(() => { api.getById.mockClear(); api.getFolios.mockClear(); TestBed.configureTestingModule({ imports: [LibroSacramentalDetailPage], providers: [provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } }, { provide: LibroSacramentalApiService, useValue: api }, { provide: LibroSacramentalActionsService, useValue: actions }, { provide: AuthStore, useValue: auth }, { provide: BautismoApiService, useValue: bautismoApi }] }); });
+    beforeEach(() => { api.getById.mockClear(); api.getFolios.mockClear(); TestBed.configureTestingModule({ imports: [LibroSacramentalDetailPage], providers: [provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } }, { provide: LibroSacramentalApiService, useValue: api }, { provide: LibroSacramentalActionsService, useValue: actions }, { provide: AuthStore, useValue: auth }, { provide: BautismoApiService, useValue: bautismoApi }, { provide: ConfirmacionApiService, useValue: { getByFolio: vi.fn(() => of([])) } }, { provide: MatrimonioApiService, useValue: { getByFolio: vi.fn(() => of([])) } }] }); });
     it('should render the book and paginate folios', () => { const fixture = TestBed.createComponent(LibroSacramentalDetailPage); fixture.detectChanges(); expect(api.getById).toHaveBeenCalledWith(7); expect(api.getFolios).toHaveBeenCalledWith(7, undefined); expect(fixture.nativeElement.textContent).toContain('Bautismo · Libro 11'); expect(fixture.nativeElement.textContent).toContain('Página 1 de 2'); expect(fixture.nativeElement.querySelectorAll('.folio-button').length).toBe(60); });
 });
