@@ -16,6 +16,9 @@ import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 import { SolicitudServicioFormStore } from '../../data-access/models/solicitud-servicio-form.store';
+import { SolicitudServicioApiService } from '../../data-access/solicitud-servicio-api.service';
+import { RegistroSacramentalSearchItem } from '../../data-access/models/solicitud-servicio-read.models';
+import { RegistroSacramentalSelectorDialog } from '../../components/registro-sacramental-selector-dialog/registro-sacramental-selector-dialog';
 import { ServicioLookupItem } from '../../data-access/models/servicio-lookup.models';
 import { canEditSolicitud, isMisaSolicitud } from '../../data-access/models/solicitud-servicio.rules';
 import { SolicitudServicioCreateRequest, SolicitudServicioUpdateRequest } from '../../data-access/models/solicitud-servicio-write.models';
@@ -44,6 +47,7 @@ export class SolicitudServicioFormPage implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
     private readonly dialog = inject(MatDialog);
+    private readonly api = inject(SolicitudServicioApiService);
     private readonly authStore = inject(AuthStore);
     protected readonly canCreatePerson = () => this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_CREATE);
 
@@ -51,6 +55,8 @@ export class SolicitudServicioFormPage implements OnInit {
     protected readonly selectedService = signal<ServicioLookupItem | null>(null);
     protected readonly selectedPerson = signal<SelectedPerson | null>(null);
     protected readonly showNewPerson = signal(false);
+    protected readonly selectedRegistro = signal<RegistroSacramentalSearchItem | null>(null);
+    private readonly registroChanged = signal(false);
     private originalRequiresPayment = false;
 
     protected readonly isEditMode = computed(() => this.idSolicitudServicio() !== null);
@@ -62,6 +68,7 @@ export class SolicitudServicioFormPage implements OnInit {
         idPersona: this.fb.control<number | null>(null),
         personaSearch: this.fb.nonNullable.control(''),
         requierePago: this.fb.nonNullable.control(true),
+        cantidad:this.fb.nonNullable.control(1,[Validators.required,Validators.min(1),Validators.pattern(/^\d+$/)]),
         importe: this.fb.control<number | null>(null),
         motivoNoPago: this.fb.nonNullable.control('', Validators.maxLength(250)),
         observaciones: this.fb.nonNullable.control('', Validators.maxLength(500))
@@ -87,11 +94,13 @@ export class SolicitudServicioFormPage implements OnInit {
             idServicio: detail.idServicio,
             idPersona: detail.idPersona,
             requierePago: detail.requierePago,
+            cantidad:detail.cantidad,
             importe: detail.importe,
             motivoNoPago: detail.motivoNoPago ?? '',
             observaciones: detail.observaciones ?? ''
         }, { emitEvent: false });
         this.selectedPerson.set(detail.idPersona ? { idPersona: detail.idPersona, nombreCompleto: detail.nombreCompleto, numeroDocumento: detail.numeroDocumento, telefono: detail.telefono } : null);
+        if(detail.tieneRegistroSacramental && detail.idRegistroSacramental && detail.codigoTipoSacramentoRegistro){ this.selectedRegistro.set({codigoTipoSacramento:detail.codigoTipoSacramentoRegistro,idRegistroSacramental:detail.idRegistroSacramental,nombrePrincipal:detail.nombreRegistroSacramental??'',nombreSecundario:null,dniPrincipal:null,dniSecundario:null,fechaNacimientoPrincipal:null,fechaSacramento:detail.fechaSacramentoRegistro,padresResumen:null,idLibroSacramental:detail.idLibroSacramentalRegistro??0,numeroLibro:detail.numeroLibroRegistro??'',idFolioSacramental:detail.idFolioSacramentalRegistro??0,numeroFolio:detail.numeroFolioRegistro??'',numeroPartida:detail.numeroPartidaRegistro??''}); }
     });
 
     private readonly syncService = effect(() => {
@@ -118,24 +127,30 @@ export class SolicitudServicioFormPage implements OnInit {
     });
 
     private readonly syncSaveResult = effect(() => {
-        const result = this.store.saveResult();
-        if (!result) return;
-        const editing = this.isEditMode();
-        this.store.clearSaveResult();
-        this.feedback.success(result.mensaje || (editing ? 'Solicitud actualizada correctamente.' : 'Solicitud registrada correctamente.'));
-        if (editing) { void this.router.navigate(['/servicios', result.idSolicitudServicio]); return; }
-        if (result.requierePago && result.estadoPago === 'PENDIENTE' && this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE)) {
-            this.dialog.open(ConfirmActionDialog, {
-                width: 'min(460px, calc(100vw - 2rem))',
-                data: { title: 'Solicitud registrada', message: `La solicitud ${result.codSolicitudServicio} requiere pago. ¿Deseas registrar la venta ahora?`, cancelText: 'Más tarde', confirmText: 'Vender ahora', icon: 'payments' }
-            }).afterClosed().subscribe(confirm => {
-                if (confirm) { void this.router.navigate(['/ventas/nueva'], { queryParams: { solicitudServicioId: result.idSolicitudServicio, origen: 'servicio' } }); return; }
-                void this.router.navigate(['/servicios', result.idSolicitudServicio]);
+        const result=this.store.saveResult(); if(!result)return; const editing=this.isEditMode(); this.store.clearSaveResult();
+        const service=this.selectedService();
+        if(service?.requiereRegistroSacramental && this.selectedRegistro() && (!editing || this.registroChanged())) {
+            const registro=this.selectedRegistro()!;
+            const rowVersion=editing ? (this.store.detail()?.registroSacramentalRowVersion ?? null) : null;
+            this.api.setRegistroSacramental(result.idSolicitudServicio,{codigoTipoSacramento:service.codigoTipoSacramentoRequerido!,idRegistroSacramental:registro.idRegistroSacramental,rowVersion}).subscribe({
+                next:()=>this.finishSave(result,editing,true),
+                error:e=>{this.feedback.error('La solicitud se guardó, pero no se pudo asociar el registro sacramental. Puedes completar la asociación desde Editar.');void this.router.navigate(['/servicios',result.idSolicitudServicio]);}
             });
             return;
         }
-        void this.router.navigate(['/servicios', result.idSolicitudServicio]);
+        this.finishSave(result,editing,!!this.selectedRegistro() || !service?.requiereRegistroSacramental);
     });
+
+    private finishSave(result:any,editing:boolean,readyForSale:boolean):void {
+        this.feedback.success(result.mensaje || (editing?'Solicitud actualizada correctamente.':'Solicitud registrada correctamente.'));
+        if(this.selectedService()?.requiereRegistroSacramental && !readyForSale){this.feedback.info('La solicitud quedó pendiente de asociar a una partida sacramental antes del cobro.');void this.router.navigate(['/servicios',result.idSolicitudServicio]);return;}
+        const shouldOfferSale=!editing || (!!this.selectedService()?.requiereRegistroSacramental && this.registroChanged());
+        if(!shouldOfferSale){void this.router.navigate(['/servicios',result.idSolicitudServicio]);return;}
+        if(result.requierePago && result.estadoPago==='PENDIENTE' && this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE)){
+            this.dialog.open(ConfirmActionDialog,{width:'min(460px, calc(100vw - 2rem))',data:{title:'Solicitud registrada',message:`La solicitud ${result.codSolicitudServicio} está lista para cobrar. ¿Deseas registrar la venta ahora?`,cancelText:'Más tarde',confirmText:'Cobrar ahora',icon:'payments'}}).afterClosed().subscribe(confirm=>{if(confirm){void this.router.navigate(['/ventas/nueva'],{queryParams:{solicitudServicioId:result.idSolicitudServicio,origen:'servicio'}});return;}void this.router.navigate(['/servicios',result.idSolicitudServicio]);});return;
+        }
+        void this.router.navigate(['/servicios',result.idSolicitudServicio]);
+    }
 
     ngOnInit(): void {
         this.setupSearches();
@@ -148,7 +163,7 @@ export class SolicitudServicioFormPage implements OnInit {
     }
 
     protected selectService(service: ServicioLookupItem): void {
-        this.selectedService.set(service);
+        this.selectedService.set(service); this.selectedRegistro.set(null); this.registroChanged.set(false);
         this.form.patchValue({ idServicio: service.idServicio, serviceSearch: '' }, { emitEvent: false });
         this.store.clearServiceSearch();
         this.applyCommercialRules(false);
@@ -157,6 +172,7 @@ export class SolicitudServicioFormPage implements OnInit {
     protected clearService(): void {
         if (this.isEditMode()) return;
         this.selectedService.set(null);
+        this.selectedRegistro.set(null); this.registroChanged.set(false);
         this.form.patchValue({ idServicio: null, serviceSearch: '', importe: null }, { emitEvent: false });
         this.store.clearServiceSearch();
     }
@@ -187,6 +203,13 @@ export class SolicitudServicioFormPage implements OnInit {
         this.store.createPerson({ idTipoDocumento: value.idTipoDocumento, numeroDocumento: this.nullableText(value.numeroDocumento), nombreCompleto: value.nombreCompleto.trim(), fechaNacimiento: null, telefono: this.nullableText(value.telefono), email: null, direccion: null, roles: [] });
     }
 
+    protected selectRegistro():void {
+        const service=this.selectedService(); if(!service?.requiereRegistroSacramental || !service.codigoTipoSacramentoRequerido)return;
+        this.dialog.open(RegistroSacramentalSelectorDialog,{width:'min(980px, calc(100vw - 2rem))',maxWidth:'98vw',data:{codigoTipoSacramento:service.codigoTipoSacramentoRequerido,nombreTipoSacramento:service.nombreTipoSacramentoRequerido??service.codigoTipoSacramentoRequerido}}).afterClosed().subscribe((item:RegistroSacramentalSearchItem|undefined)=>{if(!item)return;this.selectedRegistro.set(item);this.registroChanged.set(true);});
+    }
+    protected canClearRegistro():boolean { return !this.store.detail()?.tieneRegistroSacramental; }
+    protected clearRegistro():void { if(!this.canClearRegistro())return; this.selectedRegistro.set(null);this.registroChanged.set(true); }
+
     protected servicePriceLabel(): string {
         const service = this.selectedService();
         if (!service) return '';
@@ -206,12 +229,12 @@ export class SolicitudServicioFormPage implements OnInit {
 
     private buildCreateRequest(): SolicitudServicioCreateRequest {
         const value = this.form.getRawValue();
-        return { idServicio: value.idServicio!, idPersona: value.idPersona, requierePago: value.requierePago, importe: this.requestAmount(), motivoNoPago: value.requierePago ? null : this.nullableText(value.motivoNoPago), observaciones: this.nullableText(value.observaciones) };
+        return { idServicio: value.idServicio!, idPersona: value.idPersona, requierePago: value.requierePago, cantidad:value.cantidad, importe: this.requestAmount(), motivoNoPago: value.requierePago ? null : this.nullableText(value.motivoNoPago), observaciones: this.nullableText(value.observaciones) };
     }
 
     private buildUpdateRequest(rowVersion: string): SolicitudServicioUpdateRequest {
         const value = this.form.getRawValue();
-        return { idPersona: value.idPersona, requierePago: value.requierePago, importe: this.requestAmount(), motivoNoPago: value.requierePago ? null : this.nullableText(value.motivoNoPago), observaciones: this.nullableText(value.observaciones), rowVersion };
+        return { idPersona: value.idPersona, requierePago: value.requierePago, cantidad:value.cantidad, importe: this.requestAmount(), motivoNoPago: value.requierePago ? null : this.nullableText(value.motivoNoPago), observaciones: this.nullableText(value.observaciones), rowVersion };
     }
 
     private requestAmount(): number | null {

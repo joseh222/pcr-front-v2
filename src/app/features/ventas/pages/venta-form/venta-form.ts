@@ -205,6 +205,11 @@ export class VentaFormPage implements OnInit {
     }
 
     protected selectService(service: VentaSolicitudPendiente): void {
+        if (!service.puedeCobrar) {
+            this.feedback.warning(service.motivoNoCobrable || 'La solicitud todavía no está lista para cobrar.');
+            return;
+        }
+
         if (!this.store.addService(service)) {
             this.feedback.warning('El servicio ya se encuentra en el detalle de venta.');
             return;

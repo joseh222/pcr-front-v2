@@ -30,10 +30,33 @@
 
         <article class="detail-card"><header><mat-icon>payments</mat-icon><h2>Información comercial</h2></header><div class="detail-body commercial-grid">
             <div><span>Requiere pago</span><strong>{{ item.requierePago ? 'Sí' : 'No' }}</strong></div>
-            <div><span>Importe</span><strong>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+            <div><span>Cantidad</span><strong>{{ item.cantidad }}</strong></div>
+            <div><span>Precio unitario</span><strong>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+            <div><span>Total</span><strong>{{ item.importeTotal | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
             <div><span>Estado de pago</span><strong class="payment-text">{{ item.nombreEstadoPago }}</strong></div>
             @if (!item.requierePago) { <div class="full-row"><span>Motivo sin pago</span><strong>{{ item.motivoNoPago || '—' }}</strong></div> }
+            @if (item.requierePago && item.estadoPago === 'PENDIENTE' && !item.puedeCobrar && item.motivoNoCobrable) { <div class="full-row"><span>Pendiente para cobro</span><strong>{{ item.motivoNoCobrable }}</strong></div> }
         </div></article>
+
+        @if (item.requiereRegistroSacramental) {
+            <article class="detail-card sacramental-detail-card">
+                <header><mat-icon>auto_stories</mat-icon><h2>Referencia sacramental</h2></header>
+                <div class="detail-body">
+                    @if (item.tieneRegistroSacramental) {
+                        <div class="sacramental-reference">
+                            <div><span>Tipo</span><strong>{{ item.nombreTipoSacramentoRequerido || item.codigoTipoSacramentoRegistro }}</strong></div>
+                            <div><span>Persona / registro</span><strong>{{ item.nombreRegistroSacramental || '—' }}</strong></div>
+                            <div><span>Libro</span><strong>{{ item.numeroLibroRegistro || '—' }}</strong></div>
+                            <div><span>Folio</span><strong>{{ item.numeroFolioRegistro || '—' }}</strong></div>
+                            <div><span>Partida</span><strong>{{ item.numeroPartidaRegistro || '—' }}</strong></div>
+                            <div><span>Fecha sacramento</span><strong>{{ item.fechaSacramentoRegistro ? (item.fechaSacramentoRegistro | date:'dd/MM/yyyy') : '—' }}</strong></div>
+                        </div>
+                    } @else {
+                        <div class="sacramental-pending"><mat-icon>link_off</mat-icon><div><strong>Pendiente de asociar</strong><p>Esta solicitud no podrá cobrarse hasta seleccionar la partida de {{ item.nombreTipoSacramentoRequerido || item.codigoTipoSacramentoRequerido }}.</p></div>@if (canEdit()) { <a mat-stroked-button [routerLink]="['/servicios', item.idSolicitudServicio, 'editar']"><mat-icon>link</mat-icon>Asociar registro</a> }</div>
+                    }
+                </div>
+            </article>
+        }
 
         @if (item.observaciones) { <article class="detail-card"><header><mat-icon>notes</mat-icon><h2>Observaciones</h2></header><div class="detail-body"><p class="text-block">{{ item.observaciones }}</p></div></article> }
 

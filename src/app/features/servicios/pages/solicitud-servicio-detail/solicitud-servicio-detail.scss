@@ -28,3 +28,5 @@
 .state-card { display:flex; align-items:center; justify-content:center; gap:1rem; min-height:12rem; padding:2rem; }
 .error-state { color:var(--mat-sys-error); }
 @media (max-width:760px) { .page-header { flex-direction:column; } .header-actions { width:100%; justify-content:flex-start; } .info-grid,.info-list,.commercial-grid { grid-template-columns:1fr; } .wide,.full-row { grid-column:auto; } }
+
+.sacramental-reference{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.sacramental-reference div{display:flex;flex-direction:column;gap:.25rem}.sacramental-reference span{color:var(--mat-sys-on-surface-variant);font-size:.82rem}.sacramental-pending{display:flex;align-items:center;gap:1rem;padding:1rem;border:1px dashed var(--mat-sys-outline);border-radius:12px}.sacramental-pending>div{flex:1}.sacramental-pending p{margin:.25rem 0 0;color:var(--mat-sys-on-surface-variant)}@media(max-width:760px){.sacramental-reference{grid-template-columns:1fr 1fr}.sacramental-pending{align-items:stretch;flex-direction:column}}@media(max-width:520px){.sacramental-reference{grid-template-columns:1fr}}

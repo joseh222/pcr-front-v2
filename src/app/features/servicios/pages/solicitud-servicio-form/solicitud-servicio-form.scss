@@ -32,3 +32,4 @@
 .message-card { display:flex; align-items:center; gap:.5rem; padding:1rem; }
 .message-card.error { color:var(--mat-sys-error); }
 @media (max-width:700px) { .page-header { flex-direction:column; } .person-search-row,.form-grid { grid-template-columns:1fr; } .selected-card { align-items:flex-start; flex-direction:column; } .form-actions { flex-direction:column-reverse; } .form-actions a,.form-actions button { width:100%; } }
+.sacramental-empty{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem;border:1px dashed var(--mat-sys-outline);border-radius:12px}.sacramental-empty p{margin:.25rem 0 0;color:var(--mat-sys-on-surface-variant)}.selected-actions{display:flex;gap:.5rem;flex-wrap:wrap}@media(max-width:700px){.sacramental-empty{align-items:stretch;flex-direction:column}}

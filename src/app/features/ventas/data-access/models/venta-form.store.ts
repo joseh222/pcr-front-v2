@@ -299,10 +299,10 @@ export class VentaFormStore {
                 referencia: service.codigoServicio,
                 descripcion: service.nombreServicio,
                 solicitante: service.nombreCompleto,
-                cantidad: 1,
+                cantidad: service.cantidad,
                 precioUnitario: service.importe,
                 stockActual: null,
-                subtotal: service.importe,
+                subtotal: service.importeTotal,
                 cantidadError: null
             }
         ]);
@@ -425,6 +425,6 @@ export class VentaFormStore {
     }
 
     private isPayableService(service: VentaSolicitudDetalle): boolean {
-        return service.requierePago && service.estadoSolicitud === 'ACTIVA' && service.estadoPago === 'PENDIENTE';
+        return service.puedeCobrar && service.requierePago && service.estadoSolicitud === 'ACTIVA' && service.estadoPago === 'PENDIENTE';
     }
 }

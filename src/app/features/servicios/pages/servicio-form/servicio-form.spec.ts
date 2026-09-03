@@ -11,7 +11,7 @@ describe('ServicioFormPage', () => {
     const saveError = signal<string | null>(null);
     const saveResult = signal<any>(null);
     const storeMock = {
-        categorias: signal<any[]>([{ idCategoriaServicio: 1, nombre: 'Litúrgicos' }]).asReadonly(), detail: detail.asReadonly(),
+        categorias: signal<any[]>([{ idCategoriaServicio: 1, nombre: 'Litúrgicos' }]).asReadonly(), tiposSacramento: signal<any[]>([{ idTipoSacramento: 1, codigo: 'BAUTISMO', nombre: 'Bautismo' }]).asReadonly(), detail: detail.asReadonly(),
         loading: signal(false).asReadonly(), loadError: signal<string | null>(null).asReadonly(), saving: signal(false).asReadonly(), saveError: saveError.asReadonly(), saveResult: saveResult.asReadonly(),
         initialize: vi.fn(), create: vi.fn(), update: vi.fn(), clearSaveError: vi.fn(), clearSaveResult: vi.fn()
     };
@@ -44,7 +44,7 @@ describe('ServicioFormPage', () => {
     });
 
     it('should initialize edit mode and patch detail', async () => {
-        detail.set({ idServicio: 5, codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: 'Documento', modoPrecio: 'FIJO', precioBase: 15, rowVersion: 'A' });
+        detail.set({ idServicio: 5, codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: 'Documento', modoPrecio: 'FIJO', precioBase: 15, idTipoSacramentoRequerido: null, rowVersion: 'A' });
         const fixture = await createFixture({ id: '5' });
         expect(storeMock.initialize).toHaveBeenCalledWith(5);
         expect(fixture.componentInstance.form.controls.nombre.value).toBe('Constancia');
@@ -68,8 +68,8 @@ describe('ServicioFormPage', () => {
 
     it('should build a create request and save', async () => {
         const fixture = await createFixture();
-        fixture.componentInstance.form.setValue({ codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: ' Constancia ', descripcion: ' Documento ', modoPrecio: 'FIJO', precioBase: 15 });
+        fixture.componentInstance.form.setValue({ codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: ' Constancia ', descripcion: ' Documento ', modoPrecio: 'FIJO', precioBase: 15, idTipoSacramentoRequerido: 1 });
         fixture.componentInstance['save']();
-        expect(storeMock.create).toHaveBeenCalledWith({ codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: 'Documento', modoPrecio: 'FIJO', precioBase: 15 });
+        expect(storeMock.create).toHaveBeenCalledWith({ codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: 'Documento', modoPrecio: 'FIJO', precioBase: 15, idTipoSacramentoRequerido: 1 });
     });
 });

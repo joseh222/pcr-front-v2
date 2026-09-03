@@ -22,5 +22,5 @@ describe('SolicitudServicioFormStore', () => {
     it('should initialize a new request', () => { store.initialize(null); expect(apiMock.getPersonaTiposDocumento).toHaveBeenCalledOnce(); expect(store.loading()).toBe(false); });
     it('should exclude Misa from generic service search', () => { store.searchServices('mi'); expect(apiMock.searchServicios).toHaveBeenCalledWith('mi', 10); expect(store.serviceResults().map(x => x.codigo)).toEqual(['CONSTANCIA']); });
     it('should search persons through request lookup', () => { store.searchPersons('jose'); expect(apiMock.searchPersonas).toHaveBeenCalledWith('jose', 10); });
-    it('should create a request', () => { const request = { idServicio: 2, idPersona: null, requierePago: true, importe: null, motivoNoPago: null, observaciones: null }; store.create(request); expect(apiMock.create).toHaveBeenCalledWith(request); expect(store.saving()).toBe(false); });
+    it('should create a request', () => { const request = { idServicio: 2, idPersona: null, requierePago: true, cantidad: 1, importe: null, motivoNoPago: null, observaciones: null }; store.create(request); expect(apiMock.create).toHaveBeenCalledWith(request); expect(store.saving()).toBe(false); });
 });
