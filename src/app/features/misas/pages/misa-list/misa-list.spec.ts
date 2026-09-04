@@ -15,7 +15,7 @@ import { FileDownloadService } from '../../../../core/files/file-download.servic
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
-const apiMock = { exportExcel: vi.fn(() => of(new Blob(['excel']))), exportPdf: vi.fn(() => of(new Blob(['pdf']))) };
+const apiMock = { exportExcel: vi.fn(() => of(new Blob(['excel']))), exportPdf: vi.fn(() => of(new Blob(['pdf']))), getCalendar: vi.fn(() => of({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] })) };
 const fileDownloadMock = { download: vi.fn() };
 const feedbackMock = { success: vi.fn(), error: vi.fn() };
 
@@ -160,7 +160,17 @@ describe('MisaListPage', () => {
         ).toBeTruthy();
     });
 
+    it('should open the calendar as the default work view', () => {
+        expect(fixture.nativeElement.querySelector('[data-testid="misa-calendar"]')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('[data-testid="misa-filters"]')).toBeFalsy();
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[data-testid="misa-filters"]')).toBeTruthy();
+    });
+
     it('should search using the form filters', () => {
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
         component.filterForm.patchValue({
             texto: 'JUAN',
             fechaInicio: '2026-08-01',
@@ -196,6 +206,8 @@ describe('MisaListPage', () => {
     });
 
     it('should clear filters', () => {
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
         component.filterForm.patchValue({
             texto: 'JUAN',
             idModalidad: 1
@@ -228,6 +240,8 @@ describe('MisaListPage', () => {
     });
 
     it('should render misa rows', () => {
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
         items.set([
             misa()
         ]);
@@ -257,6 +271,8 @@ describe('MisaListPage', () => {
     });
 
     it('should reload the list', () => {
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
         const button = fixture.nativeElement.querySelector('[data-testid="reload-misas"]') as HTMLButtonElement;
         button.click();
         expect(storeMock.reload).toHaveBeenCalledOnce();
@@ -268,6 +284,8 @@ describe('MisaListPage', () => {
     });
 
     it('should expose edit for an editable misa', () => {
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
         items.set([misa()]);
         totalRegistros.set(1);
         fixture.detectChanges();
@@ -276,6 +294,8 @@ describe('MisaListPage', () => {
 
 
     it('should export using the filters that were actually searched', () => {
+        component['setViewMode']('LIST');
+        fixture.detectChanges();
         totalRegistros.set(3);
         component.filterForm.patchValue({ texto: 'JUAN', fechaInicio: '2026-08-01', fechaFin: '2026-08-31', estadoPago: 'PAGADO' });
         component['search']();

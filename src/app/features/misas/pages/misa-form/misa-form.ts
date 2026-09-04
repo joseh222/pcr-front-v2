@@ -54,6 +54,7 @@ export class MisaFormPage implements OnInit {
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
+    protected readonly returnUrl = signal('/misas');
     protected readonly intentionRule = signal<MisaIntentionRule>(EMPTY_MISA_INTENTION_RULE);
     protected get intenciones(): FormArray<MisaIntentionFormGroup> { return this.form.controls.intenciones; }
 
@@ -148,9 +149,18 @@ export class MisaFormPage implements OnInit {
 
     ngOnInit(): void {
         this.setupPersonSearch();
+        const requestedReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (requestedReturnUrl?.startsWith('/misas')) this.returnUrl.set(requestedReturnUrl);
+
         const rawId = this.route.snapshot.paramMap.get('id');
 
         if (rawId === null) {
+            const fecha = this.route.snapshot.queryParamMap.get('fecha');
+            const hora = this.route.snapshot.queryParamMap.get('hora');
+            this.form.patchValue({
+                fecha: /^\d{4}-\d{2}-\d{2}$/.test(fecha ?? '') ? fecha! : '',
+                hora: /^\d{2}:\d{2}$/.test(hora ?? '') ? hora! : ''
+            }, { emitEvent: false });
             this.store.initialize(null);
             return;
         }
@@ -158,7 +168,7 @@ export class MisaFormPage implements OnInit {
         const idMisa = Number(rawId);
 
         if (!Number.isInteger(idMisa) || idMisa <= 0) {
-            void this.router.navigate(['/misas']);
+            this.navigateBack();
             return;
         }
 
@@ -435,18 +445,18 @@ export class MisaFormPage implements OnInit {
             dialogRef.afterClosed().subscribe(sellNow => {
                 if (sellNow) {
                     void this.router.navigate(['/ventas/nueva'], {
-                        queryParams: { solicitudServicioId: result.idSolicitudServicio, origen: 'misa' }
+                        queryParams: { solicitudServicioId: result.idSolicitudServicio, origen: 'misa', returnUrl: this.returnUrl() }
                     });
                     return;
                 }
 
-                void this.router.navigate(['/misas']);
+                this.navigateBack();
             });
             return;
         }
 
         const message = this.getSaveSuccessMessage(result, wasEditMode);
-        void this.router.navigate(['/misas']).then(() => this.feedback.success(message));
+        void this.router.navigateByUrl(this.returnUrl()).then(() => this.feedback.success(message));
     });
 
     private readonly syncSaveError = effect(() => {
@@ -456,6 +466,10 @@ export class MisaFormPage implements OnInit {
 
         this.feedback.error(message);
     });
+
+    protected navigateBack(): void {
+        void this.router.navigateByUrl(this.returnUrl());
+    }
 
     private getSaveSuccessMessage(result: MisaWriteResponse, wasEditMode: boolean): string {
         const backendMessage = result.mensaje?.trim();

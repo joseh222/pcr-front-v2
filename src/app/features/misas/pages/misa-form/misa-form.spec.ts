@@ -120,6 +120,14 @@ describe('MisaFormPage', () => {
         expect(fixture.nativeElement.textContent).toContain('Nueva misa');
     });
 
+    it('should prefill date and time from calendar query params', async () => {
+        const fixture = await createFixture({}, { fecha: '2026-09-09', hora: '18:00', returnUrl: '/misas?vista=calendario&fecha=2026-09-09&hora=18%3A00' });
+        const component = fixture.componentInstance;
+        expect(component.form.controls.fecha.value).toBe('2026-09-09');
+        expect(component.form.controls.hora.value).toBe('18:00');
+        expect(component['returnUrl']()).toContain('/misas?');
+    });
+
     it('should initialize edit mode and patch the general fields', async () => {
         detail.set({
             modalidad: { idModalidad: 1, nombre: 'Personal' },
@@ -358,14 +366,14 @@ describe('MisaFormPage', () => {
         expect(message).toBe('Misa actualizada correctamente.');
     });
 
-    async function createFixture(params: Record<string, string>) {
+    async function createFixture(params: Record<string, string>, query: Record<string, string> = {}) {
         TestBed.resetTestingModule();
 
         TestBed.configureTestingModule({
             imports: [MisaFormPage],
             providers: [{ provide: AuthStore, useValue: authStoreMock }, 
                 provideRouter([]),
-                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
+                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params), queryParamMap: convertToParamMap(query) } } },
                 {
                     provide: FeedbackService,
                     useValue: feedbackMock

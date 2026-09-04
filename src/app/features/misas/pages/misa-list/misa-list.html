@@ -15,14 +15,12 @@
 
         <div class="page-header-actions">
 
-            <button mat-icon-button type="button" aria-label="Recargar misas" data-testid="reload-misas"
-                (click)="reload()">
-
-                <mat-icon>refresh</mat-icon>
-            </button>
+            @if (viewMode() === 'LIST') {
+            <button mat-icon-button type="button" aria-label="Recargar misas" data-testid="reload-misas" (click)="reload()"><mat-icon>refresh</mat-icon></button>
+            }
 
             @if (canCreate()) {
-            <a mat-flat-button routerLink="/misas/nueva" data-testid="new-misa">
+            <a mat-flat-button routerLink="/misas/nueva" [queryParams]="{ returnUrl: viewMode() === 'LIST' ? '/misas?vista=lista' : '/misas?vista=calendario' }" data-testid="new-misa">
 
                 <mat-icon>add</mat-icon>
                 Nueva misa
@@ -32,6 +30,14 @@
         </div>
     </header>
 
+    <div class="view-switch" role="group" aria-label="Vista de misas">
+        <button mat-stroked-button type="button" [class.active]="viewMode() === 'CALENDAR'" (click)="setViewMode('CALENDAR')"><mat-icon>calendar_month</mat-icon>Calendario</button>
+        <button mat-stroked-button type="button" [class.active]="viewMode() === 'LIST'" (click)="setViewMode('LIST')"><mat-icon>view_list</mat-icon>Lista</button>
+    </div>
+
+    @if (viewMode() === 'CALENDAR') {
+        <pcr-misa-calendar />
+    } @else {
     <form class="filters-card" data-testid="misa-filters" [formGroup]="filterForm" (ngSubmit)="search()">
 
         <div class="filters-grid">
@@ -387,7 +393,7 @@
                         <div class="row-actions">@if (canEdit() && misa.puedeEditar) {<a mat-icon-button
                                 [routerLink]="['/misas', misa.idMisa, 'editar']"
                                 [attr.aria-label]="'Editar misa ' + misa.codMisa"
-                                [attr.data-testid]="'edit-misa-' + misa.idMisa"><mat-icon>edit</mat-icon></a>} @else
+                                [queryParams]="{ returnUrl: '/misas?vista=lista' }" [attr.data-testid]="'edit-misa-' + misa.idMisa"><mat-icon>edit</mat-icon></a>} @else
                             {<button mat-icon-button type="button" disabled
                                 aria-label="Misa no editable"><mat-icon>edit</mat-icon></button>}</div>
                     </td>
@@ -407,4 +413,5 @@
 
     </section>
 
+    }
 </section>

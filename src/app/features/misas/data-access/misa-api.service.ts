@@ -11,6 +11,7 @@ import {
     MisaSanto,
     MisaTipo
 } from './models/misa-catalog.models';
+import { MisaCalendarResponse } from './models/misa-calendar.models';
 import {
     MisaDetail,
     MisaListFilters,
@@ -47,6 +48,12 @@ export class MisaApiService {
 
     exportPdf(filters: MisaListFilters): Observable<Blob> {
         return this.http.get(`${this.apiUrl}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
+
+
+    getCalendar(fechaInicio: string, fechaFin: string): Observable<MisaCalendarResponse> {
+        const params = new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+        return this.http.get<MisaCalendarResponse>(`${this.apiUrl}/calendario`, { params });
     }
 
     getById(idMisa: number): Observable<MisaDetail> {

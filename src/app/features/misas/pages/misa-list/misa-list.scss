@@ -234,3 +234,5 @@
         display: none;
     }
 }
+.view-switch { display: flex; flex-wrap: wrap; gap: .5rem; }
+.view-switch button.active { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); border-color: var(--mat-sys-primary); }

@@ -1,0 +1,55 @@
+:host { display: block; min-width: 0; }
+.calendar-shell { display: grid; gap: 1rem; }
+.calendar-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; background: var(--mat-sys-surface-container-lowest); }
+.month-navigation, .calendar-actions { display: flex; align-items: center; gap: .5rem; }
+.month-title { min-width: 12rem; text-align: center; font-weight: 700; text-transform: capitalize; }
+.calendar-workspace { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(20rem, .95fr); gap: 1rem; align-items: start; }
+.month-card, .agenda-card { border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; background: var(--mat-sys-surface-container-lowest); overflow: hidden; }
+.week-header { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface-container-low); }
+.week-header div { padding: .65rem .35rem; text-align: center; font-size: .75rem; font-weight: 700; }
+.month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.day-cell { min-width: 0; min-height: 8.1rem; display: flex; flex-direction: column; align-items: stretch; gap: .3rem; padding: .55rem; border: 0; border-right: 1px solid var(--mat-sys-outline-variant); border-bottom: 1px solid var(--mat-sys-outline-variant); background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.day-cell:nth-child(7n) { border-right: 0; }
+.day-cell.outside { opacity: .42; background: var(--mat-sys-surface-container-low); }
+.day-cell.today .day-number { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+.day-cell.selected { outline: 2px solid var(--mat-sys-primary); outline-offset: -2px; background: color-mix(in srgb, var(--mat-sys-primary) 7%, transparent); }
+.day-number { width: 1.7rem; height: 1.7rem; display: grid; place-items: center; border-radius: 50%; font-size: .8rem; font-weight: 700; }
+.day-total { font-size: .75rem; font-weight: 700; }
+.day-modalities, .day-hours { display: flex; flex-wrap: wrap; gap: .25rem; }
+.day-modalities small { padding: .12rem .35rem; border-radius: 999px; background: var(--mat-sys-surface-container-high); font-size: .66rem; }
+.day-modalities .pending { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+.day-hours { flex-direction: column; gap: .1rem; font-size: .67rem; opacity: .72; }
+.agenda-card { min-width: 0; }
+.agenda-header { display: flex; justify-content: space-between; gap: .75rem; align-items: flex-start; padding: 1rem; border-bottom: 1px solid var(--mat-sys-outline-variant); }
+.agenda-eyebrow { margin: 0; color: var(--mat-sys-primary); font-size: .75rem; font-weight: 700; }
+.agenda-header h2 { margin: .2rem 0; font-size: 1.05rem; }
+.agenda-header p:not(.agenda-eyebrow) { margin: 0; font-size: .78rem; opacity: .65; }
+.empty-agenda { min-height: 15rem; display: grid; place-items: center; align-content: center; gap: .35rem; padding: 2rem; text-align: center; }
+.empty-agenda mat-icon { width: 2rem; height: 2rem; font-size: 2rem; opacity: .55; }
+.empty-agenda p { margin: 0; font-size: .8rem; opacity: .65; }
+.hour-list { display: grid; gap: .75rem; padding: .75rem; }
+.hour-card { border: 1px solid var(--mat-sys-outline-variant); border-radius: .85rem; overflow: hidden; }
+.hour-card.closed { border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant)); }
+.hour-header { width: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .75rem; padding: .8rem; border: 0; background: var(--mat-sys-surface-container-low); color: inherit; cursor: pointer; text-align: left; }
+.hour-time { display: flex; align-items: center; gap: .35rem; white-space: nowrap; }
+.hour-time mat-icon { width: 18px; height: 18px; font-size: 18px; }
+.hour-summary { min-width: 0; display: flex; flex-wrap: wrap; gap: .35rem; font-size: .72rem; }
+.hour-summary span { padding: .18rem .45rem; border-radius: 999px; background: var(--mat-sys-surface-container-high); }
+.hour-summary .pending-badge { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+.hour-summary .state-badge { font-weight: 700; }
+.hour-content { display: grid; gap: .6rem; padding: .75rem; }
+.hour-actions { display: flex; justify-content: flex-end; }
+.misa-agenda-item { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; padding: .7rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: .7rem; }
+.misa-main { min-width: 0; flex: 1; }
+.misa-title-row { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.modality-badge { padding: .15rem .4rem; border-radius: 999px; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); font-size: .68rem; }
+.intention-line { margin: .35rem 0; font-size: .84rem; line-height: 1.35; }
+.misa-meta { display: flex; flex-wrap: wrap; gap: .45rem; font-size: .7rem; opacity: .7; }
+.misa-meta .payment-pending { color: var(--mat-sys-error); font-weight: 700; opacity: 1; }
+.intention-list { margin: .45rem 0 0; padding-left: 1.1rem; font-size: .75rem; }
+.intention-list small { opacity: .7; }
+.secondary-detail { display: grid; gap: .15rem; margin-top: .45rem; font-size: .73rem; opacity: .8; }
+.misa-actions { flex: 0 0 auto; }
+@media (hover: hover) and (pointer: fine) { .day-cell:hover, .hour-header:hover { background: var(--mat-sys-surface-container); } }
+@media (max-width: 1100px) { .calendar-workspace { grid-template-columns: 1fr; } .agenda-card { order: 2; } }
+@media (max-width: 700px) { .calendar-toolbar, .agenda-header { align-items: stretch; flex-direction: column; } .calendar-actions { justify-content: space-between; } .month-navigation { justify-content: space-between; } .month-title { min-width: 0; } .day-cell { min-height: 5.6rem; padding: .35rem; } .day-hours { display: none; } .day-total { font-size: .68rem; } .day-modalities small { font-size: .6rem; padding: .08rem .25rem; } .week-header div { font-size: .68rem; } .hour-header { grid-template-columns: 1fr auto; } .hour-summary { grid-column: 1 / -1; } }

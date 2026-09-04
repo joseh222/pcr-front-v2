@@ -4,11 +4,11 @@
 
         <div class="page-heading">
 
-            <a mat-button routerLink="/misas" data-testid="back-to-misas">
+            <button mat-button type="button" data-testid="back-to-misas" (click)="navigateBack()">
 
                 <mat-icon>arrow_back</mat-icon>
                 Volver a misas
-            </a>
+            </button>
 
             <div class="page-title-row">
 
@@ -420,9 +420,9 @@
 
         <div class="form-actions">
 
-            <a mat-stroked-button routerLink="/misas">
+            <button mat-stroked-button type="button" (click)="navigateBack()">
                 Cancelar
-            </a>
+            </button>
 
             @if (!isEditMode() || store.detail()?.puedeEditar !== false) {
             <button mat-flat-button type="button" data-testid="save-misa" [disabled]="store.saving()" (click)="save()">

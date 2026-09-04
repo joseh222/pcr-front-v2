@@ -113,6 +113,16 @@ describe('MisaApiService', () => {
         });
     });
 
+    it('should request the calendar without pagination', () => {
+        service.getCalendar('2026-08-31', '2026-10-11').subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/calendario`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-31');
+        expect(request.request.params.get('fechaFin')).toBe('2026-10-11');
+        expect(request.request.params.has('pagina')).toBe(false);
+        request.flush({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] });
+    });
+
     it('should request a misa by id', () => {
         service.getById(15).subscribe();
 
