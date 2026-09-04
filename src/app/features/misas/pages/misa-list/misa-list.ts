@@ -12,10 +12,11 @@ import { MatTableModule } from '@angular/material/table';
 
 import { MisaListStore } from '../../data-access/models/misa-list.store';
 import { MisaListFilters } from '../../data-access/models/misa-read.models';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 import { MisaApiService } from '../../data-access/misa-api.service';
+import { MisaCalendarComponent } from '../../components/misa-calendar/misa-calendar';
 import { FileDownloadService } from '../../../../core/files/file-download.service';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
@@ -34,7 +35,8 @@ import { finalize } from 'rxjs';
         MatProgressBarModule,
         MatSelectModule,
         MatTableModule,
-        RouterLink
+        RouterLink,
+        MisaCalendarComponent
     ],
     providers: [MisaListStore],
     templateUrl: './misa-list.html',
@@ -49,7 +51,10 @@ export class MisaListPage implements OnInit {
     private readonly api = inject(MisaApiService);
     private readonly fileDownload = inject(FileDownloadService);
     private readonly feedback = inject(FeedbackService);
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
     protected readonly exportingExcel = signal(false);
+    protected readonly viewMode = signal<'CALENDAR' | 'LIST'>('CALENDAR');
     protected readonly exportingPdf = signal(false);
     private readonly appliedFilters = signal<MisaListFilters>({ texto: '', fechaInicio: null, fechaFin: null, idModalidad: null, idTipo: null, idEstado: null, estadoPago: null });
     protected readonly canCreate = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_CREATE);
@@ -94,8 +99,15 @@ export class MisaListPage implements OnInit {
     ] as const;
 
     ngOnInit(): void {
+        if (this.route.snapshot.queryParamMap.get('vista') === 'lista') this.viewMode.set('LIST');
         this.store.loadCatalogs();
         this.store.load();
+    }
+
+
+    protected setViewMode(mode: 'CALENDAR' | 'LIST'): void {
+        this.viewMode.set(mode);
+        void this.router.navigate([], { relativeTo: this.route, queryParams: { vista: mode === 'LIST' ? 'lista' : 'calendario' }, queryParamsHandling: 'merge', replaceUrl: true });
     }
 
     protected search(): void {

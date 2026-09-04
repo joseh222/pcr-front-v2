@@ -1,0 +1,326 @@
+<section class="calendar-shell" data-testid="misa-calendar">
+    <div class="calendar-toolbar">
+        <div class="month-navigation">
+            <button mat-icon-button type="button" aria-label="Mes anterior" (click)="previousMonth()"><mat-icon>chevron_left</mat-icon></button>
+            <div class="month-title">{{ monthLabel() }}</div>
+            <button mat-icon-button type="button" aria-label="Mes siguiente" (click)="nextMonth()"><mat-icon>chevron_right</mat-icon></button>
+        </div>
+        <div class="calendar-actions">
+            <button mat-stroked-button type="button" (click)="goToday()"><mat-icon>today</mat-icon>Hoy</button>
+            <button mat-icon-button type="button" aria-label="Recargar calendario" (click)="reload()"><mat-icon>refresh</mat-icon></button>
+        </div>
+    </div>
+
+    @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+
+    <div class="calendar-workspace">
+        <section class="month-card">
+            <div class="week-header">
+                @for (weekday of weekdays; track weekday) { <div>{{ weekday }}</div> }
+            </div>
+            <div class="month-grid">
+                @for (day of days(); track day.date) {
+                    <button type="button" class="day-cell" [class.outside]="!day.inMonth" [class.today]="day.isToday" [class.selected]="day.isSelected" (click)="selectDay(day)">
+                        <span class="day-number">{{ day.day }}</span>
+                        @if (day.total > 0) {
+                            <span class="day-total">{{ day.total }} misa{{ day.total === 1 ? '' : 's' }}</span>
+                            <span class="day-modalities">
+                                @if (day.personal > 0) { <small>P {{ day.personal }}</small> }
+                                @if (day.comunitario > 0) { <small>C {{ day.comunitario }}</small> }
+                                @if (day.pending > 0) { <small class="pending">⚠ {{ day.pending }}</small> }
+                            </span>
+                            <span class="day-hours">
+                                @for (slot of day.hours.slice(0, 2); track slot.hora) { <small>{{ slot.hora }} · {{ slot.total }}</small> }
+                                @if (day.hours.length > 2) { <small>+{{ day.hours.length - 2 }} horario(s)</small> }
+                            </span>
+                        }
+                    </button>
+                }
+            </div>
+        </section>
+
+        <aside class="agenda-card">
+            <div class="agenda-header">
+                <div>
+                    <p class="agenda-eyebrow">Agenda del día</p>
+                    <h2>{{ selectedDateLabel() }}</h2>
+                    <p>{{ selectedItems().length }} misa{{ selectedItems().length === 1 ? '' : 's' }} programada{{ selectedItems().length === 1 ? '' : 's' }}</p>
+                </div>
+                @if (canCreate()) {
+                    <a mat-flat-button routerLink="/misas/nueva" [queryParams]="{ fecha: selectedDate(), returnUrl: returnUrl() }"><mat-icon>add</mat-icon>Nueva misa</a>
+                }
+            </div>
+
+            @if (loadingPersonalDayDocuments()) {
+                <mat-progress-bar mode="indeterminate" />
+            } @else if (personalDayDocuments(); as personalDay) {
+                @if (personalDay.cantidadMisas > 0) {
+                    <section class="personal-day-documents">
+                        <div class="personal-day-copy">
+                            <div class="personal-day-title">
+                                <mat-icon>description</mat-icon>
+                                <div>
+                                    <strong>Personales del día</strong>
+                                    <span>
+                                        {{ personalDay.cantidadMisas }} Misa{{ personalDay.cantidadMisas === 1 ? '' : 's' }} personal{{ personalDay.cantidadMisas === 1 ? '' : 'es' }}
+                                        · {{ personalDayPageCount() }} hoja{{ personalDayPageCount() === 1 ? '' : 's' }} A4
+                                    </span>
+                                </div>
+                            </div>
+
+                            <small>Una Misa personal genera una tarjeta. Si es matrimonio, los dos nombres permanecen dentro de la misma tarjeta.</small>
+                            <small>Las tarjetas se agrupan hasta 4 por hoja y usan únicamente el día seleccionado en el calendario.</small>
+
+                            @if (personalDay.cantidadPendientesCierre > 0) {
+                                <div class="personal-day-warning">
+                                    <mat-icon>lock_clock</mat-icon>
+                                    <span>
+                                        Falta cerrar {{ personalDay.cantidadPendientesCierre }}
+                                        programación{{ personalDay.cantidadPendientesCierre === 1 ? '' : 'es' }}
+                                        personal{{ personalDay.cantidadPendientesCierre === 1 ? '' : 'es' }} de este día.
+                                        La vista previa se habilitará cuando todas estén cerradas.
+                                    </span>
+                                </div>
+                            }
+
+                            @if (personalDay.totalDesactualizados > 0) {
+                                <div class="personal-day-warning">
+                                    <mat-icon>history</mat-icon>
+                                    <span>
+                                        Hay {{ personalDay.totalDesactualizados }} tarjeta{{ personalDay.totalDesactualizados === 1 ? '' : 's' }}
+                                        anterior{{ personalDay.totalDesactualizados === 1 ? '' : 'es' }} desactualizada{{ personalDay.totalDesactualizados === 1 ? '' : 's' }}.
+                                        Al generar nuevamente se utilizarán solo las versiones vigentes de cada horario.
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="document-actions">
+                            <button mat-stroked-button type="button"
+                                (click)="previewPersonalDayDocument()"
+                                [disabled]="!personalDay.puedeGenerar || previewingDocument() !== null || printingDocument() !== null">
+                                <mat-icon>preview</mat-icon>
+                                {{ previewingDocument() === 'PERSONAL' ? 'Generando...' : 'Vista previa' }}
+                            </button>
+
+                            @if (canPrint()) {
+                                <button mat-flat-button type="button"
+                                    (click)="printPersonalDayDocument()"
+                                    [disabled]="!personalDay.puedeGenerar || printingDocument() !== null || previewingDocument() !== null">
+                                    <mat-icon>print</mat-icon>
+                                    {{ printingDocument() === 'PERSONAL' ? 'Enviando...' : 'Imprimir' }}
+                                </button>
+                            }
+
+                            @if (personalPrintJob(); as job) {
+                                <small class="print-job-status" [class.error]="job.estado === 'ERROR'" [class.success]="job.estado === 'COMPLETADO'">
+                                    {{ printStatusLabel(job) }}
+                                </small>
+                            }
+                        </div>
+                    </section>
+                }
+            }
+
+            @if (selectedItems().length === 0) {
+                <div class="empty-agenda"><mat-icon>event_available</mat-icon><strong>No hay misas registradas</strong><p>Puedes registrar una nueva misa directamente para este día.</p></div>
+            } @else {
+                <div class="hour-list">
+                    @for (group of hourGroups(); track group.hora) {
+                        <article class="hour-card" [class.closed]="group.closed">
+                            <button type="button" class="hour-header" (click)="toggleHour(group.hora)">
+                                <div class="hour-time"><mat-icon>schedule</mat-icon><strong>{{ group.hora }}</strong></div>
+                                <div class="hour-summary">
+                                    @if (group.personal > 0) { <span>Personal {{ group.personal }}</span> }
+                                    @if (group.comunitario > 0) { <span>Comunitaria {{ group.comunitario }}</span> }
+                                    @if (group.pending > 0) { <span class="pending-badge">{{ group.pending }} pendiente{{ group.pending === 1 ? '' : 's' }}</span> }
+                                    <span class="state-badge">{{ group.closed ? 'Cerrada' : 'Abierta' }}</span>
+                                </div>
+                                <mat-icon>{{ isExpanded(group.hora) ? 'expand_less' : 'expand_more' }}</mat-icon>
+                            </button>
+
+                            @if (isExpanded(group.hora)) {
+                                <div class="hour-content">
+                                    @if (loadingProgramStatus()) {
+                                        <mat-progress-bar mode="indeterminate" />
+                                    } @else if (programStatus(); as status) {
+                                        <section class="program-status" [class.ready]="status.puedeCerrar" [class.closed]="status.programacionCerrada" [class.blocked]="!status.puedeCerrar && !status.programacionCerrada">
+                                            <div class="program-status-head">
+                                                <div>
+                                                    <strong>
+                                                        {{ status.programacionCelebrada
+                                                            ? 'Celebración finalizada'
+                                                            : (status.programacionCerrada
+                                                                ? 'Programación cerrada'
+                                                                : (status.puedeCerrar ? 'Lista para cerrar' : 'Programación abierta')) }}
+                                                    </strong>
+                                                    <p>{{ status.mensaje }}</p>
+                                                </div>
+                                                <mat-icon>{{ status.programacionCelebrada ? 'church' : (status.programacionCerrada ? 'lock' : (status.puedeCerrar ? 'verified' : 'warning')) }}</mat-icon>
+                                            </div>
+
+                                            <div class="program-counters">
+                                                <span>{{ status.totalMisas }} Misas</span>
+                                                <span>{{ status.totalConformes }} conformes</span>
+                                                @if (status.versionActual > 0) { <span>Versión {{ status.versionActual }}</span> }
+                                                @if (status.totalPendientesPago > 0) { <span class="counter-warning">{{ status.totalPendientesPago }} pendiente{{ status.totalPendientesPago === 1 ? '' : 's' }} de pago</span> }
+                                            </div>
+
+                                            @if (status.motivoUltimaReapertura) {
+                                                <div class="reopen-note">
+                                                    <mat-icon>history</mat-icon>
+                                                    <div>
+                                                        <strong>Última reapertura</strong>
+                                                        <span>{{ status.motivoUltimaReapertura }}</span>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (status.pendientes.length > 0) {
+                                                <div class="program-pending-list">
+                                                    <strong>Requieren atención</strong>
+                                                    @for (pending of status.pendientes; track pending.idMisa) {
+                                                        <div class="program-pending-item">
+                                                            <div>
+                                                                <span class="pending-title">{{ pending.codMisa || '#' + pending.idMisa }} · {{ pending.tipoMisa || 'Misa' }} · {{ pending.modalidad || '' }}</span>
+                                                                <small>{{ pending.motivoBloqueo }}</small>
+                                                                @if (pending.codSolicitudServicio) { <small>{{ pending.codSolicitudServicio }} · {{ pending.estadoPago || 'Sin estado de pago' }}</small> }
+                                                            </div>
+                                                            @if (pending.idSolicitudServicio) {
+                                                                <a mat-stroked-button [routerLink]="['/servicios', pending.idSolicitudServicio]"><mat-icon>open_in_new</mat-icon>Ver solicitud</a>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+
+                                            @if (!status.programacionCerrada && canCloseSchedule()) {
+                                                <div class="program-close-actions">
+                                                    <button mat-flat-button type="button" (click)="closeProgram(group)" [disabled]="!status.puedeCerrar || closingProgram()">
+                                                        <mat-icon>lock</mat-icon>{{ closingProgram() ? 'Cerrando...' : 'Cerrar programación' }}
+                                                    </button>
+                                                </div>
+                                            }
+
+                                            @if (status.programacionCerrada && !status.programacionCelebrada && status.puedeReabrir && canReopenSchedule()) {
+                                                <div class="program-close-actions">
+                                                    <button mat-stroked-button type="button" (click)="reopenProgram(group)" [disabled]="reopeningProgram()">
+                                                        <mat-icon>lock_open</mat-icon>{{ reopeningProgram() ? 'Reabriendo...' : 'Reabrir programación' }}
+                                                    </button>
+                                                </div>
+                                            }
+                                        </section>
+                                    }
+
+                                    @if (loadingCelebrantDocuments()) {
+                                        <mat-progress-bar mode="indeterminate" />
+                                    } @else if (celebrantDocuments(); as docs) {
+                                        @if (docs.totalDesactualizados > 0 && docs.estadoProgramacion === 'ABIERTA') {
+                                            <div class="document-outdated-warning">
+                                                <mat-icon>warning</mat-icon>
+                                                <div>
+                                                    <strong>Las hojas anteriores quedaron desactualizadas</strong>
+                                                    <span>Vuelve a cerrar la programación después de terminar los cambios para generar las hojas vigentes.</span>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if ((docs.estadoProgramacion === 'CERRADA' || docs.estadoProgramacion === 'CELEBRADA') && docs.comunitaria.cantidadMisas > 0) {
+                                            <section class="celebrant-documents">
+                                                <div class="celebrant-documents-head">
+                                                    <div>
+                                                        <strong>Hoja comunitaria del horario</strong>
+                                                        <p>La versión {{ docs.versionActual }} se muestra solo como referencia dentro del sistema. <b>No aparecerá impresa en la hoja.</b></p>
+                                                    </div>
+                                                    @if (docs.totalDesactualizados > 0) {
+                                                        <span class="outdated-count">{{ docs.totalDesactualizados }} anterior{{ docs.totalDesactualizados === 1 ? '' : 'es' }} desactualizada{{ docs.totalDesactualizados === 1 ? '' : 's' }}</span>
+                                                    }
+                                                </div>
+
+                                                <div class="celebrant-document-grid">
+
+                                                    @if (docs.comunitaria.cantidadMisas > 0) {
+                                                        <article class="celebrant-document-card">
+                                                            <div>
+                                                                <span class="document-kicker">Comunitarias</span>
+                                                                <strong>{{ docs.comunitaria.cantidadMisas }} registro{{ docs.comunitaria.cantidadMisas === 1 ? '' : 's' }} comunitario{{ docs.comunitaria.cantidadMisas === 1 ? '' : 's' }}</strong>
+                                                                <small>Listado consolidado del horario.</small>
+                                                                <small>{{ docs.comunitaria.generado ? 'Vista previa preparada para la versión vigente.' : 'Aún no se generó la vista previa vigente.' }}</small>
+                                                            </div>
+                                                            <div class="document-actions">
+                                                                <button mat-stroked-button type="button"
+                                                                    (click)="previewCommunityDocument(group)"
+                                                                    [disabled]="previewingDocument() !== null || printingDocument() !== null">
+                                                                    <mat-icon>preview</mat-icon>
+                                                                    {{ previewingDocument() === 'COMUNITARIA' ? 'Generando...' : 'Vista previa' }}
+                                                                </button>
+
+                                                                @if (canPrint()) {
+                                                                    <button mat-flat-button type="button"
+                                                                        (click)="printCommunityDocument(group)"
+                                                                        [disabled]="printingDocument() !== null || previewingDocument() !== null">
+                                                                        <mat-icon>print</mat-icon>
+                                                                        {{ printingDocument() === 'COMUNITARIA' ? 'Enviando...' : 'Imprimir' }}
+                                                                    </button>
+                                                                }
+
+                                                                @if (communityPrintStatus(group.hora); as job) {
+                                                                    <small class="print-job-status" [class.error]="job.estado === 'ERROR'" [class.success]="job.estado === 'COMPLETADO'">
+                                                                        {{ printStatusLabel(job) }}
+                                                                    </small>
+                                                                }
+                                                            </div>
+                                                        </article>
+                                                    }
+                                                </div>
+                                            </section>
+                                        }
+                                    }
+
+                                    <div class="hour-actions">
+                                        @if (canCreate() && !group.closed) {
+                                            <a mat-stroked-button routerLink="/misas/nueva" [queryParams]="{ fecha: selectedDate(), hora: group.hora, returnUrl: returnUrl(group.hora) }"><mat-icon>add</mat-icon>Nueva a las {{ group.hora }}</a>
+                                        }
+                                    </div>
+
+                                    @for (misa of group.items; track misa.idMisa) {
+                                        <div class="misa-agenda-item">
+                                            <div class="misa-main">
+                                                <div class="misa-title-row">
+                                                    <strong>{{ misa.nombreTipo }}</strong>
+                                                    <span class="modality-badge">{{ misa.nombreModalidad }}</span>
+                                                </div>
+                                                <p class="intention-line">{{ intentionSummary(misa) }}</p>
+                                                <div class="misa-meta">
+                                                    <span>{{ misa.codMisa || '#' + misa.idMisa }}</span>
+                                                    @if (misa.codSolicitudServicio) { <span>{{ misa.codSolicitudServicio }}</span> }
+                                                    <span [class.payment-pending]="misa.pendientePago">{{ paymentLabel(misa) }}</span>
+                                                </div>
+                                                @if (misa.intenciones.length > 1) {
+                                                    <ul class="intention-list">
+                                                        @for (intencion of misa.intenciones; track intencion.idIntencion) { <li>{{ intencion.nombre }}@if (intencion.observacion) { <small> — {{ intencion.observacion }}</small> }</li> }
+                                                    </ul>
+                                                }
+                                                @if (misa.devotos || misa.ofrecen) {
+                                                    <div class="secondary-detail">
+                                                        @if (misa.devotos) { <span><strong>Devotos:</strong> {{ misa.devotos }}</span> }
+                                                        @if (misa.ofrecen) { <span><strong>Ofrecen:</strong> {{ misa.ofrecen }}</span> }
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="misa-actions">
+                                                @if (canEdit() && misa.puedeEditar) {
+                                                    <a mat-icon-button [routerLink]="['/misas', misa.idMisa, 'editar']" [queryParams]="{ returnUrl: returnUrl(group.hora) }" [attr.aria-label]="'Editar ' + (misa.codMisa || misa.idMisa)"><mat-icon>edit</mat-icon></a>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </article>
+                    }
+                </div>
+            }
+        </aside>
+    </div>
+</section>

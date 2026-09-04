@@ -11,6 +11,7 @@ import {
     MisaSanto,
     MisaTipo
 } from './models/misa-catalog.models';
+import { MisaCalendarResponse, MisaCelebrantDocumentStatus, MisaCelebrantDocumentType, MisaCelebrantPrintJobStatus, MisaCelebrantPrintResponse, MisaCloseProgramResponse, MisaPersonalDayDocumentStatus, MisaProgramStatus, MisaReopenProgramRequest, MisaReopenProgramResponse } from './models/misa-calendar.models';
 import {
     MisaDetail,
     MisaListFilters,
@@ -47,6 +48,69 @@ export class MisaApiService {
 
     exportPdf(filters: MisaListFilters): Observable<Blob> {
         return this.http.get(`${this.apiUrl}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
+
+
+    getCalendar(fechaInicio: string, fechaFin: string): Observable<MisaCalendarResponse> {
+        const params = new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+        return this.http.get<MisaCalendarResponse>(`${this.apiUrl}/calendario`, { params });
+    }
+
+    getProgramStatus(fecha: string, hora: string): Observable<MisaProgramStatus> {
+        const params = new HttpParams().set('fecha', fecha).set('hora', hora);
+        return this.http.get<MisaProgramStatus>(`${this.apiUrl}/programaciones/estado`, { params });
+    }
+
+    closeProgram(fecha: string, hora: string): Observable<MisaCloseProgramResponse> {
+        return this.http.patch<MisaCloseProgramResponse>(`${this.apiUrl}/programaciones/cerrar`, { fecha, hora });
+    }
+
+    reopenProgram(request: MisaReopenProgramRequest): Observable<MisaReopenProgramResponse> {
+        return this.http.patch<MisaReopenProgramResponse>(`${this.apiUrl}/programaciones/reabrir`, request);
+    }
+
+    getCelebrantDocumentStatus(fecha: string, hora: string): Observable<MisaCelebrantDocumentStatus> {
+        const params = new HttpParams().set('fecha', fecha).set('hora', hora);
+        return this.http.get<MisaCelebrantDocumentStatus>(`${this.apiUrl}/programaciones/documentos/estado`, { params });
+    }
+
+    previewCommunityDocument(fecha: string, hora: string): Observable<Blob> {
+        return this.http.post(
+            `${this.apiUrl}/programaciones/documentos/COMUNITARIA/vista-previa`,
+            { fecha, hora },
+            { responseType: 'blob' }
+        );
+    }
+
+    getPersonalDayDocumentStatus(fecha: string): Observable<MisaPersonalDayDocumentStatus> {
+        const params = new HttpParams().set('fecha', fecha);
+        return this.http.get<MisaPersonalDayDocumentStatus>(`${this.apiUrl}/documentos/personales-dia/estado`, { params });
+    }
+
+    previewPersonalDayDocument(fecha: string): Observable<Blob> {
+        return this.http.post(
+            `${this.apiUrl}/documentos/personales-dia/vista-previa`,
+            { fecha },
+            { responseType: 'blob' }
+        );
+    }
+
+    printPersonalDayDocument(fecha: string): Observable<MisaCelebrantPrintResponse> {
+        return this.http.post<MisaCelebrantPrintResponse>(
+            `${this.apiUrl}/documentos/personales-dia/imprimir`,
+            { fecha }
+        );
+    }
+
+    printCommunityDocument(fecha: string, hora: string): Observable<MisaCelebrantPrintResponse> {
+        return this.http.post<MisaCelebrantPrintResponse>(
+            `${this.apiUrl}/programaciones/documentos/COMUNITARIA/imprimir`,
+            { fecha, hora }
+        );
+    }
+
+    getCelebrantPrintJob(idTrabajo: number): Observable<MisaCelebrantPrintJobStatus> {
+        return this.http.get<MisaCelebrantPrintJobStatus>(`${this.apiUrl}/documentos/impresion/${idTrabajo}`);
     }
 
     getById(idMisa: number): Observable<MisaDetail> {

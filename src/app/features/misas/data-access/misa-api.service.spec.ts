@@ -113,6 +113,159 @@ describe('MisaApiService', () => {
         });
     });
 
+    it('should request the calendar without pagination', () => {
+        service.getCalendar('2026-08-31', '2026-10-11').subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/calendario`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-31');
+        expect(request.request.params.get('fechaFin')).toBe('2026-10-11');
+        expect(request.request.params.has('pagina')).toBe(false);
+        request.flush({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] });
+    });
+
+
+    it('should request the exact program status for a date and hour', () => {
+        service.getProgramStatus('2026-09-09', '18:00:00').subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/programaciones/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+        expect(request.request.params.get('hora')).toBe('18:00:00');
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', totalMisas: 2, puedeCerrar: true, pendientes: [] });
+    });
+
+    it('should close a program by date and hour', () => {
+        service.closeProgram('2026-09-09', '18:00:00').subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/cerrar`);
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'CERRADA', mensaje: 'Programación cerrada correctamente.' });
+    });
+
+    it('should reopen a program with a reason', () => {
+        service.reopenProgram({ fecha: '2026-09-09', hora: '18:00:00', motivo: 'Misa adicional del sacerdote' }).subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/reabrir`);
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00', motivo: 'Misa adicional del sacerdote' });
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'ABIERTA', versionActual: 1, mensaje: 'Programación reabierta correctamente.' });
+    });
+
+
+    it('should request celebrant document status for the exact schedule', () => {
+        service.getCelebrantDocumentStatus('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/programaciones/documentos/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+        expect(request.request.params.get('hora')).toBe('18:00:00');
+
+        request.flush({
+            fecha: '2026-09-09',
+            hora: '18:00:00',
+            estadoProgramacion: 'CERRADA',
+            versionActual: 1,
+            totalDesactualizados: 0,
+            personal: { tipoDocumento: 'PERSONAL', cantidadMisas: 4, generado: false, generadoUtc: null, numeroGeneraciones: 0 },
+            comunitaria: { tipoDocumento: 'COMUNITARIA', cantidadMisas: 8, generado: false, generadoUtc: null, numeroGeneraciones: 0 }
+        });
+    });
+
+    it('should request the personal day document status', () => {
+        service.getPersonalDayDocumentStatus('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/documentos/personales-dia/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+
+        request.flush({
+            fecha: '2026-09-09',
+            cantidadMisas: 3,
+            cantidadProgramaciones: 3,
+            cantidadProgramacionesListas: 3,
+            cantidadPendientesCierre: 0,
+            cantidadProgramacionesGeneradas: 0,
+            totalDesactualizados: 0,
+            puedeGenerar: true,
+            todoGenerado: false
+        });
+    });
+
+    it('should request the personal day preview as PDF blob', () => {
+        service.previewPersonalDayDocument('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/personales-dia/vista-previa`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09' });
+
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
+    it('should request the community preview for the exact schedule', () => {
+        service.previewCommunityDocument('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/documentos/COMUNITARIA/vista-previa`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
+
+    it('should enqueue the personal day document for physical printing', () => {
+        service.printPersonalDayDocument('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/personales-dia/imprimir`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09' });
+
+        request.flush({
+            idTrabajo: 101,
+            tipoDocumento: 'MISA_CELEBRANTE_PERSONAL',
+            estado: 'PENDIENTE',
+            impresora: 'L4260 Series(Network)',
+            codigo: 'QUEUED',
+            mensaje: 'En cola'
+        });
+    });
+
+    it('should enqueue the community document for the exact schedule', () => {
+        service.printCommunityDocument('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/documentos/COMUNITARIA/imprimir`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+
+        request.flush({
+            idTrabajo: 102,
+            tipoDocumento: 'MISA_CELEBRANTE_COMUNITARIA',
+            estado: 'PENDIENTE',
+            impresora: 'L4260 Series(Network)',
+            codigo: 'QUEUED',
+            mensaje: 'En cola'
+        });
+    });
+
+    it('should request the physical print job status', () => {
+        service.getCelebrantPrintJob(101).subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/impresion/101`);
+        expect(request.request.method).toBe('GET');
+
+        request.flush({
+            idTrabajo: 101,
+            tipoDocumento: 'MISA_CELEBRANTE_PERSONAL',
+            estado: 'COMPLETADO',
+            impresora: 'L4260 Series(Network)',
+            intentos: 1,
+            maxIntentos: 3,
+            fechaCreacionUtc: '2026-09-09T18:00:00Z',
+            fechaActualizacionUtc: '2026-09-09T18:00:02Z',
+            fechaFinalizacionUtc: '2026-09-09T18:00:02Z',
+            ultimoDetalle: 'OK'
+        });
+    });
+
     it('should request a misa by id', () => {
         service.getById(15).subscribe();
 

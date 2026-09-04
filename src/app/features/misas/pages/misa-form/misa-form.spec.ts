@@ -9,8 +9,35 @@ import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EMPTY, of } from 'rxjs';
 import { AuthStore } from '../../../auth/data-access/auth.store';
+import { MisaApiService } from '../../data-access/misa-api.service';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
+
+const misaApiMock = {
+    getProgramStatus: vi.fn(() => of({
+        idProgramacion: null,
+        fecha: '2026-09-09',
+        hora: '18:00:00',
+        estadoProgramacion: 'ABIERTA',
+        versionActual: 0,
+        totalMisas: 0,
+        totalPersonales: 0,
+        totalComunitarias: 0,
+        totalConformes: 0,
+        totalPendientesPago: 0,
+        totalSolicitudInvalida: 0,
+        totalPagoInvalido: 0,
+        programacionCerrada: false,
+        programacionCelebrada: false,
+        puedeCerrar: false,
+        puedeReabrir: false,
+        ultimaReaperturaUtc: null,
+        motivoUltimaReapertura: null,
+        codigo: 'NOT_FOUND',
+        mensaje: 'No existen Misas.',
+        pendientes: []
+    }))
+};
 
 describe('MisaFormPage', () => {
     const modalidades = signal([{ idModalidad: 1, nombre: 'Personal' }]);
@@ -112,12 +139,22 @@ describe('MisaFormPage', () => {
         feedbackMock.info.mockClear();
         dialogMock.open.mockClear();
         dialogMock.open.mockReturnValue({ afterClosed: () => EMPTY });
+        authStoreMock.hasPermission.mockReturnValue(true);
+        misaApiMock.getProgramStatus.mockClear();
     });
 
     it('should initialize create mode', async () => {
         const fixture = await createFixture({});
         expect(storeMock.initialize).toHaveBeenCalledWith(null);
         expect(fixture.nativeElement.textContent).toContain('Nueva misa');
+    });
+
+    it('should prefill date and time from calendar query params', async () => {
+        const fixture = await createFixture({}, { fecha: '2026-09-09', hora: '18:00', returnUrl: '/misas?vista=calendario&fecha=2026-09-09&hora=18%3A00' });
+        const component = fixture.componentInstance;
+        expect(component.form.controls.fecha.value).toBe('2026-09-09');
+        expect(component.form.controls.hora.value).toBe('18:00');
+        expect(component['returnUrl']()).toContain('/misas?');
     });
 
     it('should initialize edit mode and patch the general fields', async () => {
@@ -307,6 +344,40 @@ describe('MisaFormPage', () => {
         expect(request.motivoNoPago).toBeNull();
     });
 
+
+    it('should block save when selected date and time belong to a closed program', async () => {
+        misaApiMock.getProgramStatus.mockReturnValueOnce(of({
+            idProgramacion: 10, fecha: '2026-09-09', hora: '18:00:00',
+            estadoProgramacion: 'CERRADA', versionActual: 1,
+            totalMisas: 2, totalPersonales: 1, totalComunitarias: 1, totalConformes: 2,
+            totalPendientesPago: 0, totalSolicitudInvalida: 0, totalPagoInvalido: 0,
+            programacionCerrada: true, programacionCelebrada: false,
+            puedeCerrar: false, puedeReabrir: true, ultimaReaperturaUtc: null,
+            motivoUltimaReapertura: null, codigo: 'ALREADY_CLOSED',
+            mensaje: 'La programación está cerrada.', pendientes: []
+        }));
+
+        const fixture = await createFixture({}, { fecha: '2026-09-09', hora: '18:00' });
+        await new Promise(resolve => setTimeout(resolve, 300));
+        fixture.detectChanges();
+
+        const component = fixture.componentInstance as any;
+        expect(component.scheduleBlocked()).toBe(true);
+
+        component.save();
+        expect(storeMock.create).not.toHaveBeenCalled();
+        expect(feedbackMock.warning).toHaveBeenCalled();
+    });
+
+    it('should keep payment mode locked without MISA_REGISTRAR_SIN_PAGO', async () => {
+        authStoreMock.hasPermission.mockImplementation((code: string) => code !== 'MISA_REGISTRAR_SIN_PAGO');
+        const fixture = await createFixture({});
+        const component = fixture.componentInstance;
+
+        expect(component.form.controls.requierePago.disabled).toBe(true);
+        expect(component.form.controls.requierePago.value).toBe(true);
+    });
+
     it('should show backend save error as feedback', async () => {
         const fixture = await createFixture({});
 
@@ -358,14 +429,15 @@ describe('MisaFormPage', () => {
         expect(message).toBe('Misa actualizada correctamente.');
     });
 
-    async function createFixture(params: Record<string, string>) {
+    async function createFixture(params: Record<string, string>, query: Record<string, string> = {}) {
         TestBed.resetTestingModule();
 
         TestBed.configureTestingModule({
             imports: [MisaFormPage],
             providers: [{ provide: AuthStore, useValue: authStoreMock }, 
+                { provide: MisaApiService, useValue: misaApiMock },
                 provideRouter([]),
-                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
+                { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params), queryParamMap: convertToParamMap(query) } } },
                 {
                     provide: FeedbackService,
                     useValue: feedbackMock
@@ -378,6 +450,7 @@ describe('MisaFormPage', () => {
             set: {
                 providers: [
                     { provide: MisaFormStore, useValue: storeMock },
+                    { provide: MisaApiService, useValue: misaApiMock },
                     { provide: FeedbackService, useValue: feedbackMock },
                     { provide: MatDialog, useValue: dialogMock }
                 ]

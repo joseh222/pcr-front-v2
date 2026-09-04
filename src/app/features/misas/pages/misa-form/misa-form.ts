@@ -11,7 +11,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MisaFormStore } from '../../data-access/models/misa-form.store';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { combineLatest, debounceTime, distinctUntilChanged, map, startWith } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 import { EMPTY_MISA_INTENTION_RULE, MisaIntentionRule, resolveMisaIntentionRule } from '../../domain/misa-intention.rules';
@@ -21,6 +21,8 @@ import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
+import { MisaApiService } from '../../data-access/misa-api.service';
+import { MisaProgramStatus } from '../../data-access/models/misa-calendar.models';
 
 
 type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nombre: FormControl<string>; observacion: FormControl<string>; }>;
@@ -51,10 +53,20 @@ export class MisaFormPage implements OnInit {
     private readonly feedback = inject(FeedbackService);
     private readonly dialog = inject(MatDialog);
     private readonly authStore = inject(AuthStore);
+    private readonly api = inject(MisaApiService);
 
     protected readonly store = inject(MisaFormStore);
     protected readonly idMisa = signal<number | null>(null);
+    protected readonly returnUrl = signal('/misas');
     protected readonly intentionRule = signal<MisaIntentionRule>(EMPTY_MISA_INTENTION_RULE);
+    protected readonly scheduleStatus = signal<MisaProgramStatus | null>(null);
+    protected readonly checkingSchedule = signal(false);
+    protected readonly canRegisterWithoutPayment = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_REGISTER_WITHOUT_PAYMENT);
+    protected readonly scheduleBlocked = computed(() => {
+        const status = this.scheduleStatus();
+        return !!status && (status.programacionCerrada || status.programacionCelebrada || status.estadoProgramacion === 'CERRADA' || status.estadoProgramacion === 'CELEBRADA');
+    });
+    private scheduleCheckVersion = 0;
     protected get intenciones(): FormArray<MisaIntentionFormGroup> { return this.form.controls.intenciones; }
 
 
@@ -125,8 +137,10 @@ export class MisaFormPage implements OnInit {
 
         this.updateDocumentRules();
         this.onRequiresPaymentChange();
+        this.applyCommercialPermissions();
         this.setIntentions(detail.intenciones ?? []);
         this.applyIntentionRules(false);
+        this.checkProgramStatus(this.form.controls.fecha.value, this.form.controls.hora.value);
     });
 
 
@@ -148,9 +162,21 @@ export class MisaFormPage implements OnInit {
 
     ngOnInit(): void {
         this.setupPersonSearch();
+        const requestedReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        if (requestedReturnUrl?.startsWith('/misas')) this.returnUrl.set(requestedReturnUrl);
+
         const rawId = this.route.snapshot.paramMap.get('id');
 
         if (rawId === null) {
+            const fecha = this.route.snapshot.queryParamMap.get('fecha');
+            const hora = this.route.snapshot.queryParamMap.get('hora');
+            this.form.patchValue({
+                fecha: /^\d{4}-\d{2}-\d{2}$/.test(fecha ?? '') ? fecha! : '',
+                hora: /^\d{2}:\d{2}$/.test(hora ?? '') ? hora! : ''
+            }, { emitEvent: false });
+            this.setupScheduleWatch();
+            this.applyCommercialPermissions();
+            this.checkProgramStatus(this.form.controls.fecha.value, this.form.controls.hora.value);
             this.store.initialize(null);
             return;
         }
@@ -158,12 +184,82 @@ export class MisaFormPage implements OnInit {
         const idMisa = Number(rawId);
 
         if (!Number.isInteger(idMisa) || idMisa <= 0) {
-            void this.router.navigate(['/misas']);
+            this.navigateBack();
             return;
         }
 
         this.idMisa.set(idMisa);
+        this.setupScheduleWatch();
         this.store.initialize(idMisa);
+    }
+
+
+    private setupScheduleWatch(): void {
+        combineLatest([
+            this.form.controls.fecha.valueChanges.pipe(startWith(this.form.controls.fecha.value)),
+            this.form.controls.hora.valueChanges.pipe(startWith(this.form.controls.hora.value))
+        ])
+            .pipe(
+                debounceTime(250),
+                map(([fecha, hora]) => `${fecha}|${hora}`),
+                distinctUntilChanged(),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe(value => {
+                const [fecha, hora] = value.split('|');
+                this.checkProgramStatus(fecha, hora);
+            });
+    }
+
+    private checkProgramStatus(fecha: string, hora: string): void {
+        const version = ++this.scheduleCheckVersion;
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !/^\d{2}:\d{2}$/.test(hora)) {
+            this.scheduleStatus.set(null);
+            this.checkingSchedule.set(false);
+            return;
+        }
+
+        this.checkingSchedule.set(true);
+        this.api.getProgramStatus(fecha, this.apiTime(hora))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: status => {
+                    if (version !== this.scheduleCheckVersion) return;
+                    this.scheduleStatus.set(status);
+                    this.checkingSchedule.set(false);
+                },
+                error: () => {
+                    if (version !== this.scheduleCheckVersion) return;
+                    this.scheduleStatus.set(null);
+                    this.checkingSchedule.set(false);
+                }
+            });
+    }
+
+    private applyCommercialPermissions(): void {
+        if (this.form.disabled) return;
+
+        const requierePago = this.form.controls.requierePago;
+        const motivoNoPago = this.form.controls.motivoNoPago;
+
+        if (this.canRegisterWithoutPayment()) {
+            requierePago.enable({ emitEvent: false });
+            motivoNoPago.enable({ emitEvent: false });
+            return;
+        }
+
+        /* Sin permiso especial puede editar otros datos, pero no cambiar la
+           condición comercial de la Misa. getRawValue conserva el valor actual. */
+        requierePago.disable({ emitEvent: false });
+        motivoNoPago.disable({ emitEvent: false });
+    }
+
+    private canSaveWithoutPayment(): boolean {
+        if (this.form.controls.requierePago.value) return true;
+        if (this.canRegisterWithoutPayment()) return true;
+
+        return this.isEditMode() && this.store.detail()?.solicitudServicio?.requierePago === false;
     }
 
     private setIntentions(intenciones: readonly { idIntencion: number; nombre: string | null; observacion: string | null; }[]): void {
@@ -395,6 +491,16 @@ export class MisaFormPage implements OnInit {
     protected save(): void {
         this.onRequiresPaymentChange();
 
+        if (this.scheduleBlocked()) {
+            this.feedback.warning(this.scheduleStatus()?.mensaje || 'La programación de esta fecha y hora está cerrada.');
+            return;
+        }
+
+        if (!this.canSaveWithoutPayment()) {
+            this.feedback.warning('No tienes permiso para registrar una Misa sin pago.');
+            return;
+        }
+
         if (this.form.invalid) {
             this.form.markAllAsTouched();
             return;
@@ -435,18 +541,18 @@ export class MisaFormPage implements OnInit {
             dialogRef.afterClosed().subscribe(sellNow => {
                 if (sellNow) {
                     void this.router.navigate(['/ventas/nueva'], {
-                        queryParams: { solicitudServicioId: result.idSolicitudServicio, origen: 'misa' }
+                        queryParams: { solicitudServicioId: result.idSolicitudServicio, origen: 'misa', returnUrl: this.returnUrl() }
                     });
                     return;
                 }
 
-                void this.router.navigate(['/misas']);
+                this.navigateBack();
             });
             return;
         }
 
         const message = this.getSaveSuccessMessage(result, wasEditMode);
-        void this.router.navigate(['/misas']).then(() => this.feedback.success(message));
+        void this.router.navigateByUrl(this.returnUrl()).then(() => this.feedback.success(message));
     });
 
     private readonly syncSaveError = effect(() => {
@@ -456,6 +562,10 @@ export class MisaFormPage implements OnInit {
 
         this.feedback.error(message);
     });
+
+    protected navigateBack(): void {
+        void this.router.navigateByUrl(this.returnUrl());
+    }
 
     private getSaveSuccessMessage(result: MisaWriteResponse, wasEditMode: boolean): string {
         const backendMessage = result.mensaje?.trim();
