@@ -122,7 +122,10 @@ export class VentaFormPage implements OnInit {
         }
 
         if (this.route.snapshot.queryParamMap.get('origen') === 'servicio') {
-            void this.router.navigate(['/servicios']);
+            const rawServiceId = this.route.snapshot.queryParamMap.get('solicitudServicioId');
+            const serviceId = rawServiceId === null ? null : Number(rawServiceId);
+            if (serviceId !== null && Number.isInteger(serviceId) && serviceId > 0) void this.router.navigate(['/servicios', serviceId]);
+            else void this.router.navigate(['/servicios']);
             return;
         }
 
@@ -205,6 +208,11 @@ export class VentaFormPage implements OnInit {
     }
 
     protected selectService(service: VentaSolicitudPendiente): void {
+        if (!service.puedeCobrar) {
+            this.feedback.warning(service.motivoNoCobrable || 'La solicitud todavía no está lista para cobrar.');
+            return;
+        }
+
         if (!this.store.addService(service)) {
             this.feedback.warning('El servicio ya se encuentra en el detalle de venta.');
             return;

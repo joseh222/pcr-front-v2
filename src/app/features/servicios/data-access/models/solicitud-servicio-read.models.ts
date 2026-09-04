@@ -1,54 +1,18 @@
 export interface SolicitudServicioListItem {
-    readonly idSolicitudServicio: number;
-    readonly codSolicitudServicio: string;
-    readonly idServicio: number;
-    readonly codigoServicio: string;
-    readonly nombreServicio: string;
-    readonly idPersona: number | null;
-    readonly numeroDocumento: string | null;
-    readonly nombreCompleto: string | null;
-    readonly telefono: string | null;
-    readonly requierePago: boolean;
-    readonly importe: number;
-    readonly estadoSolicitud: string;
-    readonly estadoPago: string;
-    readonly observaciones: string | null;
-    readonly createdUtc: string;
-    readonly rowVersion: string;
+    readonly idSolicitudServicio:number; readonly codSolicitudServicio:string; readonly idServicio:number; readonly codigoServicio:string; readonly nombreServicio:string;
+    readonly idPersona:number|null; readonly numeroDocumento:string|null; readonly nombreCompleto:string|null; readonly telefono:string|null;
+    readonly requierePago:boolean; readonly cantidad:number; readonly importe:number; readonly importeTotal:number;
+    readonly estadoSolicitud:string; readonly estadoPago:string; readonly observaciones:string|null; readonly createdUtc:string; readonly rowVersion:string;
+    readonly idTipoSacramentoRequerido:number|null; readonly codigoTipoSacramentoRequerido:string|null; readonly nombreTipoSacramentoRequerido:string|null;
+    readonly requiereRegistroSacramental:boolean; readonly tieneRegistroSacramental:boolean; readonly codigoTipoSacramentoRegistro:string|null; readonly idRegistroSacramental:number|null;
+    readonly nombreRegistroSacramental:string|null; readonly idLibroSacramentalRegistro:number|null; readonly numeroLibroRegistro:string|null; readonly idFolioSacramentalRegistro:number|null; readonly numeroFolioRegistro:string|null; readonly numeroPartidaRegistro:string|null; readonly fechaSacramentoRegistro:string|null;
+    readonly registroSacramentalRowVersion:string|null; readonly puedeCobrar:boolean; readonly motivoNoCobrable:string|null;
 }
-
-export interface SolicitudServicioPagedResponse {
-    readonly items: readonly SolicitudServicioListItem[];
-    readonly pageNumber: number;
-    readonly pageSize: number;
-    readonly totalRecords: number;
-    readonly totalPages: number;
-}
-
-export interface SolicitudServicioDetailResponse extends SolicitudServicioListItem {
-    readonly modoPrecio: string;
-    readonly motivoNoPago: string | null;
-    readonly nombreEstadoSolicitud: string;
-    readonly nombreEstadoPago: string;
-    readonly updatedUtc: string | null;
-    readonly createdById: number | null;
-    readonly updatedById: number | null;
-    readonly motivoAnulacion: string | null;
-    readonly anuladaUtc: string | null;
-    readonly anuladaById: number | null;
-}
-
-export interface SolicitudServicioListFilters {
-    readonly search: string | null;
-    readonly idServicio: number | null;
-    readonly estadoSolicitud: string | null;
-    readonly estadoPago: string | null;
-    readonly requierePago: boolean | null;
-    readonly fechaInicio: string | null;
-    readonly fechaFin: string | null;
-}
-
-export interface SolicitudServicioListQuery extends SolicitudServicioListFilters {
-    readonly pageNumber: number;
-    readonly pageSize: number;
-}
+export interface SolicitudServicioPagedResponse { readonly items:readonly SolicitudServicioListItem[]; readonly pageNumber:number; readonly pageSize:number; readonly totalRecords:number; readonly totalPages:number; }
+export interface SolicitudServicioDetailResponse extends SolicitudServicioListItem { readonly modoPrecio:string; readonly motivoNoPago:string|null; readonly nombreEstadoSolicitud:string; readonly nombreEstadoPago:string; readonly updatedUtc:string|null; readonly createdById:number|null; readonly updatedById:number|null; readonly motivoAnulacion:string|null; readonly anuladaUtc:string|null; readonly anuladaById:number|null; }
+export interface SolicitudServicioListFilters { readonly search:string|null; readonly idServicio:number|null; readonly estadoSolicitud:string|null; readonly estadoPago:string|null; readonly requierePago:boolean|null; readonly fechaInicio:string|null; readonly fechaFin:string|null; }
+export interface SolicitudServicioListQuery extends SolicitudServicioListFilters { readonly pageNumber:number; readonly pageSize:number; }
+export interface RegistroSacramentalSearchQuery { readonly codigoTipoSacramento:string; readonly search?:string|null; readonly dni?:string|null; readonly numeroLibro?:string|null; readonly numeroFolio?:string|null; readonly numeroPartida?:string|null; readonly fechaDesde?:string|null; readonly fechaHasta?:string|null; readonly top?:number; }
+export interface RegistroSacramentalSearchItem { readonly codigoTipoSacramento:string; readonly idRegistroSacramental:number; readonly nombrePrincipal:string; readonly nombreSecundario:string|null; readonly dniPrincipal:string|null; readonly dniSecundario:string|null; readonly fechaNacimientoPrincipal:string|null; readonly fechaSacramento:string|null; readonly padresResumen:string|null; readonly idLibroSacramental:number; readonly numeroLibro:string; readonly idFolioSacramental:number; readonly numeroFolio:string; readonly numeroPartida:string; }
+export interface SolicitudServicioRegistroSacramental { readonly idSolicitudServicio:number; readonly codSolicitudServicio:string; readonly idServicio:number; readonly codigoServicio:string; readonly nombreServicio:string; readonly cantidad:number; readonly importe:number; readonly idTipoSacramentoRequerido:number|null; readonly codigoTipoSacramentoRequerido:string|null; readonly nombreTipoSacramentoRequerido:string|null; readonly requiereRegistroSacramental:boolean; readonly tieneRegistroSacramental:boolean; readonly codigoTipoSacramentoRegistro:string|null; readonly idRegistroSacramental:number|null; readonly nombreRegistroSacramental:string|null; readonly idLibroSacramentalRegistro:number|null; readonly numeroLibroRegistro:string|null; readonly idFolioSacramentalRegistro:number|null; readonly numeroFolioRegistro:string|null; readonly numeroPartidaRegistro:string|null; readonly fechaSacramentoRegistro:string|null; readonly registroSacramentalRowVersion:string|null; }
+export interface SolicitudServicioCobroValidacion { readonly idSolicitudServicio:number; readonly codSolicitudServicio:string; readonly cantidad:number; readonly importe:number; readonly importeTotal:number; readonly puedeCobrar:boolean; readonly codigoValidacion:string; readonly mensaje:string; }

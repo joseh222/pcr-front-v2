@@ -8,17 +8,32 @@ export interface VentaSolicitudPendiente {
     readonly numeroDocumento: string | null;
     readonly nombreCompleto: string | null;
     readonly telefono: string | null;
+    readonly requierePago: boolean;
+    readonly cantidad: number;
     readonly importe: number;
+    readonly importeTotal: number;
+    readonly estadoSolicitud: string;
+    readonly estadoPago: string;
+    readonly idTipoSacramentoRequerido: number | null;
+    readonly codigoTipoSacramentoRequerido: string | null;
+    readonly nombreTipoSacramentoRequerido: string | null;
+    readonly requiereRegistroSacramental: boolean;
+    readonly tieneRegistroSacramental: boolean;
+    readonly codigoTipoSacramentoRegistro: string | null;
+    readonly idRegistroSacramental: number | null;
+    readonly nombreRegistroSacramental: string | null;
+    readonly numeroLibroRegistro: string | null;
+    readonly numeroFolioRegistro: string | null;
+    readonly numeroPartidaRegistro: string | null;
+    readonly puedeCobrar: boolean;
+    readonly motivoNoCobrable: string | null;
     readonly createdUtc: string;
 }
 
 export interface VentaSolicitudDetalle extends VentaSolicitudPendiente {
     readonly modoPrecio: string;
-    readonly requierePago: boolean;
     readonly motivoNoPago: string | null;
-    readonly estadoSolicitud: string;
     readonly nombreEstadoSolicitud: string;
-    readonly estadoPago: string;
     readonly nombreEstadoPago: string;
     readonly observaciones: string | null;
     readonly updatedUtc: string | null;

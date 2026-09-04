@@ -1,20 +1,36 @@
 <section class="config-page">
-    <header class="page-header"><div><p class="eyebrow">Configuración general</p><h1>Impresión</h1><p>Define el comportamiento global de la ticketera utilizada por el sistema.</p></div><button mat-flat-button type="button" (click)="save()" [disabled]="!canEdit() || saving() || loading()"><mat-icon>save</mat-icon>{{ saving() ? 'Guardando...' : 'Guardar cambios' }}</button></header>
-    @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-    @if (config(); as current) {
-    <form class="config-card" [formGroup]="form">
-        <div class="status-row"><mat-slide-toggle formControlName="isActive" [disabled]="!canEdit()">Impresión habilitada</mat-slide-toggle><span>Motor: {{ current.motor }}</span></div>
-        <div class="form-grid">
-            <mat-form-field appearance="outline"><mat-label>Modo</mat-label><mat-select formControlName="modo" [disabled]="!canEdit()">@for (item of modos; track item.value) { <mat-option [value]="item.value">{{ item.label }}</mat-option> }</mat-select><mat-hint>Manual abre el documento; Automático lo envía al servidor de impresión.</mat-hint></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Conexión física</mat-label><mat-select formControlName="tipoConexion" [disabled]="!canEdit()">@for (item of conexiones; track item.value) { <mat-option [value]="item.value">{{ item.label }}</mat-option> }</mat-select></mat-form-field>
-            <mat-form-field appearance="outline" class="wide"><mat-label>Nombre de impresora en Windows</mat-label><input matInput formControlName="nombreImpresoraWindows" [readonly]="!canEdit()"><mat-hint>Debe coincidir exactamente con Get-Printer. Ej.: 80mm Series Printer</mat-hint></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>IP</mat-label><input matInput formControlName="direccionIp" [readonly]="!canEdit()" placeholder="192.168.1.114"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Puerto</mat-label><input matInput type="number" formControlName="puerto" [readonly]="!canEdit()"></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Ancho de papel</mat-label><mat-select formControlName="anchoPapelMm" [disabled]="!canEdit()"><mat-option [value]="80">80 mm</mat-option><mat-option [value]="58">58 mm</mat-option></mat-select><mat-hint>La plantilla automática actual está optimizada para 80 mm.</mat-hint></mat-form-field>
-        </div>
-        <div class="options"><mat-slide-toggle formControlName="imprimirTicketVenta" [disabled]="!canEdit()">Imprimir ticket de venta automáticamente</mat-slide-toggle><mat-slide-toggle formControlName="imprimirDocumentosAsociados" [disabled]="!canEdit()">Imprimir documentos asociados automáticamente</mat-slide-toggle><mat-slide-toggle formControlName="cortarEntreDocumentos" [disabled]="!canEdit()">Separar documentos en trabajos independientes</mat-slide-toggle></div>
-        <div class="note"><mat-icon>info</mat-icon><div><strong>Corte entre documentos</strong><p>Con esta opción activa, Ticket de Venta y Registro de Misas se envían como trabajos independientes. El driver/cutter puede cortar al finalizar cada trabajo.</p></div></div>
-        @if (current.updatedUtc) { <p class="updated">Último cambio: {{ current.updatedBy || 'Sistema' }}</p> }
-    </form>
-    }
+    <header class="page-header"><div><p class="eyebrow">Configuración general</p><h1>Parámetros del sistema</h1><p>Administra la impresión general, los registros sacramentales y la calibración de constancias oficiales.</p></div></header>
+
+    <section class="config-section">
+        <div class="section-title"><div><h2>Impresión</h2><p>Define el comportamiento global de la ticketera utilizada por el sistema.</p></div><button mat-flat-button type="button" (click)="saveImpresion()" [disabled]="!canEdit() || savingImpresion() || loadingImpresion()"><mat-icon>save</mat-icon>{{ savingImpresion() ? 'Guardando...' : 'Guardar impresión' }}</button></div>
+        @if (loadingImpresion()) { <mat-progress-bar mode="indeterminate" /> }
+        @if (configImpresion(); as current) {
+        <form class="config-card" [formGroup]="impresionForm">
+            <div class="status-row"><mat-slide-toggle formControlName="isActive" [disabled]="!canEdit()">Impresión habilitada</mat-slide-toggle><span>Motor: {{ current.motor }}</span></div>
+            <div class="form-grid">
+                <mat-form-field appearance="outline"><mat-label>Modo</mat-label><mat-select formControlName="modo" [disabled]="!canEdit()">@for (item of modos; track item.value) { <mat-option [value]="item.value">{{ item.label }}</mat-option> }</mat-select><mat-hint>Manual abre el documento; Automático lo envía al servidor de impresión.</mat-hint></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Conexión física</mat-label><mat-select formControlName="tipoConexion" [disabled]="!canEdit()">@for (item of conexiones; track item.value) { <mat-option [value]="item.value">{{ item.label }}</mat-option> }</mat-select></mat-form-field>
+                <mat-form-field appearance="outline" class="wide"><mat-label>Nombre de impresora en Windows</mat-label><input matInput formControlName="nombreImpresoraWindows" [readonly]="!canEdit()"><mat-hint>Debe coincidir exactamente con Get-Printer. Ej.: 80mm Series Printer</mat-hint></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>IP</mat-label><input matInput formControlName="direccionIp" [readonly]="!canEdit()" placeholder="192.168.1.114"></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Puerto</mat-label><input matInput type="number" formControlName="puerto" [readonly]="!canEdit()"></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Ancho de papel</mat-label><mat-select formControlName="anchoPapelMm" [disabled]="!canEdit()"><mat-option [value]="80">80 mm</mat-option><mat-option [value]="58">58 mm</mat-option></mat-select><mat-hint>La plantilla automática actual está optimizada para 80 mm.</mat-hint></mat-form-field>
+            </div>
+            <div class="options"><mat-slide-toggle formControlName="imprimirTicketVenta" [disabled]="!canEdit()">Imprimir ticket de venta automáticamente</mat-slide-toggle><mat-slide-toggle formControlName="imprimirDocumentosAsociados" [disabled]="!canEdit()">Imprimir documentos asociados automáticamente</mat-slide-toggle><mat-slide-toggle formControlName="cortarEntreDocumentos" [disabled]="!canEdit()">Separar documentos en trabajos independientes</mat-slide-toggle></div>
+            <div class="note"><mat-icon>info</mat-icon><div><strong>Configuración global</strong><p>Los cambios afectan el flujo de impresión del sistema.</p></div></div>
+            <p class="updated">Última actualización: {{ current.updatedUtc || '—' }} · {{ current.updatedBy || 'Sistema' }}</p>
+        </form>}
+    </section>
+
+    <section class="config-section">
+        <div class="section-title"><div><h2>Registros sacramentales</h2><p>Controla cómo se normaliza el texto de Bautismos, Confirmaciones, Matrimonios y sus libros.</p></div><button mat-flat-button type="button" (click)="saveSacramental()" [disabled]="!canEdit() || savingSacramental() || loadingSacramental()"><mat-icon>save</mat-icon>{{ savingSacramental() ? 'Guardando...' : 'Guardar sacramentos' }}</button></div>
+        @if (loadingSacramental()) { <mat-progress-bar mode="indeterminate" /> }
+        @if (configSacramental(); as current) {
+        <form class="config-card" [formGroup]="sacramentalForm">
+            <div class="status-row"><mat-slide-toggle formControlName="forzarMayusculas" [disabled]="!canEdit()">Forzar texto en mayúsculas</mat-slide-toggle><span>{{ current.forzarMayusculas ? 'ACTIVO' : 'DESACTIVADO' }}</span></div>
+            <div class="note"><mat-icon>spellcheck</mat-icon><div><strong>Evita diferencias de escritura en las constancias</strong><p>Activado: “José Pérez” se guarda como “JOSÉ PÉREZ”. Desactivado: se conserva exactamente la escritura ingresada. El Back vuelve a aplicar esta regla aunque el registro se envíe desde Postman.</p></div></div>
+            <p class="updated">Última actualización: {{ current.updatedUtc || '—' }} · {{ current.updatedBy || 'Sistema' }}</p>
+        </form>}
+    </section>
+
+    <pcr-constancia-print-settings />
 </section>

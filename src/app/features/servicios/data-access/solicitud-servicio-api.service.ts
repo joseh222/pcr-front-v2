@@ -5,8 +5,8 @@ import { RuntimeConfigService } from '../../../core/config/runtime-config.servic
 import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
 import { ServicioDetail, ServicioLookupItem, ServicioPagedResponse } from './models/servicio-lookup.models';
 import { EstadoPagoSolicitudServicio, EstadoSolicitudServicio } from './models/solicitud-servicio-catalog.models';
-import { SolicitudServicioDetailResponse, SolicitudServicioListQuery, SolicitudServicioPagedResponse } from './models/solicitud-servicio-read.models';
-import { SolicitudServicioAnularRequest, SolicitudServicioAnularResponse, SolicitudServicioCreateRequest, SolicitudServicioCreateResponse, SolicitudServicioUpdateRequest, SolicitudServicioUpdateResponse } from './models/solicitud-servicio-write.models';
+import { RegistroSacramentalSearchItem, RegistroSacramentalSearchQuery, SolicitudServicioCobroValidacion, SolicitudServicioDetailResponse, SolicitudServicioListQuery, SolicitudServicioPagedResponse, SolicitudServicioRegistroSacramental } from './models/solicitud-servicio-read.models';
+import { SolicitudServicioAnularRequest, SolicitudServicioAnularResponse, SolicitudServicioCreateRequest, SolicitudServicioCreateResponse, SolicitudServicioRegistroSacramentalSetRequest, SolicitudServicioUpdateRequest, SolicitudServicioUpdateResponse } from './models/solicitud-servicio-write.models';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudServicioApiService {
@@ -51,6 +51,15 @@ export class SolicitudServicioApiService {
 
     createPersona(request: PersonaCreateRequest): Observable<PersonaCreateResponse> { return this.http.post<PersonaCreateResponse>(`${this.apiUrl}/personas`, request); }
     
+    searchRegistrosSacramentales(query: RegistroSacramentalSearchQuery): Observable<readonly RegistroSacramentalSearchItem[]> {
+        let params=new HttpParams().set('codigoTipoSacramento',query.codigoTipoSacramento).set('top',query.top ?? 20);
+        if(query.search?.trim())params=params.set('search',query.search.trim()); if(query.dni?.trim())params=params.set('dni',query.dni.trim()); if(query.numeroLibro?.trim())params=params.set('numeroLibro',query.numeroLibro.trim()); if(query.numeroFolio?.trim())params=params.set('numeroFolio',query.numeroFolio.trim()); if(query.numeroPartida?.trim())params=params.set('numeroPartida',query.numeroPartida.trim()); if(query.fechaDesde)params=params.set('fechaDesde',query.fechaDesde); if(query.fechaHasta)params=params.set('fechaHasta',query.fechaHasta);
+        return this.http.get<readonly RegistroSacramentalSearchItem[]>(`${this.apiUrl}/registros-sacramentales`,{params});
+    }
+    getRegistroSacramental(id:number):Observable<SolicitudServicioRegistroSacramental>{return this.http.get<SolicitudServicioRegistroSacramental>(`${this.apiUrl}/${id}/registro-sacramental`);}
+    setRegistroSacramental(id:number,request:SolicitudServicioRegistroSacramentalSetRequest):Observable<SolicitudServicioRegistroSacramental>{return this.http.put<SolicitudServicioRegistroSacramental>(`${this.apiUrl}/${id}/registro-sacramental`,request);}
+    validarCobro(id:number):Observable<SolicitudServicioCobroValidacion>{return this.http.get<SolicitudServicioCobroValidacion>(`${this.apiUrl}/${id}/cobro-validacion`);}
+
     create(request: SolicitudServicioCreateRequest): Observable<SolicitudServicioCreateResponse> {
         return this.http.post<SolicitudServicioCreateResponse>(this.apiUrl, request);
     }

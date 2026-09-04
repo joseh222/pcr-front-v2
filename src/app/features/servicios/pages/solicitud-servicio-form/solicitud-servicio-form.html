@@ -34,6 +34,22 @@
                 </div>
             </section>
 
+            @if (selectedService()?.requiereRegistroSacramental) {
+            <section class="form-card sacramental-card">
+                <header><div class="section-icon"><mat-icon>auto_stories</mat-icon></div><div><h2>Registro sacramental</h2><p>Asocia la partida que respalda esta constancia.</p></div></header>
+                <div class="card-body">
+                    @if (selectedRegistro(); as registro) {
+                        <div class="selected-card">
+                            <div><span class="selected-label">{{ selectedService()?.nombreTipoSacramentoRequerido }}</span><strong>{{ registro.nombrePrincipal }}</strong><p>Libro {{ registro.numeroLibro }} · Folio {{ registro.numeroFolio }} · Partida {{ registro.numeroPartida }}</p></div>
+                            <div class="selected-actions"><button mat-stroked-button type="button" (click)="selectRegistro()"><mat-icon>sync</mat-icon>Cambiar</button>@if (canClearRegistro()) { <button mat-stroked-button type="button" (click)="clearRegistro()"><mat-icon>close</mat-icon>Quitar</button> }</div>
+                        </div>
+                    } @else {
+                        <div class="sacramental-empty"><div><strong>Pendiente de asociar</strong><p>Puedes guardar la SS sin partida, pero no podrá cobrarse hasta asociar el registro sacramental.</p></div><button mat-flat-button type="button" (click)="selectRegistro()"><mat-icon>search</mat-icon>Buscar {{ selectedService()?.nombreTipoSacramentoRequerido }}</button></div>
+                    }
+                </div>
+            </section>
+            }
+
             <section class="form-card">
                 <header><div class="section-icon"><mat-icon>person</mat-icon></div><div><h2>Solicitante</h2><p>Es opcional. Puedes vincular una persona existente o registrar una nueva.</p></div></header>
                 <div class="card-body">
@@ -65,6 +81,7 @@
             <section class="form-card">
                 <header><div class="section-icon"><mat-icon>payments</mat-icon></div><div><h2>Condición comercial</h2><p>Define si el servicio genera una obligación de pago.</p></div></header>
                 <div class="card-body">
+                    <mat-form-field appearance="outline" class="amount-field"><mat-label>Cantidad</mat-label><input matInput type="number" min="1" step="1" formControlName="cantidad"><mat-hint>Ejemplares solicitados en esta atención.</mat-hint>@if(form.controls.cantidad.hasError('min') || form.controls.cantidad.hasError('pattern')){<mat-error>La cantidad debe ser un entero mayor o igual a 1.</mat-error>}</mat-form-field>
                     <mat-checkbox formControlName="requierePago">Requiere pago</mat-checkbox>
                     @if (form.controls.requierePago.value) {
                         @if (selectedService()?.modoPrecio === 'VARIABLE') {

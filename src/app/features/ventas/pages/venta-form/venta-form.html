@@ -130,18 +130,22 @@
                     <h3>Servicio pendiente</h3>
                     <mat-form-field appearance="outline" class="full-width">
                         <mat-label>Solicitud, servicio, nombre o documento</mat-label>
-                        <input matInput formControlName="servicioSearch" placeholder="Ej. SS2026-00025">
+                        <input matInput formControlName="servicioSearch" placeholder="Ej. SS2026-000027">
                         <mat-icon matSuffix>church</mat-icon>
                     </mat-form-field>
                     @if (store.serviceLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
                     @if (store.serviceResults().length > 0) {
                     <div class="search-results compact">
                         @for (service of store.serviceResults(); track service.idSolicitudServicio) {
-                        <button type="button" class="search-result" (click)="selectService(service)">
-                            <span><strong>{{ service.codSolicitudServicio }} · {{ service.nombreServicio
-                                    }}</strong><small>{{ service.nombreCompleto || 'Sin persona' }} · S/ {{
-                                    service.importe.toFixed(2) }}</small></span>
-                            <mat-icon>add_circle_outline</mat-icon>
+                        <button type="button" class="search-result" [class.search-result-disabled]="!service.puedeCobrar" (click)="selectService(service)">
+                            <span>
+                                <strong>{{ service.codSolicitudServicio }} · {{ service.nombreServicio }}</strong>
+                                <small>{{ service.nombreCompleto || 'Sin persona' }} · {{ service.cantidad }} ud. × S/ {{ service.importe.toFixed(2) }} = S/ {{ service.importeTotal.toFixed(2) }}</small>
+                                @if (service.requiereRegistroSacramental) {
+                                    <small>{{ service.tieneRegistroSacramental ? ((service.nombreRegistroSacramental || '') + ' · Libro ' + (service.numeroLibroRegistro || '—') + ' · Folio ' + (service.numeroFolioRegistro || '—') + ' · Partida ' + (service.numeroPartidaRegistro || '—')) : (service.motivoNoCobrable || 'Pendiente de asociar registro sacramental') }}</small>
+                                }
+                            </span>
+                            <mat-icon>{{ service.puedeCobrar ? 'add_circle_outline' : 'link_off' }}</mat-icon>
                         </button>
                         }
                     </div>
@@ -202,7 +206,7 @@
                                         }
 
                                     </div>
-                                    } @else { 1 }
+                                    } @else { <span>{{ item.cantidad }}</span> }
                                 </td>
                                 <td>S/ {{ item.precioUnitario.toFixed(2) }}</td>
                                 <td>

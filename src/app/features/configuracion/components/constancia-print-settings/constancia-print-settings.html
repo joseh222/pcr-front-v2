@@ -1,0 +1,193 @@
+
+<section class="constancia-settings">
+    <div class="section-title">
+        <div>
+            <h2>Impresión de constancias</h2>
+            <p>Configura la impresora dedicada y calibra los datos que se imprimirán sobre los formatos oficiales del Obispado.</p>
+        </div>
+    </div>
+
+    @if (loadingConfig()) { <mat-progress-bar mode="indeterminate" /> }
+    @if (config(); as current) {
+        <form class="settings-card" [formGroup]="generalForm">
+            <div class="card-heading">
+                <div><h3>Datos generales</h3><p>Se toman al crear el snapshot de cada nueva solicitud.</p></div>
+                <button mat-flat-button type="button" (click)="saveConfig()" [disabled]="!canEdit() || savingConfig()">
+                    <mat-icon>save</mat-icon>{{ savingConfig() ? 'Guardando...' : 'Guardar datos' }}
+                </button>
+            </div>
+            <div class="general-grid">
+                <mat-form-field appearance="outline">
+                    <mat-label>Parroquia / Capellanía</mat-label>
+                    <input matInput formControlName="nombreParroquia" [readonly]="!canEdit()">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Lugar de expedición</mat-label>
+                    <input matInput formControlName="lugarExpedicion" [readonly]="!canEdit()">
+                    <mat-hint>Ejemplo: PUEBLO NUEVO</mat-hint>
+                </mat-form-field>
+            </div>
+            <p class="updated">Última actualización: {{ current.updatedUtc ? (current.updatedUtc | date:'dd/MM/yyyy HH:mm':'-0500') : 'Sin cambios registrados' }}</p>
+        </form>
+    }
+
+    <div class="settings-card printer-card">
+        <div class="card-heading">
+            <div>
+                <h3>Impresora de constancias</h3>
+                <p>Es independiente de la ticketera. El modo es siempre MANUAL para que Secretaría revise los datos antes de imprimir.</p>
+            </div>
+            <span class="mode-badge"><mat-icon>visibility</mat-icon>MANUAL</span>
+        </div>
+
+        @if (loadingPrinter()) { <mat-progress-bar mode="indeterminate" /> }
+
+        @if (printer(); as printerConfig) {
+            <form [formGroup]="printerForm" class="printer-form">
+                <div class="printer-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de conexión</mat-label>
+                        <mat-select formControlName="tipoConexion" [disabled]="!canEdit()">
+                            @for (conexion of conexiones; track conexion.value) {
+                                <mat-option [value]="conexion.value">{{ conexion.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="printer-name">
+                        <mat-label>Nombre de impresora en Windows</mat-label>
+                        <input matInput formControlName="nombreImpresoraWindows" [readonly]="!canEdit()">
+                        <mat-hint>Debe coincidir exactamente con el nombre instalado en el equipo del PCR Print Agent.</mat-hint>
+                    </mat-form-field>
+
+                    @if (printerForm.controls.tipoConexion.value === 'RED') {
+                        <mat-form-field appearance="outline">
+                            <mat-label>Dirección IP</mat-label>
+                            <input matInput formControlName="direccionIp" [readonly]="!canEdit()">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Puerto</mat-label>
+                            <input matInput type="number" formControlName="puerto" [readonly]="!canEdit()">
+                        </mat-form-field>
+                    }
+                </div>
+
+                <div class="printer-actions">
+                    <button mat-flat-button type="button" (click)="savePrinter()" [disabled]="!canEdit() || savingPrinter()">
+                        <mat-icon>save</mat-icon>{{ savingPrinter() ? 'Guardando...' : 'Guardar impresora' }}
+                    </button>
+                    <button mat-stroked-button type="button" (click)="validatePrinter()" [disabled]="validatingPrinter() || !printerConfig.estaConfigurada">
+                        <mat-icon>print</mat-icon>{{ validatingPrinter() ? 'Validando...' : 'Validar impresora' }}
+                    </button>
+                </div>
+            </form>
+
+            @if (printerValidation(); as validation) {
+                <div class="printer-validation" [class.ok]="validation.disponible" [class.error]="!validation.disponible">
+                    <mat-icon>{{ validation.disponible ? 'check_circle' : 'error' }}</mat-icon>
+                    <div>
+                        <strong>{{ validation.disponible ? 'Impresora disponible' : 'Impresora no disponible' }}</strong>
+                        <p>{{ validation.mensaje }}</p>
+                        @if (validation.agente) {
+                            <small>Agente: {{ validation.agente }}{{ validation.equipo ? ' · Equipo: ' + validation.equipo : '' }}{{ validation.ultimoContactoUtc ? ' · Último contacto: ' + (validation.ultimoContactoUtc | date:'dd/MM/yyyy HH:mm:ss':'-0500') : '' }}</small>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="printer-warning">
+                <mat-icon>info</mat-icon>
+                <p>Si cambias el nombre, tipo de conexión, IP o puerto de la impresora, las tres plantillas pasan automáticamente a <strong>Pendiente de calibración</strong>. Sus coordenadas y offsets NO se borran.</p>
+            </div>
+        }
+    </div>
+
+    <section class="settings-card template-card">
+        <div class="card-heading">
+            <div><h3>Calibración de plantillas</h3><p>Las coordenadas quedan bloqueadas después de confirmar una calibración física.</p></div>
+            <div class="heading-actions">
+                <button mat-stroked-button type="button" (click)="viewTest()" [disabled]="generatingTest() || loadingPlantilla()">
+                    <mat-icon>picture_as_pdf</mat-icon>{{ generatingTest() ? 'Generando...' : 'Ver hoja de prueba' }}
+                </button>
+                <button mat-stroked-button type="button" (click)="printTest()" [disabled]="printingTest() || loadingPlantilla() || !printer()?.estaConfigurada">
+                    <mat-icon>print</mat-icon>{{ printingTest() ? 'Imprimiendo...' : 'Imprimir hoja de prueba' }}
+                </button>
+
+                @if (plantilla(); as stateTemplate) {
+                    @if (stateTemplate.estaCalibrada) {
+                        <button mat-stroked-button type="button" (click)="openCalibration()" [disabled]="!canEdit() || changingCalibration()">
+                            <mat-icon>tune</mat-icon>Editar calibración
+                        </button>
+                    } @else {
+                        <button mat-flat-button type="button" (click)="markCalibrated()" [disabled]="!canEdit() || changingCalibration() || savingPlantilla()">
+                            <mat-icon>verified</mat-icon>Marcar como calibrada
+                        </button>
+                        <button mat-stroked-button type="button" (click)="savePlantilla()" [disabled]="!canEditCalibration() || savingPlantilla() || loadingPlantilla()">
+                            <mat-icon>save</mat-icon>{{ savingPlantilla() ? 'Guardando...' : 'Guardar parámetros' }}
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (testPrintStatus(); as status) {
+            <div class="print-job-status"><mat-icon>print</mat-icon><span>{{ status }}</span></div>
+        }
+
+        <mat-form-field appearance="outline" class="type-select">
+            <mat-label>Tipo de constancia</mat-label>
+            <mat-select [value]="selectedTipo()" (selectionChange)="tipoChanged($event.value)">
+                @for (tipo of tipos; track tipo.value) { <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option> }
+            </mat-select>
+        </mat-form-field>
+
+        @if (loadingPlantilla()) { <mat-progress-bar mode="indeterminate" /> }
+
+        @if (plantilla(); as current) {
+            <div class="calibration-status" [class.calibrated]="current.estaCalibrada" [class.pending]="!current.estaCalibrada">
+                <mat-icon>{{ current.estaCalibrada ? 'lock' : 'lock_open' }}</mat-icon>
+                <div>
+                    <strong>{{ current.estaCalibrada ? 'CALIBRADA · parámetros bloqueados' : 'PENDIENTE DE CALIBRACIÓN · parámetros editables' }}</strong>
+                    <p>{{ current.estaCalibrada ? 'Para modificar papel, offsets o campos usa “Editar calibración”.' : 'Realiza las pruebas físicas y, cuando todo coincida, usa “Marcar como calibrada”.' }}</p>
+                </div>
+            </div>
+
+            <form [formGroup]="plantillaForm" class="template-form">
+                <div class="paper-grid">
+                    <mat-form-field appearance="outline"><mat-label>Ancho papel (mm)</mat-label><input matInput type="number" step="0.1" formControlName="anchoPapelMm"></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Alto papel (mm)</mat-label><input matInput type="number" step="0.1" formControlName="altoPapelMm"></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Offset global X (mm)</mat-label><input matInput type="number" step="0.1" formControlName="offsetGlobalXmm"><mat-hint>Mueve todos los campos horizontalmente.</mat-hint></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Offset global Y (mm)</mat-label><input matInput type="number" step="0.1" formControlName="offsetGlobalYmm"><mat-hint>Mueve todos los campos verticalmente.</mat-hint></mat-form-field>
+                </div>
+            </form>
+
+            <div class="calibration-note">
+                <mat-icon>straighten</mat-icon>
+                <div><strong>Calibración recomendada</strong><p>Primero corrige desplazamientos generales con Offset global X/Y. Modifica X/Y de un campo únicamente si ese dato individual no coincide con su línea.</p></div>
+            </div>
+
+            <div class="field-table-wrap">
+                <table class="field-table">
+                    <thead><tr><th>Usar</th><th>Campo</th><th>X</th><th>Y</th><th>Ancho</th><th>Alto</th><th>Fuente</th><th>Alineación</th><th>Líneas</th></tr></thead>
+                    <tbody>
+                        @for (campo of campos(); track campo.idConstanciaPlantillaCampo) {
+                            <tr [class.locked-row]="current.estaCalibrada">
+                                <td><input class="active-check" type="checkbox" [checked]="campo.isActive" [disabled]="!canEditCalibration()" (change)="setFieldActive(campo.idConstanciaPlantillaCampo, $event)"></td>
+                                <td class="field-name"><strong>{{ campo.etiqueta }}</strong><small>{{ campo.codigoCampo }}</small></td>
+                                <td><input type="number" step="0.1" [value]="campo.xmm" [disabled]="!canEditCalibration()" (input)="setFieldNumber(campo.idConstanciaPlantillaCampo, 'xmm', $event)"></td>
+                                <td><input type="number" step="0.1" [value]="campo.ymm" [disabled]="!canEditCalibration()" (input)="setFieldNumber(campo.idConstanciaPlantillaCampo, 'ymm', $event)"></td>
+                                <td><input type="number" step="0.1" [value]="campo.anchoMm" [disabled]="!canEditCalibration()" (input)="setFieldNumber(campo.idConstanciaPlantillaCampo, 'anchoMm', $event)"></td>
+                                <td><input type="number" step="0.1" [value]="campo.altoMm" [disabled]="!canEditCalibration()" (input)="setFieldNumber(campo.idConstanciaPlantillaCampo, 'altoMm', $event)"></td>
+                                <td><input type="number" step="0.1" [value]="campo.tamanoFuentePt" [disabled]="!canEditCalibration()" (input)="setFieldNumber(campo.idConstanciaPlantillaCampo, 'tamanoFuentePt', $event)"></td>
+                                <td><select [value]="campo.alineacion" [disabled]="!canEditCalibration()" (change)="setFieldAlignment(campo.idConstanciaPlantillaCampo, $event)">@for (a of alineaciones; track a) { <option [value]="a">{{ a }}</option> }</select></td>
+                                <td><input type="number" min="1" max="10" step="1" [value]="campo.maxLineas" [disabled]="!canEditCalibration()" (input)="setFieldNumber(campo.idConstanciaPlantillaCampo, 'maxLineas', $event)"></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="updated">Estado: {{ current.estaCalibrada ? 'Calibrada y bloqueada' : 'Pendiente de calibración' }} · Última actualización: {{ current.updatedUtc ? (current.updatedUtc | date:'dd/MM/yyyy HH:mm':'-0500') : 'Sin cambios registrados' }}</p>
+        }
+    </section>
+</section>

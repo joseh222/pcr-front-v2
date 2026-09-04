@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EMPTY } from 'rxjs';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { SolicitudServicioFormStore } from '../../data-access/models/solicitud-servicio-form.store';
+import { SolicitudServicioApiService } from '../../data-access/solicitud-servicio-api.service';
 import { SolicitudServicioFormPage } from './solicitud-servicio-form';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 
@@ -18,10 +19,11 @@ describe('SolicitudServicioFormPage', () => {
     };
     const feedbackMock = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() };
     const dialogMock = { open: vi.fn(() => ({ afterClosed: () => EMPTY })) };
+    const apiMock = { setRegistroSacramental: vi.fn(() => EMPTY) };
 
     beforeEach(() => {
         Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); });
-        TestBed.configureTestingModule({ imports: [SolicitudServicioFormPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}) } } }, { provide: FeedbackService, useValue: feedbackMock }, { provide: MatDialog, useValue: dialogMock }] });
+        TestBed.configureTestingModule({ imports: [SolicitudServicioFormPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}) } } }, { provide: FeedbackService, useValue: feedbackMock }, { provide: MatDialog, useValue: dialogMock }, { provide: SolicitudServicioApiService, useValue: apiMock }] });
         TestBed.overrideComponent(SolicitudServicioFormPage, { set: { providers: [{ provide: SolicitudServicioFormStore, useValue: storeMock }] } });
     });
 

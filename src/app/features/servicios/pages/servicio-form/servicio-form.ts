@@ -41,7 +41,8 @@ export class ServicioFormPage implements OnInit {
         nombre: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(150)]),
         descripcion: this.fb.nonNullable.control('', Validators.maxLength(500)),
         modoPrecio: this.fb.control<ServicioModoPrecio>('FIJO', Validators.required),
-        precioBase: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)])
+        precioBase: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
+        idTipoSacramentoRequerido:this.fb.control<number|null>(null)
     });
 
     private readonly syncDetail = effect(() => {
@@ -53,7 +54,8 @@ export class ServicioFormPage implements OnInit {
             nombre: detail.nombre,
             descripcion: detail.descripcion ?? '',
             modoPrecio: detail.modoPrecio,
-            precioBase: detail.precioBase
+            precioBase: detail.precioBase,
+            idTipoSacramentoRequerido:detail.idTipoSacramentoRequerido
         }, { emitEvent: false });
         this.applyPricingMode(detail.modoPrecio, false);
     });
@@ -121,7 +123,8 @@ export class ServicioFormPage implements OnInit {
             nombre: value.nombre.trim(),
             descripcion: this.nullable(value.descripcion),
             modoPrecio: value.modoPrecio!,
-            precioBase: value.modoPrecio === 'FIJO' ? value.precioBase : null
+            precioBase: value.modoPrecio === 'FIJO' ? value.precioBase : null,
+            idTipoSacramentoRequerido:value.idTipoSacramentoRequerido
         };
     }
 
@@ -133,6 +136,8 @@ export class ServicioFormPage implements OnInit {
             descripcion: this.nullable(value.descripcion),
             modoPrecio: value.modoPrecio!,
             precioBase: value.modoPrecio === 'FIJO' ? value.precioBase : null,
+            idTipoSacramentoRequerido:value.idTipoSacramentoRequerido,
+            actualizarTipoSacramento:true,
             rowVersion
         };
     }

@@ -34,12 +34,34 @@ describe('SolicitudServicioApiService', () => {
 
     it('should get, create, update and cancel a request', () => {
         service.getById(10).subscribe(); let req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10`); expect(req.request.method).toBe('GET'); req.flush({});
-        const create = { idServicio: 2, idPersona: null, requierePago: true, importe: 20, motivoNoPago: null, observaciones: null };
+        const create = { idServicio: 2, idPersona: null, requierePago: true, cantidad: 3, importe: 20, motivoNoPago: null, observaciones: null };
         service.create(create).subscribe(); req = http.expectOne(`${apiBaseUrl}/SolicitudServicio`); expect(req.request.method).toBe('POST'); expect(req.request.body).toEqual(create); req.flush({});
-        const update = { idPersona: 1, requierePago: true, importe: 20, motivoNoPago: null, observaciones: null, rowVersion: 'A' };
+        const update = { idPersona: 1, requierePago: true, cantidad: 2, importe: 20, motivoNoPago: null, observaciones: null, rowVersion: 'A' };
         service.update(10, update).subscribe(); req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10`); expect(req.request.method).toBe('PUT'); expect(req.request.body).toEqual(update); req.flush({});
         const cancel = { motivo: 'Cancelado', rowVersion: 'A' };
         service.cancel(10, cancel).subscribe(); req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10/anular`); expect(req.request.method).toBe('PATCH'); expect(req.request.body).toEqual(cancel); req.flush({});
     });
+
+    it('should search, link and validate sacramental records', () => {
+        service.searchRegistrosSacramentales({ codigoTipoSacramento: 'BAUTISMO', search: 'PEREZ', numeroLibro: '20', numeroPartida: '180', top: 30 }).subscribe();
+        let req = http.expectOne(r => r.url === `${apiBaseUrl}/SolicitudServicio/registros-sacramentales`);
+        expect(req.request.params.get('codigoTipoSacramento')).toBe('BAUTISMO');
+        expect(req.request.params.get('numeroPartida')).toBe('180');
+        req.flush([]);
+
+        service.getRegistroSacramental(10).subscribe();
+        req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10/registro-sacramental`);
+        expect(req.request.method).toBe('GET'); req.flush({});
+
+        const link = { codigoTipoSacramento: 'BAUTISMO', idRegistroSacramental: 25, rowVersion: null };
+        service.setRegistroSacramental(10, link).subscribe();
+        req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10/registro-sacramental`);
+        expect(req.request.method).toBe('PUT'); expect(req.request.body).toEqual(link); req.flush({});
+
+        service.validarCobro(10).subscribe();
+        req = http.expectOne(`${apiBaseUrl}/SolicitudServicio/10/cobro-validacion`);
+        expect(req.request.method).toBe('GET'); req.flush({ puedeCobrar: true });
+    });
+
     it('should get service catalog through request module', () => { service.getServicios().subscribe(); const request = http.expectOne(req => req.url === `${apiBaseUrl}/SolicitudServicio/servicios`); expect(request.request.method).toBe('GET'); request.flush({ items: [], pageNumber: 1, pageSize: 100, totalRecords: 0, totalPages: 0 }); });
 });

@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 import { ServicioApiService } from '../servicio-api.service';
-import { CategoriaServicio } from './servicio-catalog.models';
+import { CategoriaServicio, TipoSacramentoServicio } from './servicio-catalog.models';
 import { ServicioDetail } from './servicio-read.models';
 import { ServicioCreateRequest, ServicioUpdateRequest, ServicioWriteResponse } from './servicio-write.models';
 
@@ -12,6 +12,7 @@ export class ServicioFormStore {
     private readonly api = inject(ServicioApiService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly categoriasSignal = signal<readonly CategoriaServicio[]>([]);
+    private readonly tiposSacramentoSignal = signal<readonly TipoSacramentoServicio[]>([]);
     private readonly detailSignal = signal<ServicioDetail | null>(null);
     private readonly loadingSignal = signal(false);
     private readonly loadErrorSignal = signal<string | null>(null);
@@ -20,6 +21,7 @@ export class ServicioFormStore {
     private readonly saveResultSignal = signal<ServicioWriteResponse | null>(null);
 
     readonly categorias = this.categoriasSignal.asReadonly();
+    readonly tiposSacramento = this.tiposSacramentoSignal.asReadonly();
     readonly detail = this.detailSignal.asReadonly();
     readonly loading = this.loadingSignal.asReadonly();
     readonly loadError = this.loadErrorSignal.asReadonly();
@@ -31,8 +33,8 @@ export class ServicioFormStore {
         this.loadingSignal.set(true); this.loadErrorSignal.set(null); this.detailSignal.set(null);
 
         if (idServicio === null) {
-            this.api.getCategorias().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-                next: categorias => { this.categoriasSignal.set(categorias); this.loadingSignal.set(false); },
+            forkJoin({ categorias:this.api.getCategorias(), tipos:this.api.getTiposSacramento() }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+                next: result => { this.categoriasSignal.set(result.categorias); this.tiposSacramentoSignal.set(result.tipos); this.loadingSignal.set(false); },
                 error: error => {
                     this.loadingSignal.set(false);
                     this.loadErrorSignal.set(getApiErrorMessage(error, 'No se pudo cargar la información del servicio.'));
@@ -41,11 +43,12 @@ export class ServicioFormStore {
             return;
         }
 
-        forkJoin({ categorias: this.api.getCategorias(), detail: this.api.getById(idServicio) })
+        forkJoin({ categorias: this.api.getCategorias(), tipos:this.api.getTiposSacramento(), detail: this.api.getById(idServicio) })
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: result => {
                     this.categoriasSignal.set(result.categorias);
+                    this.tiposSacramentoSignal.set(result.tipos);
                     this.detailSignal.set(result.detail);
                     this.loadingSignal.set(false);
                 },

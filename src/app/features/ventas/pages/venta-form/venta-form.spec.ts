@@ -73,13 +73,13 @@ describe('VentaFormPage', () => {
         expect(navigate).toHaveBeenCalledWith(['/ventas', 25], { queryParams: { origen: 'misa' } });
     });
 
-    it('should return to services after saving a sale from a service request', async () => {
-        const fixture = await createFixture({ origen: 'servicio' });
+    it('should return to the service detail after saving a sale from a service request', async () => {
+        const fixture = await createFixture({ origen: 'servicio', solicitudServicioId: '50' });
         const router = TestBed.inject(Router);
         const navigate = vi.spyOn(router, 'navigate');
         saveResult.set({ mensaje: 'Venta registrada.', numeroComprobante: 'R001-000001' });
         fixture.detectChanges();
-        expect(navigate).toHaveBeenCalledWith(['/servicios']);
+        expect(navigate).toHaveBeenCalledWith(['/servicios', 50]);
     });
 
     it('should warn instead of adding a duplicated product', async () => {

@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Buscar {{ data.nombreTipoSacramento }}</h2>
+<mat-dialog-content>
+  <p class="intro">Busca por persona o por la referencia del libro físico. Selecciona exactamente la partida que corresponde a esta solicitud.</p>
+  <form [formGroup]="form" (ngSubmit)="buscar()" class="filters">
+    <mat-form-field appearance="outline" class="wide"><mat-label>Nombre, apellidos o padres</mat-label><input matInput formControlName="search"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>DNI</mat-label><input matInput formControlName="dni"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Libro</mat-label><input matInput formControlName="numeroLibro"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Folio</mat-label><input matInput formControlName="numeroFolio"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Partida</mat-label><input matInput formControlName="numeroPartida"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Fecha desde</mat-label><input matInput type="date" formControlName="fechaDesde"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Fecha hasta</mat-label><input matInput type="date" formControlName="fechaHasta"></mat-form-field>
+    <div class="filter-actions"><button mat-stroked-button type="button" (click)="limpiar()"><mat-icon>filter_alt_off</mat-icon>Limpiar</button><button mat-flat-button type="submit"><mat-icon>search</mat-icon>Buscar</button></div>
+  </form>
+  @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+  @if (error()) { <div class="state error"><mat-icon>error_outline</mat-icon>{{ error() }}</div> }
+  @if (!loading() && searched() && items().length===0 && !error()) { <div class="state"><mat-icon>search_off</mat-icon>No se encontraron registros.</div> }
+  <div class="results">
+    @for(item of items();track item.idRegistroSacramental){
+      <article class="result-card">
+        <div class="result-main"><strong>{{ item.nombrePrincipal }}</strong>@if (item.nombreSecundario) { <span>con {{ item.nombreSecundario }}</span> }<small>{{ item.dniPrincipal || 'Sin DNI' }} @if (item.padresResumen) { <span>· {{ item.padresResumen }}</span> }</small></div>
+        <div class="reference"><b>Libro {{ item.numeroLibro }}</b><span>Folio {{ item.numeroFolio }}</span><span>Partida {{ item.numeroPartida }}</span></div>
+        <button mat-stroked-button type="button" (click)="seleccionar(item)"><mat-icon>check</mat-icon>Seleccionar</button>
+      </article>
+    }
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-button mat-dialog-close>Cancelar</button></mat-dialog-actions>

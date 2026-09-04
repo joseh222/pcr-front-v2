@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
-import { CategoriaServicio } from './models/servicio-catalog.models';
+import { CategoriaServicio, TipoSacramentoServicio } from './models/servicio-catalog.models';
 import { ServicioLookupItem } from './models/servicio-lookup.models';
 import { ServicioDetail, ServicioListQuery, ServicioPagedResponse } from './models/servicio-read.models';
 import { ServicioChangeStatusRequest, ServicioChangeStatusResponse, ServicioCreateRequest, ServicioUpdateRequest, ServicioWriteResponse } from './models/servicio-write.models';
@@ -12,9 +12,8 @@ export class ServicioApiService {
     private readonly http = inject(HttpClient);
     private readonly runtimeConfig = inject(RuntimeConfigService);
 
-    getCategorias(): Observable<readonly CategoriaServicio[]> {
-        return this.http.get<readonly CategoriaServicio[]>(`${this.url}/categorias`);
-    }
+    getCategorias(): Observable<readonly CategoriaServicio[]> { return this.http.get<readonly CategoriaServicio[]>(`${this.url}/categorias`); }
+    getTiposSacramento(): Observable<readonly TipoSacramentoServicio[]> { return this.http.get<readonly TipoSacramentoServicio[]>(`${this.url}/tipos-sacramento`); }
 
     getList(query: ServicioListQuery): Observable<ServicioPagedResponse> {
         let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);

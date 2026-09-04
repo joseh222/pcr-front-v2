@@ -15,9 +15,12 @@ describe('ServicioApiService', () => {
     });
     afterEach(() => httpTesting.verify());
 
-    it('should request categories', () => {
+    it('should request categories and sacrament types', () => {
         service.getCategorias().subscribe();
-        const request = httpTesting.expectOne(`${apiBaseUrl}/Servicio/categorias`);
+        let request = httpTesting.expectOne(`${apiBaseUrl}/Servicio/categorias`);
+        expect(request.request.method).toBe('GET'); request.flush([]);
+        service.getTiposSacramento().subscribe();
+        request = httpTesting.expectOne(`${apiBaseUrl}/Servicio/tipos-sacramento`);
         expect(request.request.method).toBe('GET'); request.flush([]);
     });
 
@@ -43,9 +46,9 @@ describe('ServicioApiService', () => {
     });
 
     it('should create, update and change service status', () => {
-        const create = { codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: null, modoPrecio: 'FIJO' as const, precioBase: 15 };
+        const create = { codigo: 'CONSTANCIA', idCategoriaServicio: 1, nombre: 'Constancia', descripcion: null, modoPrecio: 'FIJO' as const, precioBase: 15, idTipoSacramentoRequerido: 1 };
         service.create(create).subscribe(); let request = httpTesting.expectOne(`${apiBaseUrl}/Servicio`); expect(request.request.method).toBe('POST'); expect(request.request.body).toEqual(create); request.flush({});
-        const update = { idCategoriaServicio: 1, nombre: 'Constancia actualizada', descripcion: null, modoPrecio: 'VARIABLE' as const, precioBase: null, rowVersion: 'AAAAAAAABQ=' };
+        const update = { idCategoriaServicio: 1, nombre: 'Constancia actualizada', descripcion: null, modoPrecio: 'VARIABLE' as const, precioBase: null, idTipoSacramentoRequerido: 1, actualizarTipoSacramento: true, rowVersion: 'AAAAAAAABQ=' };
         service.update(5, update).subscribe(); request = httpTesting.expectOne(`${apiBaseUrl}/Servicio/5`); expect(request.request.method).toBe('PUT'); expect(request.request.body).toEqual(update); request.flush({});
         const status = { isActive: false, rowVersion: 'AAAAAAAABQ=' };
         service.changeStatus(5, status).subscribe(); request = httpTesting.expectOne(`${apiBaseUrl}/Servicio/5/status`); expect(request.request.method).toBe('PATCH'); expect(request.request.body).toEqual(status); request.flush({});

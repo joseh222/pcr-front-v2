@@ -30,10 +30,71 @@
 
         <article class="detail-card"><header><mat-icon>payments</mat-icon><h2>Información comercial</h2></header><div class="detail-body commercial-grid">
             <div><span>Requiere pago</span><strong>{{ item.requierePago ? 'Sí' : 'No' }}</strong></div>
-            <div><span>Importe</span><strong>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+            <div><span>Cantidad</span><strong>{{ item.cantidad }}</strong></div>
+            <div><span>Precio unitario</span><strong>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+            <div><span>Total</span><strong>{{ item.importeTotal | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
             <div><span>Estado de pago</span><strong class="payment-text">{{ item.nombreEstadoPago }}</strong></div>
             @if (!item.requierePago) { <div class="full-row"><span>Motivo sin pago</span><strong>{{ item.motivoNoPago || '—' }}</strong></div> }
+            @if (item.requierePago && item.estadoPago === 'PENDIENTE' && !item.puedeCobrar && item.motivoNoCobrable) { <div class="full-row"><span>Pendiente para cobro</span><strong>{{ item.motivoNoCobrable }}</strong></div> }
         </div></article>
+
+        @if (item.requiereRegistroSacramental) {
+            <article class="detail-card sacramental-detail-card">
+                <header><mat-icon>auto_stories</mat-icon><h2>Referencia sacramental</h2></header>
+                <div class="detail-body">
+                    @if (item.tieneRegistroSacramental) {
+                        <div class="sacramental-reference">
+                            <div><span>Tipo</span><strong>{{ item.nombreTipoSacramentoRequerido || item.codigoTipoSacramentoRegistro }}</strong></div>
+                            <div><span>Persona / registro</span><strong>{{ item.nombreRegistroSacramental || '—' }}</strong></div>
+                            <div><span>Libro</span><strong>{{ item.numeroLibroRegistro || '—' }}</strong></div>
+                            <div><span>Folio</span><strong>{{ item.numeroFolioRegistro || '—' }}</strong></div>
+                            <div><span>Partida</span><strong>{{ item.numeroPartidaRegistro || '—' }}</strong></div>
+                            <div><span>Fecha sacramento</span><strong>{{ item.fechaSacramentoRegistro ? (item.fechaSacramentoRegistro | date:'dd/MM/yyyy') : '—' }}</strong></div>
+                        </div>
+                    } @else {
+                        <div class="sacramental-pending"><mat-icon>link_off</mat-icon><div><strong>Pendiente de asociar</strong><p>Esta solicitud no podrá cobrarse hasta seleccionar la partida de {{ item.nombreTipoSacramentoRequerido || item.codigoTipoSacramentoRequerido }}.</p></div>@if (canEdit()) { <a mat-stroked-button [routerLink]="['/servicios', item.idSolicitudServicio, 'editar']"><mat-icon>link</mat-icon>Asociar registro</a> }</div>
+                    }
+                </div>
+            </article>
+        }
+
+        @if (canShowConstancia()) {
+            <article class="detail-card constancia-card">
+                <header><mat-icon>description</mat-icon><h2>Constancia sacramental</h2></header>
+                <div class="detail-body constancia-body">
+                    @if (loadingConstancia()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+                    <div class="constancia-summary">
+                        <div><span>Estado</span><strong>{{ constancia() ? 'Snapshot preparado' : 'Lista para primera impresión' }}</strong></div>
+                        <div><span>Cantidad solicitada</span><strong>{{ constancia()?.cantidadSolicitada ?? item.cantidad }}</strong></div>
+                        <div><span>Total impreso</span><strong>{{ constancia()?.cantidadImpresaAcumulada ?? 0 }}</strong></div>
+                        <div><span>Impresiones realizadas</span><strong>{{ constancia()?.numeroImpresiones ?? 0 }}</strong></div>
+                        <div><span>Última impresión</span><strong>{{ constancia()?.ultimaImpresionUtc ? (constancia()?.ultimaImpresionUtc | date:'dd/MM/yyyy HH:mm':'-0500') : 'Aún no impresa' }}</strong></div>
+                    </div>
+                    <div class="print-controls">
+                        @if (canPrintConstancia()) {
+                            <mat-form-field appearance="outline"><mat-label>Cantidad a imprimir</mat-label><input matInput type="number" min="1" max="1000" [formControl]="printQuantity"><mat-hint>La primera vez se propone la cantidad solicitada; luego puedes imprimir solo las hojas necesarias.</mat-hint></mat-form-field>
+                        }
+                        @if (canReviewRegistro()) {
+                            @if (registroDetailLink(); as link) {
+                                <a mat-stroked-button [routerLink]="link"><mat-icon>fact_check</mat-icon>Revisar partida</a>
+                            }
+                        }
+                        @if (canPrintConstancia()) {
+                            <button mat-flat-button type="button" (click)="imprimirConstancia()" [disabled]="printingConstancia() || printQuantity.invalid"><mat-icon>print</mat-icon>{{ printingConstancia() ? 'Enviando / imprimiendo...' : 'Imprimir constancia' }}</button>
+                        }
+                    </div>
+                    @if (printJobStatus(); as job) {
+                        <div class="print-job-detail" [class.error]="job.estado === 'ERROR'" [class.ok]="job.estado === 'COMPLETADO'">
+                            <mat-icon>{{ job.estado === 'COMPLETADO' ? 'check_circle' : job.estado === 'ERROR' ? 'error' : 'print' }}</mat-icon>
+                            <div><strong>Trabajo #{{ job.idTrabajo }} · {{ job.estado }}</strong><p>{{ job.cantidadCopias }} ejemplar(es) · {{ job.impresora }} · intento {{ job.intentos }}/{{ job.maxIntentos }}</p>@if (job.ultimoDetalle) { <small>{{ job.ultimoDetalle }}</small> }</div>
+                        </div>
+                    }
+                    @if (canPrintConstancia()) {
+                        <div class="constancia-note"><mat-icon>info</mat-icon><p>La impresión es manual: revisa los datos, coloca el formato oficial y pulsa “Imprimir constancia”. El sistema la envía directamente a la impresora configurada mediante PCR Print Agent; no necesitas usar Ctrl+P ni seleccionar impresora en el navegador.</p></div>
+                    }
+                </div>
+            </article>
+        }
 
         @if (item.observaciones) { <article class="detail-card"><header><mat-icon>notes</mat-icon><h2>Observaciones</h2></header><div class="detail-body"><p class="text-block">{{ item.observaciones }}</p></div></article> }
 

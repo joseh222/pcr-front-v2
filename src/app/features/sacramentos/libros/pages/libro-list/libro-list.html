@@ -1,0 +1,30 @@
+<section class="page-shell" data-testid="libro-sacramental-list-page">
+    <header class="page-header">
+        <div><p class="eyebrow">REGISTROS SACRAMENTALES</p><h1>Libros sacramentales</h1><p>Administra la representación digital de los libros físicos de bautismo, confirmación y matrimonio.</p></div>
+        <div class="header-actions"><button mat-icon-button type="button" aria-label="Recargar libros" (click)="reload()"><mat-icon>refresh</mat-icon></button>@if (canCreate()) { <a mat-flat-button routerLink="/sacramentos/libros/nuevo"><mat-icon>library_add</mat-icon>Nuevo libro</a> }</div>
+    </header>
+    <form class="filters-card" [formGroup]="filterForm" (ngSubmit)="search()">
+        <div class="filters-grid">
+            <mat-form-field appearance="outline"><mat-label>Número de libro</mat-label><mat-icon matPrefix>menu_book</mat-icon><input matInput formControlName="numeroLibro" maxlength="30" placeholder="Ej. 11"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Sacramento</mat-label><mat-select formControlName="idTipoSacramento"><mat-option [value]="null">Todos</mat-option>@for (tipo of tipos(); track tipo.idTipoSacramento) { <mat-option [value]="tipo.idTipoSacramento">{{ tipo.nombre }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Estado físico</mat-label><mat-select formControlName="codigoEstadoFisico"><mat-option [value]="null">Todos</mat-option>@for (estado of estadosFisicos(); track estado.codigo) { <mat-option [value]="estado.codigo">{{ estado.nombre }}</mat-option> }</mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Digitalización</mat-label><mat-select formControlName="codigoEstadoDigitalizacion"><mat-option [value]="null">Todos</mat-option>@for (estado of estadosDigitalizacion(); track estado.codigo) { <mat-option [value]="estado.codigo">{{ estado.nombre }}</mat-option> }</mat-select></mat-form-field>
+        </div>
+        <div class="filter-actions"><button mat-stroked-button type="button" (click)="clearFilters()">Limpiar</button><button mat-flat-button type="submit"><mat-icon>search</mat-icon>Buscar</button></div>
+    </form>
+    <section class="table-card">
+        @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+        <header class="table-header"><div><h2>Archivo sacramental</h2><p>{{ items().length }} libros encontrados</p></div></header>
+        @if (error()) { <div class="message-state error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudieron cargar los libros</strong><p>{{ error() }}</p></div></div> }
+        @else if (!loading() && items().length === 0) { <div class="message-state"><mat-icon>auto_stories</mat-icon><div><strong>No se encontraron libros</strong><p>Registra un libro físico o modifica los filtros.</p></div></div> }
+        @else { <div class="table-wrapper"><table mat-table [dataSource]="items()" class="book-table">
+            <ng-container matColumnDef="libro"><th mat-header-cell *matHeaderCellDef>Libro</th><td mat-cell *matCellDef="let item"><div class="cell-primary">{{ item.tipoSacramento }} · Libro {{ item.numeroLibro }}</div><div class="cell-secondary">Creado {{ item.createdUtc | date:'dd/MM/yyyy' }}</div></td></ng-container>
+            <ng-container matColumnDef="folios"><th mat-header-cell *matHeaderCellDef>Folios</th><td mat-cell *matCellDef="let item"><div class="cell-primary">{{ item.folioInicial }} – {{ item.folioFinal }}</div><div class="cell-secondary">{{ item.foliosGenerados }} generados</div></td></ng-container>
+            <ng-container matColumnDef="estadoFisico"><th mat-header-cell *matHeaderCellDef>Estado físico</th><td mat-cell *matCellDef="let item"><span class="status-badge physical" [class.closed]="item.codigoEstadoFisico === 'CERRADO'">{{ item.estadoFisico }}</span></td></ng-container>
+            <ng-container matColumnDef="digitalizacion"><th mat-header-cell *matHeaderCellDef>Digitalización</th><td mat-cell *matCellDef="let item"><span class="status-badge digital" [class.done]="item.codigoEstadoDigitalizacion === 'COMPLETADA'">{{ item.estadoDigitalizacion }}</span></td></ng-container>
+            <ng-container matColumnDef="ubicacion"><th mat-header-cell *matHeaderCellDef>Ubicación</th><td mat-cell *matCellDef="let item">{{ item.ubicacionFisica || '—' }}</td></ng-container>
+            <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let item"><div class="row-actions"><a mat-icon-button [routerLink]="['/sacramentos/libros', item.idLibroSacramental]" [attr.aria-label]="'Abrir libro ' + item.numeroLibro" title="Abrir libro"><mat-icon>visibility</mat-icon></a>@if (canEditBook(item)) { <a mat-icon-button [routerLink]="['/sacramentos/libros', item.idLibroSacramental, 'editar']" [attr.aria-label]="'Editar libro ' + item.numeroLibro" title="Editar libro"><mat-icon>edit</mat-icon></a> }</div></td></ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table></div> }
+    </section>
+</section>

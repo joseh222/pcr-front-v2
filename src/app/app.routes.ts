@@ -60,6 +60,62 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/reportes/resumen-economico/pages/resumen-economico/resumen-economico').then(module => module.ResumenEconomicoPage)
             },
             {
+                path: 'sacramentos/bautismos/nuevo',
+                title: 'Nueva partida de bautismo | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW, PERMISSION_CODE.BAPTISM_CREATE] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-form/bautismo-form').then(module => module.BautismoFormPage)
+            },
+            {
+                path: 'sacramentos/bautismos/:id/editar',
+                title: 'Editar partida de bautismo | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW, PERMISSION_CODE.BAPTISM_EDIT] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-form/bautismo-form').then(module => module.BautismoFormPage)
+            },
+            {
+                path: 'sacramentos/bautismos/:id',
+                title: 'Detalle de bautismo | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-detail/bautismo-detail').then(module => module.BautismoDetailPage)
+            },
+            {
+                path: 'sacramentos/bautismos',
+                title: 'Bautismos | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.BAPTISM_VIEW] },
+                loadComponent: () => import('./features/sacramentos/bautismos/pages/bautismo-list/bautismo-list').then(module => module.BautismoListPage)
+            },
+            { path: 'sacramentos/confirmaciones/nuevo', title: 'Nueva partida de confirmación | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIRMATION_VIEW, PERMISSION_CODE.CONFIRMATION_CREATE] }, loadComponent: () => import('./features/sacramentos/confirmaciones/pages/confirmacion-form/confirmacion-form').then(module => module.ConfirmacionFormPage) },
+            { path: 'sacramentos/confirmaciones/:id/editar', title: 'Editar partida de confirmación | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIRMATION_VIEW, PERMISSION_CODE.CONFIRMATION_EDIT] }, loadComponent: () => import('./features/sacramentos/confirmaciones/pages/confirmacion-form/confirmacion-form').then(module => module.ConfirmacionFormPage) },
+            { path: 'sacramentos/confirmaciones/:id', title: 'Detalle de confirmación | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIRMATION_VIEW] }, loadComponent: () => import('./features/sacramentos/confirmaciones/pages/confirmacion-detail/confirmacion-detail').then(module => module.ConfirmacionDetailPage) },
+            { path: 'sacramentos/confirmaciones', title: 'Confirmaciones | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIRMATION_VIEW] }, loadComponent: () => import('./features/sacramentos/confirmaciones/pages/confirmacion-list/confirmacion-list').then(module => module.ConfirmacionListPage) },
+            { path: 'sacramentos/matrimonios/nuevo', title: 'Nueva partida de matrimonio | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.MARRIAGE_VIEW, PERMISSION_CODE.MARRIAGE_CREATE] }, loadComponent: () => import('./features/sacramentos/matrimonios/pages/matrimonio-form/matrimonio-form').then(module => module.MatrimonioFormPage) },
+            { path: 'sacramentos/matrimonios/:id/editar', title: 'Editar partida de matrimonio | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.MARRIAGE_VIEW, PERMISSION_CODE.MARRIAGE_EDIT] }, loadComponent: () => import('./features/sacramentos/matrimonios/pages/matrimonio-form/matrimonio-form').then(module => module.MatrimonioFormPage) },
+            { path: 'sacramentos/matrimonios/:id', title: 'Detalle de matrimonio | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.MARRIAGE_VIEW] }, loadComponent: () => import('./features/sacramentos/matrimonios/pages/matrimonio-detail/matrimonio-detail').then(module => module.MatrimonioDetailPage) },
+            { path: 'sacramentos/matrimonios', title: 'Matrimonios | PCR Front V2', canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.MARRIAGE_VIEW] }, loadComponent: () => import('./features/sacramentos/matrimonios/pages/matrimonio-list/matrimonio-list').then(module => module.MatrimonioListPage) },
+            {
+                path: 'sacramentos/libros/nuevo',
+                title: 'Nuevo libro sacramental | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW, PERMISSION_CODE.SACRAMENTAL_BOOK_CREATE] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-form/libro-form').then(module => module.LibroSacramentalFormPage)
+            },
+            {
+                path: 'sacramentos/libros/:id/editar',
+                title: 'Editar libro sacramental | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW, PERMISSION_CODE.SACRAMENTAL_BOOK_EDIT] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-form/libro-form').then(module => module.LibroSacramentalFormPage)
+            },
+            {
+                path: 'sacramentos/libros/:id',
+                title: 'Libro sacramental | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-detail/libro-detail').then(module => module.LibroSacramentalDetailPage)
+            },
+            {
+                path: 'sacramentos/libros',
+                title: 'Libros sacramentales | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW] },
+                loadComponent: () => import('./features/sacramentos/libros/pages/libro-list/libro-list').then(module => module.LibroSacramentalListPage)
+            },
+            {
                 path: 'personas/nueva',
                 title: 'Nueva persona | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.PERSON_VIEW, PERMISSION_CODE.PERSON_CREATE] },
