@@ -211,6 +211,61 @@ describe('MisaApiService', () => {
         request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
     });
 
+
+    it('should enqueue the personal day document for physical printing', () => {
+        service.printPersonalDayDocument('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/personales-dia/imprimir`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09' });
+
+        request.flush({
+            idTrabajo: 101,
+            tipoDocumento: 'MISA_CELEBRANTE_PERSONAL',
+            estado: 'PENDIENTE',
+            impresora: 'L4260 Series(Network)',
+            codigo: 'QUEUED',
+            mensaje: 'En cola'
+        });
+    });
+
+    it('should enqueue the community document for the exact schedule', () => {
+        service.printCommunityDocument('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/documentos/COMUNITARIA/imprimir`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+
+        request.flush({
+            idTrabajo: 102,
+            tipoDocumento: 'MISA_CELEBRANTE_COMUNITARIA',
+            estado: 'PENDIENTE',
+            impresora: 'L4260 Series(Network)',
+            codigo: 'QUEUED',
+            mensaje: 'En cola'
+        });
+    });
+
+    it('should request the physical print job status', () => {
+        service.getCelebrantPrintJob(101).subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/impresion/101`);
+        expect(request.request.method).toBe('GET');
+
+        request.flush({
+            idTrabajo: 101,
+            tipoDocumento: 'MISA_CELEBRANTE_PERSONAL',
+            estado: 'COMPLETADO',
+            impresora: 'L4260 Series(Network)',
+            intentos: 1,
+            maxIntentos: 3,
+            fechaCreacionUtc: '2026-09-09T18:00:00Z',
+            fechaActualizacionUtc: '2026-09-09T18:00:02Z',
+            fechaFinalizacionUtc: '2026-09-09T18:00:02Z',
+            ultimoDetalle: 'OK'
+        });
+    });
+
     it('should request a misa by id', () => {
         service.getById(15).subscribe();
 

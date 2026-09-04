@@ -142,3 +142,26 @@ export interface MisaPersonalDayDocumentStatus {
     readonly puedeGenerar: boolean;
     readonly todoGenerado: boolean;
 }
+
+
+export interface MisaCelebrantPrintResponse {
+    readonly idTrabajo: number;
+    readonly tipoDocumento: 'MISA_CELEBRANTE_PERSONAL' | 'MISA_CELEBRANTE_COMUNITARIA' | string;
+    readonly estado: string;
+    readonly impresora: string;
+    readonly codigo: string;
+    readonly mensaje: string;
+}
+
+export interface MisaCelebrantPrintJobStatus {
+    readonly idTrabajo: number;
+    readonly tipoDocumento: string;
+    readonly estado: 'PENDIENTE' | 'PROCESANDO' | 'COMPLETADO' | 'ERROR' | string;
+    readonly impresora: string;
+    readonly intentos: number;
+    readonly maxIntentos: number;
+    readonly fechaCreacionUtc: string;
+    readonly fechaActualizacionUtc: string;
+    readonly fechaFinalizacionUtc: string | null;
+    readonly ultimoDetalle: string | null;
+}

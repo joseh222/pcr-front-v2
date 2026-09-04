@@ -4,14 +4,14 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, switchMap, takeWhile, timer } from 'rxjs';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { MisaApiService } from '../../data-access/misa-api.service';
-import { MisaCalendarItem, MisaCelebrantDocumentStatus, MisaCelebrantDocumentType, MisaPersonalDayDocumentStatus, MisaProgramStatus } from '../../data-access/models/misa-calendar.models';
+import { MisaCalendarItem, MisaCelebrantDocumentStatus, MisaCelebrantDocumentType, MisaCelebrantPrintJobStatus, MisaPersonalDayDocumentStatus, MisaProgramStatus } from '../../data-access/models/misa-calendar.models';
 import { MisaReopenProgramDialog } from '../misa-reopen-program-dialog/misa-reopen-program-dialog';
 
 type CalendarDay = { date: string; day: number; inMonth: boolean; isToday: boolean; isSelected: boolean; items: readonly MisaCalendarItem[]; total: number; personal: number; comunitario: number; pending: number; hours: readonly { hora: string; total: number }[] };
@@ -38,6 +38,9 @@ export class MisaCalendarComponent implements OnInit {
     protected readonly loadingCelebrantDocuments = signal(false);
     protected readonly loadingPersonalDayDocuments = signal(false);
     protected readonly previewingDocument = signal<MisaCelebrantDocumentType | null>(null);
+    protected readonly printingDocument = signal<MisaCelebrantDocumentType | null>(null);
+    protected readonly personalPrintJob = signal<MisaCelebrantPrintJobStatus | null>(null);
+    protected readonly communityPrintJobs = signal<Record<string, MisaCelebrantPrintJobStatus>>({});
     protected readonly items = signal<readonly MisaCalendarItem[]>([]);
     protected readonly programStatus = signal<MisaProgramStatus | null>(null);
     protected readonly celebrantDocuments = signal<MisaCelebrantDocumentStatus | null>(null);
@@ -49,6 +52,7 @@ export class MisaCalendarComponent implements OnInit {
     protected readonly canEdit = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_EDIT);
     protected readonly canCloseSchedule = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_CLOSE_SCHEDULE);
     protected readonly canReopenSchedule = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_REOPEN_SCHEDULE);
+    protected readonly canPrint = () => this.authStore.hasPermission(PERMISSION_CODE.MASS_PRINT);
 
     protected readonly weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
     protected readonly monthLabel = computed(() => new Intl.DateTimeFormat('es-PE', { month: 'long', year: 'numeric' }).format(this.month()));
@@ -297,6 +301,104 @@ export class MisaCalendarComponent implements OnInit {
                     this.feedback.error(getApiErrorMessage(error, 'No se pudo generar la vista previa de las Misas personales del día.'));
                 }
             });
+    }
+
+
+    protected printPersonalDayDocument(): void {
+        const status = this.personalDayDocuments();
+        if (!this.canPrint() || this.printingDocument() || !status?.puedeGenerar) return;
+
+        const ref = this.dialog.open(ConfirmActionDialog, {
+            width: 'min(520px, calc(100vw - 2rem))',
+            data: {
+                title: 'Imprimir Misas personales del día',
+                message: `Se enviarán ${status.cantidadMisas} tarjeta(s), distribuidas en ${this.personalDayPageCount()} hoja(s) A4, a la impresora configurada para constancias. ¿Deseas continuar?`,
+                cancelText: 'Cancelar',
+                confirmText: 'Imprimir',
+                icon: 'print'
+            }
+        });
+
+        ref.afterClosed().subscribe(confirmed => {
+            if (!confirmed) return;
+
+            this.printingDocument.set('PERSONAL');
+            this.api.printPersonalDayDocument(this.selectedDate())
+                .pipe(finalize(() => this.printingDocument.set(null)))
+                .subscribe({
+                    next: response => {
+                        this.feedback.success(`${response.mensaje} Impresora: ${response.impresora}.`);
+                        this.pollPrintJob(response.idTrabajo, 'PERSONAL');
+                    },
+                    error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudieron enviar las Misas personales a la impresora.'))
+                });
+        });
+    }
+
+    protected printCommunityDocument(group: CalendarHourGroup): void {
+        const docs = this.celebrantDocuments();
+        if (!this.canPrint() || this.printingDocument() || !docs?.comunitaria.cantidadMisas) return;
+
+        const ref = this.dialog.open(ConfirmActionDialog, {
+            width: 'min(520px, calc(100vw - 2rem))',
+            data: {
+                title: `Imprimir hoja comunitaria de las ${group.hora}`,
+                message: `La hoja comunitaria del ${this.selectedDateLabel()} a las ${group.hora} se enviará a la impresora configurada para constancias. ¿Deseas continuar?`,
+                cancelText: 'Cancelar',
+                confirmText: 'Imprimir',
+                icon: 'print'
+            }
+        });
+
+        ref.afterClosed().subscribe(confirmed => {
+            if (!confirmed) return;
+
+            this.printingDocument.set('COMUNITARIA');
+            this.api.printCommunityDocument(this.selectedDate(), this.apiTime(group.hora))
+                .pipe(finalize(() => this.printingDocument.set(null)))
+                .subscribe({
+                    next: response => {
+                        this.feedback.success(`${response.mensaje} Impresora: ${response.impresora}.`);
+                        this.pollPrintJob(response.idTrabajo, 'COMUNITARIA', group.hora);
+                    },
+                    error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo enviar la hoja comunitaria a la impresora.'))
+                });
+        });
+    }
+
+    protected communityPrintStatus(hora: string): MisaCelebrantPrintJobStatus | null {
+        return this.communityPrintJobs()[hora] ?? null;
+    }
+
+    protected printStatusLabel(status: MisaCelebrantPrintJobStatus | null): string {
+        if (!status) return '';
+        if (status.estado === 'PENDIENTE') return 'En cola';
+        if (status.estado === 'PROCESANDO') return 'Imprimiendo';
+        if (status.estado === 'COMPLETADO') return 'Impresión completada';
+        if (status.estado === 'ERROR') return 'Error de impresión';
+        return status.estado;
+    }
+
+    private pollPrintJob(idTrabajo: number, tipo: MisaCelebrantDocumentType, hora?: string): void {
+        timer(0, 1500).pipe(
+            switchMap(() => this.api.getCelebrantPrintJob(idTrabajo)),
+            takeWhile(status => status.estado === 'PENDIENTE' || status.estado === 'PROCESANDO', true)
+        ).subscribe({
+            next: status => {
+                if (tipo === 'PERSONAL') {
+                    this.personalPrintJob.set(status);
+                } else if (hora) {
+                    this.communityPrintJobs.update(current => ({ ...current, [hora]: status }));
+                }
+
+                if (status.estado === 'COMPLETADO') {
+                    this.feedback.success(`Impresión completada en ${status.impresora}.`);
+                } else if (status.estado === 'ERROR') {
+                    this.feedback.error(status.ultimoDetalle || 'La impresión no pudo completarse.');
+                }
+            },
+            error: error => this.feedback.error(getApiErrorMessage(error, 'No se pudo consultar el estado de la impresión.'))
+        });
     }
 
     protected personalDayPageCount(): number {

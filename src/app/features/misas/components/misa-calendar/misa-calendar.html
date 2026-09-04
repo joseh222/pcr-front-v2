@@ -95,12 +95,29 @@
                             }
                         </div>
 
-                        <button mat-flat-button type="button"
-                            (click)="previewPersonalDayDocument()"
-                            [disabled]="!personalDay.puedeGenerar || previewingDocument() !== null">
-                            <mat-icon>preview</mat-icon>
-                            {{ previewingDocument() === 'PERSONAL' ? 'Generando...' : 'Vista previa' }}
-                        </button>
+                        <div class="document-actions">
+                            <button mat-stroked-button type="button"
+                                (click)="previewPersonalDayDocument()"
+                                [disabled]="!personalDay.puedeGenerar || previewingDocument() !== null || printingDocument() !== null">
+                                <mat-icon>preview</mat-icon>
+                                {{ previewingDocument() === 'PERSONAL' ? 'Generando...' : 'Vista previa' }}
+                            </button>
+
+                            @if (canPrint()) {
+                                <button mat-flat-button type="button"
+                                    (click)="printPersonalDayDocument()"
+                                    [disabled]="!personalDay.puedeGenerar || printingDocument() !== null || previewingDocument() !== null">
+                                    <mat-icon>print</mat-icon>
+                                    {{ printingDocument() === 'PERSONAL' ? 'Enviando...' : 'Imprimir' }}
+                                </button>
+                            }
+
+                            @if (personalPrintJob(); as job) {
+                                <small class="print-job-status" [class.error]="job.estado === 'ERROR'" [class.success]="job.estado === 'COMPLETADO'">
+                                    {{ printStatusLabel(job) }}
+                                </small>
+                            }
+                        </div>
                     </section>
                 }
             }
@@ -230,12 +247,29 @@
                                                                 <small>Listado consolidado del horario.</small>
                                                                 <small>{{ docs.comunitaria.generado ? 'Vista previa preparada para la versión vigente.' : 'Aún no se generó la vista previa vigente.' }}</small>
                                                             </div>
-                                                            <button mat-stroked-button type="button"
-                                                                (click)="previewCommunityDocument(group)"
-                                                                [disabled]="previewingDocument() !== null">
-                                                                <mat-icon>preview</mat-icon>
-                                                                {{ previewingDocument() === 'COMUNITARIA' ? 'Generando...' : 'Vista previa' }}
-                                                            </button>
+                                                            <div class="document-actions">
+                                                                <button mat-stroked-button type="button"
+                                                                    (click)="previewCommunityDocument(group)"
+                                                                    [disabled]="previewingDocument() !== null || printingDocument() !== null">
+                                                                    <mat-icon>preview</mat-icon>
+                                                                    {{ previewingDocument() === 'COMUNITARIA' ? 'Generando...' : 'Vista previa' }}
+                                                                </button>
+
+                                                                @if (canPrint()) {
+                                                                    <button mat-flat-button type="button"
+                                                                        (click)="printCommunityDocument(group)"
+                                                                        [disabled]="printingDocument() !== null || previewingDocument() !== null">
+                                                                        <mat-icon>print</mat-icon>
+                                                                        {{ printingDocument() === 'COMUNITARIA' ? 'Enviando...' : 'Imprimir' }}
+                                                                    </button>
+                                                                }
+
+                                                                @if (communityPrintStatus(group.hora); as job) {
+                                                                    <small class="print-job-status" [class.error]="job.estado === 'ERROR'" [class.success]="job.estado === 'COMPLETADO'">
+                                                                        {{ printStatusLabel(job) }}
+                                                                    </small>
+                                                                }
+                                                            </div>
                                                         </article>
                                                     }
                                                 </div>

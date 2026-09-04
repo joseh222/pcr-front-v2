@@ -41,12 +41,15 @@ describe('MisaCalendarComponent', () => {
         getCelebrantDocumentStatus: vi.fn(() => of({ idProgramacion: 1, fecha: '2026-09-09', hora: '18:00:00', estadoProgramacion: 'CERRADA', versionActual: 1, totalDesactualizados: 0, personal: { tipoDocumento: 'PERSONAL', cantidadMisas: 1, generado: false, generadoUtc: null, numeroGeneraciones: 0 }, comunitaria: { tipoDocumento: 'COMUNITARIA', cantidadMisas: 0, generado: false, generadoUtc: null, numeroGeneraciones: 0 } })),
         previewCommunityDocument: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
         getPersonalDayDocumentStatus: vi.fn(() => of({ fecha: '2026-09-09', cantidadMisas: 1, cantidadProgramaciones: 1, cantidadProgramacionesListas: 1, cantidadPendientesCierre: 0, cantidadProgramacionesGeneradas: 0, totalDesactualizados: 0, puedeGenerar: true, todoGenerado: false })),
-        previewPersonalDayDocument: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' })))
+        previewPersonalDayDocument: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
+        printPersonalDayDocument: vi.fn(() => of({ idTrabajo: 101, tipoDocumento: 'MISA_CELEBRANTE_PERSONAL', estado: 'PENDIENTE', impresora: 'L4260 Series(Network)', codigo: 'QUEUED', mensaje: 'En cola' })),
+        printCommunityDocument: vi.fn(() => of({ idTrabajo: 102, tipoDocumento: 'MISA_CELEBRANTE_COMUNITARIA', estado: 'PENDIENTE', impresora: 'L4260 Series(Network)', codigo: 'QUEUED', mensaje: 'En cola' })),
+        getCelebrantPrintJob: vi.fn(() => of({ idTrabajo: 101, tipoDocumento: 'MISA_CELEBRANTE_PERSONAL', estado: 'COMPLETADO', impresora: 'L4260 Series(Network)', intentos: 1, maxIntentos: 3, fechaCreacionUtc: '2026-09-09T18:00:00Z', fechaActualizacionUtc: '2026-09-09T18:00:01Z', fechaFinalizacionUtc: '2026-09-09T18:00:01Z', ultimoDetalle: 'OK' }))
     };
 
-    const authStore = { hasPermission: vi.fn(() => true) };
+    const authStore = { hasPermission: vi.fn((_code: string) => true) };
     const feedback = { error: vi.fn(), warning: vi.fn(), success: vi.fn() };
-    const dialog = { open: vi.fn(() => ({ afterClosed: () => of(true) })) };
+    const dialog = { open: vi.fn<(...args: any[]) => any>(() => ({ afterClosed: () => of(true) })) };
 
     beforeEach(() => {
         vi.clearAllMocks();

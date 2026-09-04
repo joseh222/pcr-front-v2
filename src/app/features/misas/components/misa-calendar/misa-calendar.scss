@@ -163,3 +163,44 @@
     .personal-day-documents { flex-direction: column; align-items: stretch; }
     .personal-day-documents > button { width: 100%; }
 }
+
+
+.document-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .45rem;
+    flex-wrap: wrap;
+}
+
+.print-job-status {
+    flex-basis: 100%;
+    text-align: right;
+    font-size: .68rem;
+    opacity: .78;
+}
+
+.print-job-status.success {
+    color: var(--mat-sys-primary);
+    opacity: 1;
+}
+
+.print-job-status.error {
+    color: var(--mat-sys-error);
+    opacity: 1;
+}
+
+@media (max-width: 700px) {
+    .document-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .document-actions button {
+        flex: 1 1 auto;
+    }
+
+    .print-job-status {
+        text-align: left;
+    }
+}

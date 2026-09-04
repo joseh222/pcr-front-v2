@@ -11,7 +11,7 @@ import {
     MisaSanto,
     MisaTipo
 } from './models/misa-catalog.models';
-import { MisaCalendarResponse, MisaCelebrantDocumentStatus, MisaCelebrantDocumentType, MisaCloseProgramResponse, MisaPersonalDayDocumentStatus, MisaProgramStatus, MisaReopenProgramRequest, MisaReopenProgramResponse } from './models/misa-calendar.models';
+import { MisaCalendarResponse, MisaCelebrantDocumentStatus, MisaCelebrantDocumentType, MisaCelebrantPrintJobStatus, MisaCelebrantPrintResponse, MisaCloseProgramResponse, MisaPersonalDayDocumentStatus, MisaProgramStatus, MisaReopenProgramRequest, MisaReopenProgramResponse } from './models/misa-calendar.models';
 import {
     MisaDetail,
     MisaListFilters,
@@ -93,6 +93,24 @@ export class MisaApiService {
             { fecha },
             { responseType: 'blob' }
         );
+    }
+
+    printPersonalDayDocument(fecha: string): Observable<MisaCelebrantPrintResponse> {
+        return this.http.post<MisaCelebrantPrintResponse>(
+            `${this.apiUrl}/documentos/personales-dia/imprimir`,
+            { fecha }
+        );
+    }
+
+    printCommunityDocument(fecha: string, hora: string): Observable<MisaCelebrantPrintResponse> {
+        return this.http.post<MisaCelebrantPrintResponse>(
+            `${this.apiUrl}/programaciones/documentos/COMUNITARIA/imprimir`,
+            { fecha, hora }
+        );
+    }
+
+    getCelebrantPrintJob(idTrabajo: number): Observable<MisaCelebrantPrintJobStatus> {
+        return this.http.get<MisaCelebrantPrintJobStatus>(`${this.apiUrl}/documentos/impresion/${idTrabajo}`);
     }
 
     getById(idMisa: number): Observable<MisaDetail> {
