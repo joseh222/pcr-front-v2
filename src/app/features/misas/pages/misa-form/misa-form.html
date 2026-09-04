@@ -89,6 +89,31 @@
                     </mat-form-field>
 
                 </div>
+
+                @if (checkingSchedule()) {
+                <div class="schedule-check">
+                    <mat-icon>hourglass_top</mat-icon>
+                    <span>Verificando disponibilidad del horario...</span>
+                </div>
+                }
+
+                @if (scheduleStatus(); as schedule) {
+                    @if (scheduleBlocked()) {
+                    <div class="schedule-lock-warning" data-testid="misa-schedule-locked">
+                        <mat-icon>{{ schedule.programacionCelebrada ? 'church' : 'lock' }}</mat-icon>
+                        <div>
+                            <strong>{{ schedule.programacionCelebrada ? 'Celebración finalizada' : 'Programación cerrada' }}</strong>
+                            <p>{{ schedule.mensaje }}</p>
+                            @if (schedule.versionActual > 0) {
+                            <span>Versión {{ schedule.versionActual }}.</span>
+                            }
+                            @if (!schedule.programacionCelebrada) {
+                            <span>Un usuario con permiso especial debe reabrir esta programación desde el calendario antes de registrar o mover una Misa a este horario.</span>
+                            }
+                        </div>
+                    </div>
+                    }
+                }
             </div>
         </section>
 
@@ -379,6 +404,13 @@
                     }
                 </p>
 
+                @if (!canRegisterWithoutPayment()) {
+                <div class="commercial-permission-note">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    <span>La opción de registrar una Misa sin pago requiere el permiso especial <strong>MISA_REGISTRAR_SIN_PAGO</strong>.</span>
+                </div>
+                }
+
                 @if (!form.controls.requierePago.value) {
                 <mat-form-field class="full-width" appearance="outline">
                     <mat-label>Motivo de no cobro</mat-label>
@@ -425,7 +457,7 @@
             </button>
 
             @if (!isEditMode() || store.detail()?.puedeEditar !== false) {
-            <button mat-flat-button type="button" data-testid="save-misa" [disabled]="store.saving()" (click)="save()">
+            <button mat-flat-button type="button" data-testid="save-misa" [disabled]="store.saving() || checkingSchedule() || scheduleBlocked()" (click)="save()">
 
                 @if (store.saving()) {
                 <ng-container>

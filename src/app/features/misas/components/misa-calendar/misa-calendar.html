@@ -70,6 +70,77 @@
 
                             @if (isExpanded(group.hora)) {
                                 <div class="hour-content">
+                                    @if (loadingProgramStatus()) {
+                                        <mat-progress-bar mode="indeterminate" />
+                                    } @else if (programStatus(); as status) {
+                                        <section class="program-status" [class.ready]="status.puedeCerrar" [class.closed]="status.programacionCerrada" [class.blocked]="!status.puedeCerrar && !status.programacionCerrada">
+                                            <div class="program-status-head">
+                                                <div>
+                                                    <strong>
+                                                        {{ status.programacionCelebrada
+                                                            ? 'Celebración finalizada'
+                                                            : (status.programacionCerrada
+                                                                ? 'Programación cerrada'
+                                                                : (status.puedeCerrar ? 'Lista para cerrar' : 'Programación abierta')) }}
+                                                    </strong>
+                                                    <p>{{ status.mensaje }}</p>
+                                                </div>
+                                                <mat-icon>{{ status.programacionCelebrada ? 'church' : (status.programacionCerrada ? 'lock' : (status.puedeCerrar ? 'verified' : 'warning')) }}</mat-icon>
+                                            </div>
+
+                                            <div class="program-counters">
+                                                <span>{{ status.totalMisas }} Misas</span>
+                                                <span>{{ status.totalConformes }} conformes</span>
+                                                @if (status.versionActual > 0) { <span>Versión {{ status.versionActual }}</span> }
+                                                @if (status.totalPendientesPago > 0) { <span class="counter-warning">{{ status.totalPendientesPago }} pendiente{{ status.totalPendientesPago === 1 ? '' : 's' }} de pago</span> }
+                                            </div>
+
+                                            @if (status.motivoUltimaReapertura) {
+                                                <div class="reopen-note">
+                                                    <mat-icon>history</mat-icon>
+                                                    <div>
+                                                        <strong>Última reapertura</strong>
+                                                        <span>{{ status.motivoUltimaReapertura }}</span>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (status.pendientes.length > 0) {
+                                                <div class="program-pending-list">
+                                                    <strong>Requieren atención</strong>
+                                                    @for (pending of status.pendientes; track pending.idMisa) {
+                                                        <div class="program-pending-item">
+                                                            <div>
+                                                                <span class="pending-title">{{ pending.codMisa || '#' + pending.idMisa }} · {{ pending.tipoMisa || 'Misa' }} · {{ pending.modalidad || '' }}</span>
+                                                                <small>{{ pending.motivoBloqueo }}</small>
+                                                                @if (pending.codSolicitudServicio) { <small>{{ pending.codSolicitudServicio }} · {{ pending.estadoPago || 'Sin estado de pago' }}</small> }
+                                                            </div>
+                                                            @if (pending.idSolicitudServicio) {
+                                                                <a mat-stroked-button [routerLink]="['/servicios', pending.idSolicitudServicio]"><mat-icon>open_in_new</mat-icon>Ver solicitud</a>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+
+                                            @if (!status.programacionCerrada && canCloseSchedule()) {
+                                                <div class="program-close-actions">
+                                                    <button mat-flat-button type="button" (click)="closeProgram(group)" [disabled]="!status.puedeCerrar || closingProgram()">
+                                                        <mat-icon>lock</mat-icon>{{ closingProgram() ? 'Cerrando...' : 'Cerrar programación' }}
+                                                    </button>
+                                                </div>
+                                            }
+
+                                            @if (status.programacionCerrada && !status.programacionCelebrada && status.puedeReabrir && canReopenSchedule()) {
+                                                <div class="program-close-actions">
+                                                    <button mat-stroked-button type="button" (click)="reopenProgram(group)" [disabled]="reopeningProgram()">
+                                                        <mat-icon>lock_open</mat-icon>{{ reopeningProgram() ? 'Reabriendo...' : 'Reabrir programación' }}
+                                                    </button>
+                                                </div>
+                                            }
+                                        </section>
+                                    }
+
                                     <div class="hour-actions">
                                         @if (canCreate() && !group.closed) {
                                             <a mat-stroked-button routerLink="/misas/nueva" [queryParams]="{ fecha: selectedDate(), hora: group.hora, returnUrl: returnUrl(group.hora) }"><mat-icon>add</mat-icon>Nueva a las {{ group.hora }}</a>

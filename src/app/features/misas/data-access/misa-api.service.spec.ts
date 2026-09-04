@@ -123,6 +123,32 @@ describe('MisaApiService', () => {
         request.flush({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] });
     });
 
+
+    it('should request the exact program status for a date and hour', () => {
+        service.getProgramStatus('2026-09-09', '18:00:00').subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/programaciones/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+        expect(request.request.params.get('hora')).toBe('18:00:00');
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', totalMisas: 2, puedeCerrar: true, pendientes: [] });
+    });
+
+    it('should close a program by date and hour', () => {
+        service.closeProgram('2026-09-09', '18:00:00').subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/cerrar`);
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'CERRADA', mensaje: 'Programación cerrada correctamente.' });
+    });
+
+    it('should reopen a program with a reason', () => {
+        service.reopenProgram({ fecha: '2026-09-09', hora: '18:00:00', motivo: 'Misa adicional del sacerdote' }).subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/reabrir`);
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00', motivo: 'Misa adicional del sacerdote' });
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'ABIERTA', versionActual: 1, mensaje: 'Programación reabierta correctamente.' });
+    });
+
     it('should request a misa by id', () => {
         service.getById(15).subscribe();
 

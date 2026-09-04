@@ -11,7 +11,7 @@ import {
     MisaSanto,
     MisaTipo
 } from './models/misa-catalog.models';
-import { MisaCalendarResponse } from './models/misa-calendar.models';
+import { MisaCalendarResponse, MisaCloseProgramResponse, MisaProgramStatus, MisaReopenProgramRequest, MisaReopenProgramResponse } from './models/misa-calendar.models';
 import {
     MisaDetail,
     MisaListFilters,
@@ -54,6 +54,19 @@ export class MisaApiService {
     getCalendar(fechaInicio: string, fechaFin: string): Observable<MisaCalendarResponse> {
         const params = new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
         return this.http.get<MisaCalendarResponse>(`${this.apiUrl}/calendario`, { params });
+    }
+
+    getProgramStatus(fecha: string, hora: string): Observable<MisaProgramStatus> {
+        const params = new HttpParams().set('fecha', fecha).set('hora', hora);
+        return this.http.get<MisaProgramStatus>(`${this.apiUrl}/programaciones/estado`, { params });
+    }
+
+    closeProgram(fecha: string, hora: string): Observable<MisaCloseProgramResponse> {
+        return this.http.patch<MisaCloseProgramResponse>(`${this.apiUrl}/programaciones/cerrar`, { fecha, hora });
+    }
+
+    reopenProgram(request: MisaReopenProgramRequest): Observable<MisaReopenProgramResponse> {
+        return this.http.patch<MisaReopenProgramResponse>(`${this.apiUrl}/programaciones/reabrir`, request);
     }
 
     getById(idMisa: number): Observable<MisaDetail> {
