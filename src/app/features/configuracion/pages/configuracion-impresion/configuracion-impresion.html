@@ -1,5 +1,5 @@
 <section class="config-page">
-    <header class="page-header"><div><p class="eyebrow">Configuración general</p><h1>Parámetros del sistema</h1><p>Administra el comportamiento global de impresión y de los registros sacramentales.</p></div></header>
+    <header class="page-header"><div><p class="eyebrow">Configuración general</p><h1>Parámetros del sistema</h1><p>Administra la impresión general, los registros sacramentales y la calibración de constancias oficiales.</p></div></header>
 
     <section class="config-section">
         <div class="section-title"><div><h2>Impresión</h2><p>Define el comportamiento global de la ticketera utilizada por el sistema.</p></div><button mat-flat-button type="button" (click)="saveImpresion()" [disabled]="!canEdit() || savingImpresion() || loadingImpresion()"><mat-icon>save</mat-icon>{{ savingImpresion() ? 'Guardando...' : 'Guardar impresión' }}</button></div>
@@ -31,4 +31,6 @@
             <p class="updated">Última actualización: {{ current.updatedUtc || '—' }} · {{ current.updatedBy || 'Sistema' }}</p>
         </form>}
     </section>
+
+    <pcr-constancia-print-settings />
 </section>

@@ -15,8 +15,9 @@ import { SacramentalTextCaseService } from '../../../sacramentos/shared/sacramen
 import { ConfiguracionApiService } from '../../data-access/configuracion-api.service';
 import { ConfiguracionImpresion, ModoImpresion, TipoConexionImpresora } from '../../data-access/models/configuracion-impresion.models';
 import { ConfiguracionSacramental } from '../../data-access/models/configuracion-sacramental.models';
+import { ConstanciaPrintSettingsComponent } from '../../components/constancia-print-settings/constancia-print-settings';
 
-@Component({ selector: 'pcr-configuracion-impresion', imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule, MatSlideToggleModule], templateUrl: './configuracion-impresion.html', styleUrl: './configuracion-impresion.scss' })
+@Component({ selector: 'pcr-configuracion-impresion', imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule, MatProgressBarModule, MatSelectModule, MatSlideToggleModule, ConstanciaPrintSettingsComponent], templateUrl: './configuracion-impresion.html', styleUrl: './configuracion-impresion.scss' })
 export class ConfiguracionImpresionPage implements OnInit {
     private readonly fb = inject(FormBuilder); private readonly api = inject(ConfiguracionApiService); private readonly feedback = inject(FeedbackService); private readonly authStore = inject(AuthStore); private readonly sacramentalText = inject(SacramentalTextCaseService);
     protected readonly loadingImpresion = signal(false); protected readonly savingImpresion = signal(false); protected readonly configImpresion = signal<ConfiguracionImpresion | null>(null);

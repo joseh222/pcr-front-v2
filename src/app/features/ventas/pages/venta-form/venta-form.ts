@@ -122,7 +122,10 @@ export class VentaFormPage implements OnInit {
         }
 
         if (this.route.snapshot.queryParamMap.get('origen') === 'servicio') {
-            void this.router.navigate(['/servicios']);
+            const rawServiceId = this.route.snapshot.queryParamMap.get('solicitudServicioId');
+            const serviceId = rawServiceId === null ? null : Number(rawServiceId);
+            if (serviceId !== null && Number.isInteger(serviceId) && serviceId > 0) void this.router.navigate(['/servicios', serviceId]);
+            else void this.router.navigate(['/servicios']);
             return;
         }
 

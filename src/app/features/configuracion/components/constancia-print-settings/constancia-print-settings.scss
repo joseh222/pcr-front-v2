@@ -1,0 +1,58 @@
+.constancia-settings { display: grid; gap: .9rem; }
+.section-title h2, .card-heading h3 { margin: 0 0 .2rem; }
+.section-title p, .card-heading p { margin: 0; opacity: .7; }
+.settings-card { padding: 1.2rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 1rem; background: var(--mat-sys-surface); display: grid; gap: 1rem; }
+.card-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.heading-actions { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: flex-end; }
+.general-grid, .paper-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1rem; }
+.type-select { width: min(100%, 340px); }
+.template-form { display: grid; gap: .8rem; }
+.calibration-row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.calibration-row span, .updated { font-size: .78rem; opacity: .68; }
+.calibration-note { display: flex; gap: .75rem; padding: .9rem; border-radius: .8rem; background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.calibration-note p { margin: .15rem 0 0; font-size: .82rem; }
+.field-table-wrap { overflow-x: auto; border: 1px solid var(--mat-sys-outline-variant); border-radius: .8rem; }
+.field-table { width: 100%; min-width: 980px; border-collapse: collapse; }
+.field-table th, .field-table td { padding: .55rem .45rem; border-bottom: 1px solid var(--mat-sys-outline-variant); text-align: left; vertical-align: middle; }
+.field-table th { font-size: .76rem; background: var(--mat-sys-surface-container-low); }
+.field-table tbody tr:last-child td { border-bottom: 0; }
+.field-table input[type='number'], .field-table select { width: 78px; box-sizing: border-box; padding: .42rem .35rem; border: 1px solid var(--mat-sys-outline); border-radius: .35rem; background: var(--mat-sys-surface); color: inherit; }
+.field-table select { width: 102px; }
+.active-check { width: 1rem; height: 1rem; }
+.field-name { min-width: 190px; }
+.field-name strong, .field-name small { display: block; }
+.field-name small { margin-top: .15rem; opacity: .6; font-size: .68rem; }
+.updated { margin: 0; }
+@media (max-width: 760px) { .card-heading, .calibration-row { flex-direction: column; align-items: stretch; } .heading-actions { justify-content: stretch; } .heading-actions button { flex: 1 1 100%; } .general-grid, .paper-grid { grid-template-columns: 1fr; } }
+
+
+.printer-card { margin-top: 1rem; }
+.printer-form { display: grid; gap: 1rem; }
+.printer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.printer-name { grid-column: span 1; }
+.printer-actions, .heading-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.mode-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .7rem; border-radius: 999px; background: var(--mat-sys-surface-container-high); font-weight: 700; font-size: .8rem; }
+.mode-badge mat-icon { width: 18px; height: 18px; font-size: 18px; }
+
+.printer-validation, .printer-warning, .calibration-status {
+    display: flex; gap: .8rem; align-items: flex-start; border-radius: 12px; padding: .9rem 1rem; margin-top: 1rem;
+}
+.printer-validation p, .printer-warning p, .calibration-status p { margin: .2rem 0 0; }
+.printer-validation small { display: block; margin-top: .35rem; opacity: .8; }
+.printer-validation.ok, .calibration-status.calibrated { background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent); }
+.printer-validation.error, .calibration-status.pending { background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent); }
+.printer-warning { background: var(--mat-sys-surface-container); }
+
+.calibration-status { margin-bottom: 1rem; }
+.calibration-status.calibrated mat-icon { color: var(--mat-sys-primary); }
+.calibration-status.pending mat-icon { color: var(--mat-sys-error); }
+.locked-row { opacity: .72; }
+
+@media (max-width: 800px) {
+    .printer-grid { grid-template-columns: 1fr; }
+    .printer-name { grid-column: auto; }
+    .printer-actions, .heading-actions { width: 100%; }
+}
+
+.print-job-status { display:flex; align-items:center; gap:.55rem; margin:.75rem 0; padding:.7rem .85rem; border-radius:10px; background:var(--mat-sys-surface-container); font-size:.85rem; }
+.print-job-status mat-icon { color:var(--mat-sys-primary); }

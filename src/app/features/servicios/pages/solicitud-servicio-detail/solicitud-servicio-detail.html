@@ -58,6 +58,38 @@
             </article>
         }
 
+        @if (canPrintConstancia()) {
+            <article class="detail-card constancia-card">
+                <header><mat-icon>description</mat-icon><h2>Constancia sacramental</h2></header>
+                <div class="detail-body constancia-body">
+                    @if (loadingConstancia()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+                    <div class="constancia-summary">
+                        <div><span>Estado</span><strong>{{ constancia() ? 'Snapshot preparado' : 'Lista para primera impresión' }}</strong></div>
+                        <div><span>Cantidad solicitada</span><strong>{{ constancia()?.cantidadSolicitada ?? item.cantidad }}</strong></div>
+                        <div><span>Total impreso</span><strong>{{ constancia()?.cantidadImpresaAcumulada ?? 0 }}</strong></div>
+                        <div><span>Impresiones realizadas</span><strong>{{ constancia()?.numeroImpresiones ?? 0 }}</strong></div>
+                        <div><span>Última impresión</span><strong>{{ constancia()?.ultimaImpresionUtc ? (constancia()?.ultimaImpresionUtc | date:'dd/MM/yyyy HH:mm':'-0500') : 'Aún no impresa' }}</strong></div>
+                    </div>
+                    <div class="print-controls">
+                        <mat-form-field appearance="outline"><mat-label>Cantidad a imprimir</mat-label><input matInput type="number" min="1" max="1000" [formControl]="printQuantity"><mat-hint>La primera vez se propone la cantidad solicitada; luego puedes imprimir solo las hojas necesarias.</mat-hint></mat-form-field>
+                        @if (canReviewRegistro()) {
+                            @if (registroDetailLink(); as link) {
+                                <a mat-stroked-button [routerLink]="link"><mat-icon>fact_check</mat-icon>Revisar partida</a>
+                            }
+                        }
+                        <button mat-flat-button type="button" (click)="imprimirConstancia()" [disabled]="printingConstancia() || printQuantity.invalid"><mat-icon>print</mat-icon>{{ printingConstancia() ? 'Enviando / imprimiendo...' : 'Imprimir constancia' }}</button>
+                    </div>
+                    @if (printJobStatus(); as job) {
+                        <div class="print-job-detail" [class.error]="job.estado === 'ERROR'" [class.ok]="job.estado === 'COMPLETADO'">
+                            <mat-icon>{{ job.estado === 'COMPLETADO' ? 'check_circle' : job.estado === 'ERROR' ? 'error' : 'print' }}</mat-icon>
+                            <div><strong>Trabajo #{{ job.idTrabajo }} · {{ job.estado }}</strong><p>{{ job.cantidadCopias }} ejemplar(es) · {{ job.impresora }} · intento {{ job.intentos }}/{{ job.maxIntentos }}</p>@if (job.ultimoDetalle) { <small>{{ job.ultimoDetalle }}</small> }</div>
+                        </div>
+                    }
+                    <div class="constancia-note"><mat-icon>info</mat-icon><p>La impresión es manual: revisa los datos, coloca el formato oficial y pulsa “Imprimir constancia”. El sistema la envía directamente a la impresora configurada mediante PCR Print Agent; no necesitas usar Ctrl+P ni seleccionar impresora en el navegador.</p></div>
+                </div>
+            </article>
+        }
+
         @if (item.observaciones) { <article class="detail-card"><header><mat-icon>notes</mat-icon><h2>Observaciones</h2></header><div class="detail-body"><p class="text-block">{{ item.observaciones }}</p></div></article> }
 
         @if (item.estadoSolicitud === 'ANULADA') { <article class="detail-card cancellation-card"><header><mat-icon>cancel</mat-icon><h2>Anulación</h2></header><div class="detail-body info-list">
