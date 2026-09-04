@@ -11,7 +11,7 @@ import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { MisaApiService } from '../../data-access/misa-api.service';
-import { MisaCalendarItem, MisaProgramStatus } from '../../data-access/models/misa-calendar.models';
+import { MisaCalendarItem, MisaCelebrantDocumentStatus, MisaCelebrantDocumentType, MisaPersonalDayDocumentStatus, MisaProgramStatus } from '../../data-access/models/misa-calendar.models';
 import { MisaReopenProgramDialog } from '../misa-reopen-program-dialog/misa-reopen-program-dialog';
 
 type CalendarDay = { date: string; day: number; inMonth: boolean; isToday: boolean; isSelected: boolean; items: readonly MisaCalendarItem[]; total: number; personal: number; comunitario: number; pending: number; hours: readonly { hora: string; total: number }[] };
@@ -35,8 +35,13 @@ export class MisaCalendarComponent implements OnInit {
     protected readonly loadingProgramStatus = signal(false);
     protected readonly closingProgram = signal(false);
     protected readonly reopeningProgram = signal(false);
+    protected readonly loadingCelebrantDocuments = signal(false);
+    protected readonly loadingPersonalDayDocuments = signal(false);
+    protected readonly previewingDocument = signal<MisaCelebrantDocumentType | null>(null);
     protected readonly items = signal<readonly MisaCalendarItem[]>([]);
     protected readonly programStatus = signal<MisaProgramStatus | null>(null);
+    protected readonly celebrantDocuments = signal<MisaCelebrantDocumentStatus | null>(null);
+    protected readonly personalDayDocuments = signal<MisaPersonalDayDocumentStatus | null>(null);
     protected readonly month = signal(this.firstDayOfMonth(new Date()));
     protected readonly selectedDate = signal(this.toIsoDate(new Date()));
     protected readonly expandedHour = signal<string | null>(null);
@@ -126,6 +131,7 @@ export class MisaCalendarComponent implements OnInit {
         this.selectedDate.set(this.toIsoDate(today));
         this.expandedHour.set(null);
         this.programStatus.set(null);
+        this.celebrantDocuments.set(null);
         this.syncUrl();
         this.load();
     }
@@ -138,9 +144,12 @@ export class MisaCalendarComponent implements OnInit {
         this.selectedDate.set(day.date);
         this.expandedHour.set(null);
         this.programStatus.set(null);
+        this.celebrantDocuments.set(null);
         if (monthChanged) {
             this.month.set(this.firstDayOfMonth(parsed));
             this.load();
+        } else {
+            this.loadPersonalDayDocuments();
         }
         this.syncUrl();
     }
@@ -149,6 +158,7 @@ export class MisaCalendarComponent implements OnInit {
         const opening = this.expandedHour() !== hora;
         this.expandedHour.set(opening ? hora : null);
         this.programStatus.set(null);
+        this.celebrantDocuments.set(null);
         this.syncUrl();
         if (opening) this.loadProgramStatus(hora);
     }
@@ -219,6 +229,80 @@ export class MisaCalendarComponent implements OnInit {
         });
     }
 
+
+    protected previewCommunityDocument(group: CalendarHourGroup): void {
+        if (this.previewingDocument()) return;
+
+        const popup = window.open('', '_blank');
+        if (!popup) {
+            this.feedback.warning('El navegador bloqueó la ventana de vista previa. Habilita las ventanas emergentes para este sitio.');
+            return;
+        }
+
+        popup.document.title = 'Preparando vista previa...';
+        popup.document.body.innerHTML = '<p style="font-family:Arial,sans-serif;padding:16px">Preparando vista previa...</p>';
+
+        this.previewingDocument.set('COMUNITARIA');
+        this.api.previewCommunityDocument(
+            this.selectedDate(),
+            this.apiTime(group.hora)
+        ).pipe(finalize(() => this.previewingDocument.set(null))).subscribe({
+            next: blob => {
+                const url = URL.createObjectURL(blob);
+                popup.location.href = url;
+                window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                this.loadCelebrantDocuments(group.hora);
+            },
+            error: error => {
+                popup.close();
+                this.feedback.error(getApiErrorMessage(error, 'No se pudo generar la vista previa de la hoja comunitaria.'));
+            }
+        });
+    }
+
+    protected previewPersonalDayDocument(): void {
+        if (this.previewingDocument()) return;
+
+        const status = this.personalDayDocuments();
+        if (!status?.puedeGenerar) {
+            this.feedback.warning(
+                status?.cantidadPendientesCierre
+                    ? `Falta cerrar ${status.cantidadPendientesCierre} programación(es) con Misas personales de este día.`
+                    : 'Las Misas personales del día todavía no están listas para generar.'
+            );
+            return;
+        }
+
+        const popup = window.open('', '_blank');
+        if (!popup) {
+            this.feedback.warning('El navegador bloqueó la ventana de vista previa. Habilita las ventanas emergentes para este sitio.');
+            return;
+        }
+
+        popup.document.title = 'Preparando Misas personales...';
+        popup.document.body.innerHTML = '<p style="font-family:Arial,sans-serif;padding:16px">Preparando Misas personales del día...</p>';
+
+        this.previewingDocument.set('PERSONAL');
+        this.api.previewPersonalDayDocument(this.selectedDate())
+            .pipe(finalize(() => this.previewingDocument.set(null)))
+            .subscribe({
+                next: blob => {
+                    const url = URL.createObjectURL(blob);
+                    popup.location.href = url;
+                    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                    this.loadPersonalDayDocuments();
+                },
+                error: error => {
+                    popup.close();
+                    this.feedback.error(getApiErrorMessage(error, 'No se pudo generar la vista previa de las Misas personales del día.'));
+                }
+            });
+    }
+
+    protected personalDayPageCount(): number {
+        return Math.ceil((this.personalDayDocuments()?.cantidadMisas ?? 0) / 4);
+    }
+
     protected isExpanded(hora: string): boolean { return this.expandedHour() === hora; }
     protected formatTime(value: string): string { return value.slice(0, 5); }
 
@@ -250,6 +334,7 @@ export class MisaCalendarComponent implements OnInit {
         this.selectedDate.set(this.toIsoDate(next));
         this.expandedHour.set(null);
         this.programStatus.set(null);
+        this.celebrantDocuments.set(null);
         this.syncUrl();
         this.load();
     }
@@ -260,6 +345,7 @@ export class MisaCalendarComponent implements OnInit {
         this.api.getCalendar(this.toIsoDate(range.start), this.toIsoDate(range.end)).pipe(finalize(() => this.loading.set(false))).subscribe({
             next: response => {
                 this.items.set(response.items ?? []);
+                this.loadPersonalDayDocuments();
                 const requestedHour = this.expandedHour();
                 if (requestedHour && !this.hourGroups().some(x => x.hora === requestedHour)) {
                     this.expandedHour.set(null);
@@ -279,12 +365,37 @@ export class MisaCalendarComponent implements OnInit {
     private loadProgramStatus(hora: string): void {
         this.loadingProgramStatus.set(true);
         this.api.getProgramStatus(this.selectedDate(), this.apiTime(hora)).pipe(finalize(() => this.loadingProgramStatus.set(false))).subscribe({
-            next: status => this.programStatus.set(status),
+            next: status => {
+                this.programStatus.set(status);
+                if (status.idProgramacion) this.loadCelebrantDocuments(hora);
+                else this.celebrantDocuments.set(null);
+            },
             error: error => {
                 this.programStatus.set(null);
+                this.celebrantDocuments.set(null);
                 this.feedback.error(getApiErrorMessage(error, 'No se pudo consultar el estado de la programación.'));
             }
         });
+    }
+
+    private loadCelebrantDocuments(hora: string): void {
+        this.loadingCelebrantDocuments.set(true);
+        this.api.getCelebrantDocumentStatus(this.selectedDate(), this.apiTime(hora))
+            .pipe(finalize(() => this.loadingCelebrantDocuments.set(false)))
+            .subscribe({
+                next: status => this.celebrantDocuments.set(status),
+                error: () => this.celebrantDocuments.set(null)
+            });
+    }
+
+    private loadPersonalDayDocuments(): void {
+        this.loadingPersonalDayDocuments.set(true);
+        this.api.getPersonalDayDocumentStatus(this.selectedDate())
+            .pipe(finalize(() => this.loadingPersonalDayDocuments.set(false)))
+            .subscribe({
+                next: status => this.personalDayDocuments.set(status),
+                error: () => this.personalDayDocuments.set(null)
+            });
     }
 
     private syncUrl(): void {

@@ -37,7 +37,11 @@ describe('MisaCalendarComponent', () => {
                 estadoSolicitud: 'ACTIVA', estadoPago: 'PENDIENTE', motivoBloqueo: 'Pendiente de pago.' }]
         })),
         closeProgram: vi.fn(() => of({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 1, estado: 'CERRADA', mensaje: 'Programación cerrada correctamente.' })),
-        reopenProgram: vi.fn(() => of({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 1, estado: 'ABIERTA', versionActual: 1, mensaje: 'Programación reabierta correctamente.' }))
+        reopenProgram: vi.fn(() => of({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 1, estado: 'ABIERTA', versionActual: 1, mensaje: 'Programación reabierta correctamente.' })),
+        getCelebrantDocumentStatus: vi.fn(() => of({ idProgramacion: 1, fecha: '2026-09-09', hora: '18:00:00', estadoProgramacion: 'CERRADA', versionActual: 1, totalDesactualizados: 0, personal: { tipoDocumento: 'PERSONAL', cantidadMisas: 1, generado: false, generadoUtc: null, numeroGeneraciones: 0 }, comunitaria: { tipoDocumento: 'COMUNITARIA', cantidadMisas: 0, generado: false, generadoUtc: null, numeroGeneraciones: 0 } })),
+        previewCommunityDocument: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
+        getPersonalDayDocumentStatus: vi.fn(() => of({ fecha: '2026-09-09', cantidadMisas: 1, cantidadProgramaciones: 1, cantidadProgramacionesListas: 1, cantidadPendientesCierre: 0, cantidadProgramacionesGeneradas: 0, totalDesactualizados: 0, puedeGenerar: true, todoGenerado: false })),
+        previewPersonalDayDocument: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' })))
     };
 
     const authStore = { hasPermission: vi.fn(() => true) };
@@ -107,6 +111,26 @@ describe('MisaCalendarComponent', () => {
             motivo: 'Misa adicional del sacerdote'
         });
         expect(feedback.success).toHaveBeenCalled();
+    });
+
+
+    it('loads celebrant document metadata for an existing program', () => {
+        const fixture = TestBed.createComponent(MisaCalendarComponent);
+        fixture.detectChanges();
+
+        const component = fixture.componentInstance as any;
+        component.selectedDate.set('2026-09-09');
+        component.toggleHour('18:00');
+
+        expect(api.getCelebrantDocumentStatus).toHaveBeenCalledWith('2026-09-09', '18:00:00');
+    });
+
+
+    it('loads the selected day personal document status', () => {
+        const fixture = TestBed.createComponent(MisaCalendarComponent);
+        fixture.detectChanges();
+
+        expect(api.getPersonalDayDocumentStatus).toHaveBeenCalled();
     });
 
 });

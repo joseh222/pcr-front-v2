@@ -51,6 +51,60 @@
                 }
             </div>
 
+            @if (loadingPersonalDayDocuments()) {
+                <mat-progress-bar mode="indeterminate" />
+            } @else if (personalDayDocuments(); as personalDay) {
+                @if (personalDay.cantidadMisas > 0) {
+                    <section class="personal-day-documents">
+                        <div class="personal-day-copy">
+                            <div class="personal-day-title">
+                                <mat-icon>description</mat-icon>
+                                <div>
+                                    <strong>Personales del día</strong>
+                                    <span>
+                                        {{ personalDay.cantidadMisas }} Misa{{ personalDay.cantidadMisas === 1 ? '' : 's' }} personal{{ personalDay.cantidadMisas === 1 ? '' : 'es' }}
+                                        · {{ personalDayPageCount() }} hoja{{ personalDayPageCount() === 1 ? '' : 's' }} A4
+                                    </span>
+                                </div>
+                            </div>
+
+                            <small>Una Misa personal genera una tarjeta. Si es matrimonio, los dos nombres permanecen dentro de la misma tarjeta.</small>
+                            <small>Las tarjetas se agrupan hasta 4 por hoja y usan únicamente el día seleccionado en el calendario.</small>
+
+                            @if (personalDay.cantidadPendientesCierre > 0) {
+                                <div class="personal-day-warning">
+                                    <mat-icon>lock_clock</mat-icon>
+                                    <span>
+                                        Falta cerrar {{ personalDay.cantidadPendientesCierre }}
+                                        programación{{ personalDay.cantidadPendientesCierre === 1 ? '' : 'es' }}
+                                        personal{{ personalDay.cantidadPendientesCierre === 1 ? '' : 'es' }} de este día.
+                                        La vista previa se habilitará cuando todas estén cerradas.
+                                    </span>
+                                </div>
+                            }
+
+                            @if (personalDay.totalDesactualizados > 0) {
+                                <div class="personal-day-warning">
+                                    <mat-icon>history</mat-icon>
+                                    <span>
+                                        Hay {{ personalDay.totalDesactualizados }} tarjeta{{ personalDay.totalDesactualizados === 1 ? '' : 's' }}
+                                        anterior{{ personalDay.totalDesactualizados === 1 ? '' : 'es' }} desactualizada{{ personalDay.totalDesactualizados === 1 ? '' : 's' }}.
+                                        Al generar nuevamente se utilizarán solo las versiones vigentes de cada horario.
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <button mat-flat-button type="button"
+                            (click)="previewPersonalDayDocument()"
+                            [disabled]="!personalDay.puedeGenerar || previewingDocument() !== null">
+                            <mat-icon>preview</mat-icon>
+                            {{ previewingDocument() === 'PERSONAL' ? 'Generando...' : 'Vista previa' }}
+                        </button>
+                    </section>
+                }
+            }
+
             @if (selectedItems().length === 0) {
                 <div class="empty-agenda"><mat-icon>event_available</mat-icon><strong>No hay misas registradas</strong><p>Puedes registrar una nueva misa directamente para este día.</p></div>
             } @else {
@@ -139,6 +193,54 @@
                                                 </div>
                                             }
                                         </section>
+                                    }
+
+                                    @if (loadingCelebrantDocuments()) {
+                                        <mat-progress-bar mode="indeterminate" />
+                                    } @else if (celebrantDocuments(); as docs) {
+                                        @if (docs.totalDesactualizados > 0 && docs.estadoProgramacion === 'ABIERTA') {
+                                            <div class="document-outdated-warning">
+                                                <mat-icon>warning</mat-icon>
+                                                <div>
+                                                    <strong>Las hojas anteriores quedaron desactualizadas</strong>
+                                                    <span>Vuelve a cerrar la programación después de terminar los cambios para generar las hojas vigentes.</span>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if ((docs.estadoProgramacion === 'CERRADA' || docs.estadoProgramacion === 'CELEBRADA') && docs.comunitaria.cantidadMisas > 0) {
+                                            <section class="celebrant-documents">
+                                                <div class="celebrant-documents-head">
+                                                    <div>
+                                                        <strong>Hoja comunitaria del horario</strong>
+                                                        <p>La versión {{ docs.versionActual }} se muestra solo como referencia dentro del sistema. <b>No aparecerá impresa en la hoja.</b></p>
+                                                    </div>
+                                                    @if (docs.totalDesactualizados > 0) {
+                                                        <span class="outdated-count">{{ docs.totalDesactualizados }} anterior{{ docs.totalDesactualizados === 1 ? '' : 'es' }} desactualizada{{ docs.totalDesactualizados === 1 ? '' : 's' }}</span>
+                                                    }
+                                                </div>
+
+                                                <div class="celebrant-document-grid">
+
+                                                    @if (docs.comunitaria.cantidadMisas > 0) {
+                                                        <article class="celebrant-document-card">
+                                                            <div>
+                                                                <span class="document-kicker">Comunitarias</span>
+                                                                <strong>{{ docs.comunitaria.cantidadMisas }} registro{{ docs.comunitaria.cantidadMisas === 1 ? '' : 's' }} comunitario{{ docs.comunitaria.cantidadMisas === 1 ? '' : 's' }}</strong>
+                                                                <small>Listado consolidado del horario.</small>
+                                                                <small>{{ docs.comunitaria.generado ? 'Vista previa preparada para la versión vigente.' : 'Aún no se generó la vista previa vigente.' }}</small>
+                                                            </div>
+                                                            <button mat-stroked-button type="button"
+                                                                (click)="previewCommunityDocument(group)"
+                                                                [disabled]="previewingDocument() !== null">
+                                                                <mat-icon>preview</mat-icon>
+                                                                {{ previewingDocument() === 'COMUNITARIA' ? 'Generando...' : 'Vista previa' }}
+                                                            </button>
+                                                        </article>
+                                                    }
+                                                </div>
+                                            </section>
+                                        }
                                     }
 
                                     <div class="hour-actions">

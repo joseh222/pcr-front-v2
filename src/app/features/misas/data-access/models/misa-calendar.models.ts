@@ -107,3 +107,38 @@ export interface MisaReopenProgramResponse {
     readonly versionActual: number;
     readonly mensaje: string;
 }
+
+
+export type MisaCelebrantDocumentType = 'PERSONAL' | 'COMUNITARIA';
+
+export interface MisaCelebrantDocumentItem {
+    readonly tipoDocumento: MisaCelebrantDocumentType;
+    readonly cantidadMisas: number;
+    readonly generado: boolean;
+    readonly generadoUtc: string | null;
+    readonly numeroGeneraciones: number;
+}
+
+export interface MisaCelebrantDocumentStatus {
+    readonly idProgramacion: number | null;
+    readonly fecha: string;
+    readonly hora: string;
+    readonly estadoProgramacion: 'ABIERTA' | 'CERRADA' | 'CELEBRADA' | string;
+    readonly versionActual: number;
+    readonly totalDesactualizados: number;
+    readonly personal: MisaCelebrantDocumentItem;
+    readonly comunitaria: MisaCelebrantDocumentItem;
+}
+
+
+export interface MisaPersonalDayDocumentStatus {
+    readonly fecha: string;
+    readonly cantidadMisas: number;
+    readonly cantidadProgramaciones: number;
+    readonly cantidadProgramacionesListas: number;
+    readonly cantidadPendientesCierre: number;
+    readonly cantidadProgramacionesGeneradas: number;
+    readonly totalDesactualizados: number;
+    readonly puedeGenerar: boolean;
+    readonly todoGenerado: boolean;
+}

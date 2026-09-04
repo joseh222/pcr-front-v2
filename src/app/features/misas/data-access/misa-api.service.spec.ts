@@ -149,6 +149,68 @@ describe('MisaApiService', () => {
         request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'ABIERTA', versionActual: 1, mensaje: 'Programación reabierta correctamente.' });
     });
 
+
+    it('should request celebrant document status for the exact schedule', () => {
+        service.getCelebrantDocumentStatus('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/programaciones/documentos/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+        expect(request.request.params.get('hora')).toBe('18:00:00');
+
+        request.flush({
+            fecha: '2026-09-09',
+            hora: '18:00:00',
+            estadoProgramacion: 'CERRADA',
+            versionActual: 1,
+            totalDesactualizados: 0,
+            personal: { tipoDocumento: 'PERSONAL', cantidadMisas: 4, generado: false, generadoUtc: null, numeroGeneraciones: 0 },
+            comunitaria: { tipoDocumento: 'COMUNITARIA', cantidadMisas: 8, generado: false, generadoUtc: null, numeroGeneraciones: 0 }
+        });
+    });
+
+    it('should request the personal day document status', () => {
+        service.getPersonalDayDocumentStatus('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/documentos/personales-dia/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+
+        request.flush({
+            fecha: '2026-09-09',
+            cantidadMisas: 3,
+            cantidadProgramaciones: 3,
+            cantidadProgramacionesListas: 3,
+            cantidadPendientesCierre: 0,
+            cantidadProgramacionesGeneradas: 0,
+            totalDesactualizados: 0,
+            puedeGenerar: true,
+            todoGenerado: false
+        });
+    });
+
+    it('should request the personal day preview as PDF blob', () => {
+        service.previewPersonalDayDocument('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/personales-dia/vista-previa`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09' });
+
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
+    it('should request the community preview for the exact schedule', () => {
+        service.previewCommunityDocument('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/documentos/COMUNITARIA/vista-previa`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
     it('should request a misa by id', () => {
         service.getById(15).subscribe();
 
