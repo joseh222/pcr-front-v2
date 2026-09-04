@@ -18,7 +18,7 @@ describe('SolicitudServicioDetailPage', () => {
     const cancellationMock = { cancel: vi.fn(() => of({ idSolicitudServicio: 10 })) };
     const constanciaApi = { getBySolicitud: vi.fn(() => of(null)), imprimir: vi.fn(() => of({ idTrabajo: 101, tipoDocumento: 'CONSTANCIA_SACRAMENTAL', estado: 'PENDIENTE', impresora: 'HP CONSTANCIAS', cantidadCopias: 1, codigo: 'QUEUED', mensaje: 'OK' })), getTrabajoEstado: vi.fn(() => of({ idTrabajo: 101, tipoDocumento: 'CONSTANCIA_SACRAMENTAL', entidadOrigen: 'SOLICITUD_SERVICIO', idOrigen: 10, codigoReferencia: 'SS2026-00010', numeroSolicitud: 1, modoImpresion: 'MANUAL', impresora: 'HP CONSTANCIAS', estado: 'COMPLETADO', intentos: 1, maxIntentos: 3, cantidadCopias: 1, fechaCreacionUtc: '', fechaActualizacionUtc: '', fechaFinalizacionUtc: '', ultimoDetalle: null, rowVersion: 'Z' })) };
     beforeEach(() => {
-        detail.set(DETAIL); storeMock.load.mockClear(); cancellationMock.cancel.mockClear(); vi.clearAllMocks();
+        detail.set(DETAIL); storeMock.load.mockClear(); cancellationMock.cancel.mockClear(); vi.clearAllMocks(); authStoreMock.hasPermission.mockReturnValue(true);
         TestBed.configureTestingModule({ imports: [SolicitudServicioDetailPage], providers: [{ provide: AuthStore, useValue: authStoreMock }, { provide: ConstanciaApiService, useValue: constanciaApi }, { provide: FeedbackService, useValue: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }, provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '10' }) } } }, { provide: SolicitudServicioCancellationService, useValue: cancellationMock }] });
         TestBed.overrideComponent(SolicitudServicioDetailPage, { set: { providers: [{ provide: SolicitudServicioDetailStore, useValue: storeMock }] } });
     });
@@ -26,6 +26,40 @@ describe('SolicitudServicioDetailPage', () => {
     it('should load and render request detail', () => {
         const fixture = TestBed.createComponent(SolicitudServicioDetailPage); fixture.detectChanges();
         expect(storeMock.load).toHaveBeenCalledWith(10); expect(constanciaApi.getBySolicitud).toHaveBeenCalledWith(10); expect(fixture.nativeElement.textContent).toContain('SS2026-00010'); expect(fixture.nativeElement.textContent).toContain('Constancia');
+    });
+
+
+    it('should hide print action without CONSTANCIA_IMPRIMIR but keep certificate information visible', () => {
+        detail.set({
+            ...DETAIL,
+            estadoPago: 'PAGADO',
+            nombreEstadoPago: 'Pagado',
+            idRegistroSacramental: 99,
+            codigoTipoSacramentoRegistro: 'BAUTISMO'
+        });
+        authStoreMock.hasPermission.mockImplementation((code: string) => code !== 'CONSTANCIA_IMPRIMIR');
+
+        const fixture = TestBed.createComponent(SolicitudServicioDetailPage);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).toContain('Constancia sacramental');
+        expect(fixture.nativeElement.textContent).not.toContain('Imprimir constancia');
+    });
+
+    it('should show print action with CONSTANCIA_IMPRIMIR', () => {
+        detail.set({
+            ...DETAIL,
+            estadoPago: 'PAGADO',
+            nombreEstadoPago: 'Pagado',
+            idRegistroSacramental: 99,
+            codigoTipoSacramentoRegistro: 'BAUTISMO'
+        });
+        authStoreMock.hasPermission.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(SolicitudServicioDetailPage);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).toContain('Imprimir constancia');
     });
 
     it('should reload after cancellation', () => {

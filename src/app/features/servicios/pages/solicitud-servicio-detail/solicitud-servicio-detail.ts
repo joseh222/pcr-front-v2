@@ -62,9 +62,13 @@ export class SolicitudServicioDetailPage implements OnInit {
     protected canEdit(): boolean { const item = this.store.detail(); return !!item && this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_EDIT) && canEditSolicitud(item); }
     protected canCancel(): boolean { const item = this.store.detail(); return !!item && this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_CANCEL) && canCancelSolicitud(item); }
     protected canCharge(): boolean { const item = this.store.detail(); return !!item && this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE) && canChargeSolicitud(item); }
-    protected canPrintConstancia(): boolean {
+    protected canShowConstancia(): boolean {
         const item = this.store.detail();
         return !!item && this.authStore.hasPermission(PERMISSION_CODE.SERVICE_REQUEST_VIEW) && item.estadoSolicitud === 'ACTIVA' && item.estadoPago === 'PAGADO' && item.requiereRegistroSacramental && item.tieneRegistroSacramental;
+    }
+
+    protected canPrintConstancia(): boolean {
+        return this.canShowConstancia() && this.authStore.hasPermission(PERMISSION_CODE.SACRAMENTAL_CERTIFICATE_PRINT);
     }
 
     protected canReviewRegistro(): boolean {
