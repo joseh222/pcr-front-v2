@@ -40,3 +40,9 @@ export interface MisaPrecioMantenimiento {
 }
 export interface MisaPrecioCreateRequest { idModalidad:number; idTipo:number; precio:number; modoCalculo:'FIJO'|'POR_INTENCION'; }
 export interface MisaPrecioDesactivarRequest { rowVersion:string; }
+export interface CatalogoConfiguracionMantenimiento {
+    id:number; codigo:string; nombre:string; descripcion:string|null; isActive:boolean; tieneDependenciasActivas:boolean;
+    createdUtc:string; updatedUtc:string|null; updatedBy:string|null; rowVersion:string;
+}
+export interface CatalogoConfiguracionCreateRequest { codigo:string; nombre:string; descripcion:string|null; }
+export interface CatalogoConfiguracionUpdateRequest extends CatalogoConfiguracionCreateRequest { rowVersion:string; }

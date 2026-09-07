@@ -48,4 +48,19 @@ describe('ConfiguracionApiService', () => {
         service.deactivateMisaPrecio(5,{rowVersion:'CCCC'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/precios-misa/5/desactivar`);expect(req.request.method).toBe('PATCH');req.flush({});
     });
 
+    it('should expose service category maintenance endpoints',()=>{
+        service.getCategoriasServicio().subscribe();let req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-servicio`);expect(req.request.method).toBe('GET');req.flush([]);
+        service.createCategoriaServicio({codigo:'DOCUMENTOS',nombre:'Documentos',descripcion:null}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-servicio`);expect(req.request.method).toBe('POST');req.flush({});
+        service.updateCategoriaServicio(2,{codigo:'DOCUMENTOS',nombre:'Documentos parroquiales',descripcion:null,rowVersion:'AAAA'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-servicio/2`);expect(req.request.method).toBe('PUT');req.flush({});
+        service.changeCategoriaServicioStatus(2,{isActive:false,rowVersion:'BBBB'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-servicio/2/estado`);expect(req.request.method).toBe('PATCH');req.flush({});
+    });
+    it('should expose product category and brand maintenance endpoints',()=>{
+        service.getCategoriasProducto().subscribe();let req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-producto`);expect(req.request.method).toBe('GET');req.flush([]);
+        service.createCategoriaProducto({codigo:'LIBROS',nombre:'Libros',descripcion:null}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-producto`);expect(req.request.method).toBe('POST');req.flush({});
+        service.changeCategoriaProductoStatus(1,{isActive:false,rowVersion:'CCCC'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/categorias-producto/1/estado`);expect(req.request.method).toBe('PATCH');req.flush({});
+        service.getMarcasProducto().subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/marcas-producto`);expect(req.request.method).toBe('GET');req.flush([]);
+        service.createMarcaProducto({codigo:'SAN_PABLO',nombre:'San Pablo',descripcion:null}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/marcas-producto`);expect(req.request.method).toBe('POST');req.flush({});
+        service.updateMarcaProducto(1,{codigo:'SAN_PABLO',nombre:'San Pablo',descripcion:'Editorial',rowVersion:'DDDD'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/marcas-producto/1`);expect(req.request.method).toBe('PUT');req.flush({});
+    });
+
 });

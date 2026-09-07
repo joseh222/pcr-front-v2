@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { ConfiguracionImpresion, ConfiguracionImpresionUpdateRequest } from './models/configuracion-impresion.models';
 import { ConfiguracionSacramental, ConfiguracionSacramentalUpdateRequest } from './models/configuracion-sacramental.models';
-import { CatalogoEstadoRequest, ConfiguracionParroquia, ConfiguracionParroquiaUpdateRequest, MantenimientoWriteResponse, MetodoPagoCreateRequest, MetodoPagoMantenimiento, MetodoPagoUpdateRequest, TipoComprobanteCreateRequest, TipoComprobanteMantenimiento, TipoComprobanteUpdateRequest, SerieComprobanteMantenimiento, SerieComprobanteCreateRequest, SerieComprobanteInicioUpdateRequest, SerieComprobanteDefaultRequest, MisaPrecioOpcion, MisaPrecioMantenimiento, MisaPrecioCreateRequest, MisaPrecioDesactivarRequest } from './models/configuracion-mantenimientos.models';
+import { CatalogoEstadoRequest, ConfiguracionParroquia, ConfiguracionParroquiaUpdateRequest, MantenimientoWriteResponse, MetodoPagoCreateRequest, MetodoPagoMantenimiento, MetodoPagoUpdateRequest, TipoComprobanteCreateRequest, TipoComprobanteMantenimiento, TipoComprobanteUpdateRequest, SerieComprobanteMantenimiento, SerieComprobanteCreateRequest, SerieComprobanteInicioUpdateRequest, SerieComprobanteDefaultRequest, MisaPrecioOpcion, MisaPrecioMantenimiento, MisaPrecioCreateRequest, MisaPrecioDesactivarRequest, CatalogoConfiguracionMantenimiento, CatalogoConfiguracionCreateRequest, CatalogoConfiguracionUpdateRequest } from './models/configuracion-mantenimientos.models';
 
 @Injectable({ providedIn: 'root' })
 export class ConfiguracionApiService {
@@ -33,5 +33,17 @@ export class ConfiguracionApiService {
     getMisaPrecios(): Observable<readonly MisaPrecioMantenimiento[]> { return this.http.get<readonly MisaPrecioMantenimiento[]>(`${this.url}/configuracion/precios-misa`); }
     createMisaPrecio(request:MisaPrecioCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/precios-misa`,request); }
     deactivateMisaPrecio(idPrecio:number,request:MisaPrecioDesactivarRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/precios-misa/${idPrecio}/desactivar`,request); }
+    getCategoriasServicio(): Observable<readonly CatalogoConfiguracionMantenimiento[]> { return this.http.get<readonly CatalogoConfiguracionMantenimiento[]>(`${this.url}/configuracion/categorias-servicio`); }
+    createCategoriaServicio(request:CatalogoConfiguracionCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/categorias-servicio`,request); }
+    updateCategoriaServicio(id:number,request:CatalogoConfiguracionUpdateRequest): Observable<MantenimientoWriteResponse> { return this.http.put<MantenimientoWriteResponse>(`${this.url}/configuracion/categorias-servicio/${id}`,request); }
+    changeCategoriaServicioStatus(id:number,request:CatalogoEstadoRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/categorias-servicio/${id}/estado`,request); }
+    getCategoriasProducto(): Observable<readonly CatalogoConfiguracionMantenimiento[]> { return this.http.get<readonly CatalogoConfiguracionMantenimiento[]>(`${this.url}/configuracion/categorias-producto`); }
+    createCategoriaProducto(request:CatalogoConfiguracionCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/categorias-producto`,request); }
+    updateCategoriaProducto(id:number,request:CatalogoConfiguracionUpdateRequest): Observable<MantenimientoWriteResponse> { return this.http.put<MantenimientoWriteResponse>(`${this.url}/configuracion/categorias-producto/${id}`,request); }
+    changeCategoriaProductoStatus(id:number,request:CatalogoEstadoRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/categorias-producto/${id}/estado`,request); }
+    getMarcasProducto(): Observable<readonly CatalogoConfiguracionMantenimiento[]> { return this.http.get<readonly CatalogoConfiguracionMantenimiento[]>(`${this.url}/configuracion/marcas-producto`); }
+    createMarcaProducto(request:CatalogoConfiguracionCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/marcas-producto`,request); }
+    updateMarcaProducto(id:number,request:CatalogoConfiguracionUpdateRequest): Observable<MantenimientoWriteResponse> { return this.http.put<MantenimientoWriteResponse>(`${this.url}/configuracion/marcas-producto/${id}`,request); }
+    changeMarcaProductoStatus(id:number,request:CatalogoEstadoRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/marcas-producto/${id}/estado`,request); }
     private get url(): string { return `${this.runtimeConfig.config.apiBaseUrl}/General`; }
 }
