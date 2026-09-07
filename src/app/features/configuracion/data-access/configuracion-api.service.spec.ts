@@ -17,4 +17,22 @@ describe('ConfiguracionApiService', () => {
         service.getSacramental().subscribe(); let req = http.expectOne(`${apiBaseUrl}/General/configuracion/sacramental`); expect(req.request.method).toBe('GET'); req.flush({ forzarMayusculas: true });
         const payload = { forzarMayusculas: false, rowVersion: 'BBBB' }; service.updateSacramental(payload).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/sacramental`); expect(req.request.method).toBe('PUT'); expect(req.request.body).toEqual(payload); req.flush({ forzarMayusculas: false });
     });
+    it('should expose parish maintenance endpoints', () => {
+        service.getParroquia().subscribe(); let req = http.expectOne(`${apiBaseUrl}/General/configuracion/parroquia`); expect(req.request.method).toBe('GET'); req.flush({});
+        const payload = { nombreParroquia: 'Parroquia Demo', lugarExpedicion: 'Pueblo Nuevo', direccion: null, distrito: null, provincia: null, departamento: null, telefono: null, correo: null, ruc: null, nombreParroco: null, rowVersion: 'AAAA' };
+        service.updateParroquia(payload).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/parroquia`); expect(req.request.method).toBe('PUT'); expect(req.request.body).toEqual(payload); req.flush({});
+    });
+    it('should expose payment method maintenance endpoints', () => {
+        service.getMetodosPago().subscribe(); let req = http.expectOne(`${apiBaseUrl}/General/configuracion/metodos-pago`); expect(req.request.method).toBe('GET'); req.flush([]);
+        service.createMetodoPago({ codigo: 'YAPE', nombre: 'Yape' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/metodos-pago`); expect(req.request.method).toBe('POST'); req.flush({});
+        service.updateMetodoPago(2,{ codigo: 'YAPE', nombre: 'Yape', rowVersion: 'BBBB' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/metodos-pago/2`); expect(req.request.method).toBe('PUT'); req.flush({});
+        service.changeMetodoPagoStatus(2,{ isActive: false, rowVersion: 'CCCC' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/metodos-pago/2/estado`); expect(req.request.method).toBe('PATCH'); req.flush({});
+    });
+    it('should expose receipt type maintenance endpoints', () => {
+        service.getTiposComprobante().subscribe(); let req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante`); expect(req.request.method).toBe('GET'); req.flush([]);
+        service.createTipoComprobante({ codigo: 'TICKET', nombre: 'Ticket interno', serieDefault: 'T001' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante`); expect(req.request.method).toBe('POST'); req.flush({});
+        service.updateTipoComprobante(1,{ codigo: 'TICKET', nombre: 'Ticket interno', serieDefault: 'T001', rowVersion: 'DDDD' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante/1`); expect(req.request.method).toBe('PUT'); req.flush({});
+        service.changeTipoComprobanteStatus(1,{ isActive: false, rowVersion: 'EEEE' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante/1/estado`); expect(req.request.method).toBe('PATCH'); req.flush({});
+    });
+
 });

@@ -1,0 +1,63 @@
+<section class="maintenance-page" data-testid="configuracion-mantenimientos-page">
+    <header class="page-header"><div><p class="page-eyebrow">CONFIGURACIÓN</p><h1 class="page-title">Datos y mantenimientos</h1><p class="page-description">Configura la identidad de la parroquia y los catálogos comerciales que utilizará esta instalación.</p></div><button mat-icon-button type="button" aria-label="Recargar configuración" (click)="reload()"><mat-icon>refresh</mat-icon></button></header>
+    @if (loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+
+    @if (canParishView()) {
+    <section class="panel">
+        <div class="panel-title"><div><span class="step">16.9</span><h2>Datos generales de parroquia</h2><p>Estos datos serán la identidad de esta instalación y alimentarán las constancias.</p></div>@if(parroquia() && !parroquia()!.configuracionInicialCompletada){<span class="pending-badge">Configuración inicial pendiente</span>}</div>
+        <form [formGroup]="parishForm" (ngSubmit)="saveParish()" class="form-grid">
+            <mat-form-field appearance="outline" class="span-2"><mat-label>Nombre de la parroquia</mat-label><input matInput formControlName="nombreParroquia" maxlength="250"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Lugar de expedición</mat-label><input matInput formControlName="lugarExpedicion" maxlength="150"><mat-hint>Ej.: Pueblo Nuevo</mat-hint></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Nombre del párroco</mat-label><input matInput formControlName="nombreParroco" maxlength="200"></mat-form-field>
+            <mat-form-field appearance="outline" class="span-2"><mat-label>Dirección</mat-label><input matInput formControlName="direccion" maxlength="250"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Distrito</mat-label><input matInput formControlName="distrito" maxlength="100"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Provincia</mat-label><input matInput formControlName="provincia" maxlength="100"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Departamento</mat-label><input matInput formControlName="departamento" maxlength="100"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Teléfono</mat-label><input matInput formControlName="telefono" maxlength="50"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Correo</mat-label><input matInput formControlName="correo" maxlength="150"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>RUC (opcional)</mat-label><input matInput formControlName="ruc" maxlength="11"></mat-form-field>
+            @if(canParishEdit()){<div class="form-actions span-2"><button mat-flat-button type="submit" [disabled]="savingParroquia()"><mat-icon>save</mat-icon>{{savingParroquia()?'Guardando...':'Guardar datos'}}</button></div>}
+        </form>
+    </section> }
+
+    @if (canPaymentView()) {
+    <section class="panel">
+        <div class="panel-title"><div><span class="step">16.2</span><h2>Métodos de pago</h2><p>Activa solamente los medios que utiliza la parroquia. Los usados históricamente se desactivan, no se eliminan.</p></div>@if(canPaymentCreate()){<button mat-flat-button type="button" (click)="newPayment()"><mat-icon>add</mat-icon>Nuevo</button>}</div>
+        @if(canPaymentCreate() || editingPago()){
+        <form [formGroup]="paymentForm" (ngSubmit)="savePayment()" class="inline-editor">
+            <mat-form-field appearance="outline"><mat-label>Código</mat-label><input matInput formControlName="codigo" maxlength="30" (blur)="normalizePaymentCode()"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="nombre" maxlength="80"></mat-form-field>
+            <div class="editor-actions"><button mat-stroked-button type="button" (click)="cancelPaymentEdit()">Limpiar</button><button mat-flat-button type="submit" [disabled]="savingPago() || (!!editingPago() && !canPaymentEdit())">{{editingPago()?'Actualizar':'Registrar'}}</button></div>
+        </form>}
+        @if(metodosPago().length===0){<div class="empty-state"><mat-icon>payments</mat-icon><p>No hay métodos de pago configurados.</p></div>}@else{
+        <div class="table-wrapper"><table mat-table [dataSource]="metodosPago()">
+            <ng-container matColumnDef="codigo"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let x"><strong>{{x.codigo}}</strong></td></ng-container>
+            <ng-container matColumnDef="nombre"><th mat-header-cell *matHeaderCellDef>Nombre</th><td mat-cell *matCellDef="let x">{{x.nombre}}</td></ng-container>
+            <ng-container matColumnDef="estado"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let x"><span class="status-badge" [class.inactive]="!x.isActive">{{x.isActive?'Activo':'Inactivo'}}</span></td></ng-container>
+            <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let x"><div class="row-actions">@if(canPaymentEdit()){<button mat-icon-button type="button" title="Editar" (click)="editPayment(x)"><mat-icon>edit</mat-icon></button>}@if(canPaymentStatus()){<button mat-icon-button type="button" [title]="x.isActive?'Desactivar':'Activar'" (click)="changePaymentStatus(x)"><mat-icon>{{x.isActive?'block':'check_circle'}}</mat-icon></button>}</div></td></ng-container>
+            <tr mat-header-row *matHeaderRowDef="paymentColumns"></tr><tr mat-row *matRowDef="let row; columns: paymentColumns"></tr>
+        </table></div>}
+    </section> }
+
+    @if (canReceiptView()) {
+    <section class="panel">
+        <div class="panel-title"><div><span class="step">16.3</span><h2>Tipos de comprobante</h2><p>Cada tipo nace con una serie inicial y correlativo 0. Las nuevas series se administrarán en 16.4.</p></div>@if(canReceiptCreate()){<button mat-flat-button type="button" (click)="newReceipt()"><mat-icon>add</mat-icon>Nuevo</button>}</div>
+        @if(canReceiptCreate() || editingTipo()){
+        <form [formGroup]="receiptForm" (ngSubmit)="saveReceipt()" class="inline-editor receipt-editor">
+            <mat-form-field appearance="outline"><mat-label>Código</mat-label><input matInput formControlName="codigo" maxlength="30" (blur)="normalizeReceipt()"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="nombre" maxlength="100"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Serie inicial</mat-label><input matInput formControlName="serieDefault" maxlength="4" (blur)="normalizeReceipt()"><mat-hint>Ej.: T001</mat-hint></mat-form-field>
+            <div class="editor-actions"><button mat-stroked-button type="button" (click)="cancelReceiptEdit()">Limpiar</button><button mat-flat-button type="submit" [disabled]="savingTipo() || (!!editingTipo() && !canReceiptEdit())">{{editingTipo()?'Actualizar':'Registrar'}}</button></div>
+        </form>}
+        @if(tiposComprobante().length===0){<div class="empty-state"><mat-icon>receipt_long</mat-icon><p>No hay tipos de comprobante configurados.</p></div>}@else{
+        <div class="table-wrapper"><table mat-table [dataSource]="tiposComprobante()">
+            <ng-container matColumnDef="codigo"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let x"><strong>{{x.codigo}}</strong></td></ng-container>
+            <ng-container matColumnDef="nombre"><th mat-header-cell *matHeaderCellDef>Nombre</th><td mat-cell *matCellDef="let x">{{x.nombre}}</td></ng-container>
+            <ng-container matColumnDef="serie"><th mat-header-cell *matHeaderCellDef>Serie</th><td mat-cell *matCellDef="let x">{{x.serieDefault}}</td></ng-container>
+            <ng-container matColumnDef="ultimo"><th mat-header-cell *matHeaderCellDef>Último</th><td mat-cell *matCellDef="let x">{{x.ultimoNumero}}</td></ng-container>
+            <ng-container matColumnDef="estado"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let x"><span class="status-badge" [class.inactive]="!x.isActive">{{x.isActive?'Activo':'Inactivo'}}</span></td></ng-container>
+            <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let x"><div class="row-actions">@if(canReceiptEdit()){<button mat-icon-button type="button" title="Editar" (click)="editReceipt(x)"><mat-icon>edit</mat-icon></button>}@if(canReceiptStatus()){<button mat-icon-button type="button" [title]="x.isActive?'Desactivar':'Activar'" (click)="changeReceiptStatus(x)"><mat-icon>{{x.isActive?'block':'check_circle'}}</mat-icon></button>}</div></td></ng-container>
+            <tr mat-header-row *matHeaderRowDef="receiptColumns"></tr><tr mat-row *matRowDef="let row; columns: receiptColumns"></tr>
+        </table></div>}
+    </section> }
+</section>

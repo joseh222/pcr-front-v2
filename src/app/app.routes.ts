@@ -36,6 +36,12 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/configuracion/pages/configuracion-impresion/configuracion-impresion').then(module => module.ConfiguracionImpresionPage)
             },
             {
+                path: 'configuracion/mantenimientos',
+                title: 'Configuración y mantenimientos | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIGURATION_VIEW] },
+                loadComponent: () => import('./features/configuracion/pages/configuracion-mantenimientos/configuracion-mantenimientos').then(module => module.ConfiguracionMantenimientosPage)
+            },
+            {
                 path: 'reportes/ventas',
                 title: 'Reporte de ventas | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.REPORT_SALES_VIEW] },
