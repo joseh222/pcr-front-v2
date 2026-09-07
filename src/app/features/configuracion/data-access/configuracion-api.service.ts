@@ -2,8 +2,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
-import { ConfiguracionImpresion, ConfiguracionImpresionUpdateRequest } from './models/configuracion-impresion.models';
+import { ConfiguracionColaImpresion, ConfiguracionColaImpresionUpdateRequest, ConfiguracionImpresion, ConfiguracionImpresionUpdateRequest, ImpresionColaCancelarResponse, ImpresionColaResumen } from './models/configuracion-impresion.models';
 import { ConfiguracionSacramental, ConfiguracionSacramentalUpdateRequest } from './models/configuracion-sacramental.models';
+import { ConfiguracionInicialEstado, ConfiguracionInicialFinalizarResponse } from './models/configuracion-inicial.models';
 import { CatalogoEstadoRequest, ConfiguracionParroquia, ConfiguracionParroquiaUpdateRequest, MantenimientoWriteResponse, MetodoPagoCreateRequest, MetodoPagoMantenimiento, MetodoPagoUpdateRequest, TipoComprobanteCreateRequest, TipoComprobanteMantenimiento, TipoComprobanteUpdateRequest, SerieComprobanteMantenimiento, SerieComprobanteCreateRequest, SerieComprobanteInicioUpdateRequest, SerieComprobanteDefaultRequest, MisaPrecioOpcion, MisaPrecioMantenimiento, MisaPrecioCreateRequest, MisaPrecioDesactivarRequest, CatalogoConfiguracionMantenimiento, CatalogoConfiguracionCreateRequest, CatalogoConfiguracionUpdateRequest } from './models/configuracion-mantenimientos.models';
 
 @Injectable({ providedIn: 'root' })
@@ -12,8 +13,14 @@ export class ConfiguracionApiService {
     private readonly runtimeConfig = inject(RuntimeConfigService);
     getImpresion(): Observable<ConfiguracionImpresion> { return this.http.get<ConfiguracionImpresion>(`${this.url}/configuracion/impresion`); }
     updateImpresion(request: ConfiguracionImpresionUpdateRequest): Observable<ConfiguracionImpresion> { return this.http.put<ConfiguracionImpresion>(`${this.url}/configuracion/impresion`, request); }
+    getColaImpresion(): Observable<ConfiguracionColaImpresion> { return this.http.get<ConfiguracionColaImpresion>(`${this.url}/configuracion/impresion/cola`); }
+    updateColaImpresion(request: ConfiguracionColaImpresionUpdateRequest): Observable<ConfiguracionColaImpresion> { return this.http.put<ConfiguracionColaImpresion>(`${this.url}/configuracion/impresion/cola`, request); }
+    getResumenColaImpresion(): Observable<ImpresionColaResumen> { return this.http.get<ImpresionColaResumen>(`${this.url}/configuracion/impresion/cola/resumen`); }
+    cancelarPendientesColaImpresion(): Observable<ImpresionColaCancelarResponse> { return this.http.post<ImpresionColaCancelarResponse>(`${this.url}/configuracion/impresion/cola/cancelar-pendientes`, {}); }
     getSacramental(): Observable<ConfiguracionSacramental> { return this.http.get<ConfiguracionSacramental>(`${this.url}/configuracion/sacramental`); }
     updateSacramental(request: ConfiguracionSacramentalUpdateRequest): Observable<ConfiguracionSacramental> { return this.http.put<ConfiguracionSacramental>(`${this.url}/configuracion/sacramental`, request); }
+    getConfiguracionInicialEstado(): Observable<ConfiguracionInicialEstado> { return this.http.get<ConfiguracionInicialEstado>(`${this.url}/configuracion/inicial/estado`); }
+    finalizarConfiguracionInicial(): Observable<ConfiguracionInicialFinalizarResponse> { return this.http.post<ConfiguracionInicialFinalizarResponse>(`${this.url}/configuracion/inicial/finalizar`, {}); }
     getParroquia(): Observable<ConfiguracionParroquia> { return this.http.get<ConfiguracionParroquia>(`${this.url}/configuracion/parroquia`); }
     updateParroquia(request: ConfiguracionParroquiaUpdateRequest): Observable<ConfiguracionParroquia> { return this.http.put<ConfiguracionParroquia>(`${this.url}/configuracion/parroquia`, request); }
     getMetodosPago(): Observable<readonly MetodoPagoMantenimiento[]> { return this.http.get<readonly MetodoPagoMantenimiento[]>(`${this.url}/configuracion/metodos-pago`); }

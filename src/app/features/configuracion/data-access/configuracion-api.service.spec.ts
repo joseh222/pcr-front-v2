@@ -63,4 +63,26 @@ describe('ConfiguracionApiService', () => {
         service.updateMarcaProducto(1,{codigo:'SAN_PABLO',nombre:'San Pablo',descripcion:'Editorial',rowVersion:'DDDD'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/marcas-producto/1`);expect(req.request.method).toBe('PUT');req.flush({});
     });
 
+    it('should expose print queue safety endpoints',()=>{
+        service.getColaImpresion().subscribe();let req=http.expectOne(`${apiBaseUrl}/General/configuracion/impresion/cola`);expect(req.request.method).toBe('GET');req.flush({});
+        const payload={colaHabilitada:false,maxAntiguedadAutomaticaMinutos:10,maxAntiguedadManualMinutos:60,rowVersion:'QQQQ'};
+        service.updateColaImpresion(payload).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/impresion/cola`);expect(req.request.method).toBe('PUT');expect(req.request.body).toEqual(payload);req.flush({});
+        service.getResumenColaImpresion().subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/impresion/cola/resumen`);expect(req.request.method).toBe('GET');req.flush({});
+        service.cancelarPendientesColaImpresion().subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/impresion/cola/cancelar-pendientes`);expect(req.request.method).toBe('POST');req.flush({cantidadCancelada:0,mensaje:'OK'});
+    });
+
+    it('should get initial configuration status',()=>{
+        service.getConfiguracionInicialEstado().subscribe();
+        const req=http.expectOne(`${apiBaseUrl}/General/configuracion/inicial/estado`);
+        expect(req.request.method).toBe('GET');
+        req.flush({configuracionInicialCompletada:false,datosParroquiaOk:false,metodosPagoOk:false,cantidadMetodosPagoActivos:0,comprobantesSeriesOk:false,cantidadTiposComprobanteActivos:0,cantidadSeriesPredeterminadasActivas:0,serviciosOk:false,cantidadServiciosActivos:0,preciosMisaOk:false,cantidadPreciosMisaActivos:0,catalogosProductoOk:false,cantidadCategoriasProductoActivas:0,cantidadMarcasProductoActivas:0,impresionOk:false,impresionTicketConfigurada:false,impresionA4Configurada:false,colaHabilitada:false,pasosConfigurados:0,totalPasos:7,puedeFinalizar:false,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null});
+    });
+
+    it('should finalize initial configuration',()=>{
+        service.finalizarConfiguracionInicial().subscribe();
+        const req=http.expectOne(`${apiBaseUrl}/General/configuracion/inicial/finalizar`);
+        expect(req.request.method).toBe('POST');
+        req.flush({mensaje:'OK',estado:{configuracionInicialCompletada:true}});
+    });
+
 });

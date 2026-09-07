@@ -1,4 +1,4 @@
-import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
+﻿import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
 import { NavigationSection } from './navigation-section.model';
 
 export const APP_NAVIGATION: readonly NavigationSection[] = [
@@ -9,6 +9,7 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
         ]
     },
     { id: 'configuracion', label: 'Configuración', items: [
+        { id: 'configuracion-inicial', label: 'Configuración inicial', icon: 'checklist', route: '/configuracion/inicial', exact: true, permissions: [PERMISSION_CODE.INITIAL_SETUP_VIEW] },
         { id: 'configuracion-mantenimientos', label: 'Datos y mantenimientos', icon: 'tune', route: '/configuracion/mantenimientos', exact: true, permissions: [PERMISSION_CODE.CONFIGURATION_VIEW] },
         { id: 'configuracion-general', label: 'Impresión y constancias', icon: 'print', route: '/configuracion/impresion', exact: true, permissions: [PERMISSION_CODE.CONFIGURATION_VIEW] }
     ] },

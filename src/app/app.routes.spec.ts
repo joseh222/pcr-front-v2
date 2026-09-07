@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+﻿import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -30,6 +30,7 @@ import { SolicitudServicioCancellationService } from './features/servicios/data-
 import { ProveedorApiService } from './features/proveedores/data-access/proveedor-api.service';
 import { ProveedorStatusService } from './features/proveedores/data-access/proveedor-status.service';
 import { CompraApiService } from './features/compras/data-access/compra-api.service';
+import { ConfiguracionInicialStore } from './features/configuracion/data-access/configuracion-inicial.store';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -287,6 +288,11 @@ describe('Application routes', () => {
         cancel: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', estadoSolicitud: 'ANULADA', rowVersion: 'B', mensaje: 'OK' }))
     };
     const solicitudCancellationMock = { cancel: vi.fn(() => of(null)) };
+    const configuracionInicialStoreMock = {
+        state: signal(null).asReadonly(),
+        loading: signal(false).asReadonly(),
+        load: vi.fn(async () => ({ configuracionInicialCompletada: true }))
+    };
 
 
     beforeEach(() => {
@@ -330,6 +336,7 @@ describe('Application routes', () => {
                     useValue: themeServiceMock
                 },
                 { provide: AuthStore, useValue: authStoreMock },
+                { provide: ConfiguracionInicialStore, useValue: configuracionInicialStoreMock },
                 { provide: MisaApiService, useValue: misaApiMock },
                 { provide: PersonaApiService, useValue: personaApiMock },
                 { provide: PersonaStatusService, useValue: personaStatusMock },

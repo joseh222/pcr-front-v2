@@ -1,8 +1,97 @@
 <section class="config-page">
-    <header class="page-header"><div><p class="eyebrow">Configuración general</p><h1>Parámetros del sistema</h1><p>Administra la impresión general, los registros sacramentales y la calibración de constancias oficiales.</p></div></header>
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">Configuración general</p>
+            <h1>Parámetros del sistema</h1>
+            <p>Administra la seguridad de la cola, la impresión general, los registros sacramentales y la calibración de constancias oficiales.</p>
+        </div>
+    </header>
+
+    @if (canViewQueue()) {
+    <section class="config-section queue-section">
+        <div class="section-title">
+            <div>
+                <h2>Seguridad de la cola de impresión</h2>
+                <p>Evita que documentos antiguos se impriman inesperadamente cuando el PCR Print Agent vuelve a iniciar.</p>
+            </div>
+            <div class="section-actions">
+                <button mat-button type="button" (click)="refreshCola()" [disabled]="loadingCola()">
+                    <mat-icon>refresh</mat-icon>Actualizar
+                </button>
+                <button mat-flat-button type="button" (click)="saveCola()" [disabled]="!canEditQueue() || savingCola() || loadingCola()">
+                    <mat-icon>save</mat-icon>{{ savingCola() ? 'Guardando...' : 'Guardar seguridad' }}
+                </button>
+            </div>
+        </div>
+
+        @if (loadingCola()) { <mat-progress-bar mode="indeterminate" /> }
+        @if (configCola(); as current) {
+        <form class="config-card" [formGroup]="colaForm">
+            <div class="queue-state" [class.queue-state--paused]="!colaForm.controls.colaHabilitada.value">
+                <div>
+                    <strong>{{ colaForm.controls.colaHabilitada.value ? 'COLA HABILITADA' : 'COLA PAUSADA' }}</strong>
+                    <p>
+                        {{ colaForm.controls.colaHabilitada.value
+                            ? 'El Print Agent puede tomar nuevos trabajos vigentes.'
+                            : 'El Print Agent no recibirá nuevos trabajos. Un trabajo que ya esté PROCESANDO puede terminar.' }}
+                    </p>
+                </div>
+                <mat-slide-toggle formControlName="colaHabilitada" [disabled]="!canEditQueue()">
+                    Permitir procesamiento de cola
+                </mat-slide-toggle>
+            </div>
+
+            @if (resumenCola(); as resumen) {
+            <div class="queue-summary">
+                <article><span>Pendientes</span><strong>{{ resumen.pendientes }}</strong></article>
+                <article><span>Vencidos</span><strong>{{ resumen.pendientesVencidos }}</strong></article>
+                <article><span>Procesando</span><strong>{{ resumen.procesando }}</strong></article>
+                <article><span>Errores / cancelados</span><strong>{{ resumen.errores }}</strong></article>
+            </div>
+            }
+
+            <div class="form-grid queue-expiration-grid">
+                <mat-form-field appearance="outline">
+                    <mat-label>Caducidad automática (min)</mat-label>
+                    <input matInput type="number" formControlName="maxAntiguedadAutomaticaMinutos" [readonly]="!canEditQueue()">
+                    <mat-hint>Tickets y trabajos AUTOMÁTICOS viejos pasan a ERROR y no se imprimen.</mat-hint>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                    <mat-label>Caducidad manual (min)</mat-label>
+                    <input matInput type="number" formControlName="maxAntiguedadManualMinutos" [readonly]="!canEditQueue()">
+                    <mat-hint>Protege impresiones manuales olvidadas cuando el agente estuvo apagado.</mat-hint>
+                </mat-form-field>
+            </div>
+
+            <div class="queue-danger">
+                <div>
+                    <strong>Trabajos pendientes acumulados</strong>
+                    <p>Si hiciste ventas o pruebas con el agente apagado, cancela los pendientes antes de reanudar la cola. No se eliminan: quedan como ERROR con su motivo.</p>
+                </div>
+                <button mat-stroked-button type="button" (click)="cancelarPendientes()"
+                    [disabled]="!canCancelQueue() || cancellingCola() || (resumenCola()?.pendientes ?? 0) === 0">
+                    <mat-icon>delete_sweep</mat-icon>{{ cancellingCola() ? 'Cancelando...' : 'Cancelar pendientes' }}
+                </button>
+            </div>
+
+            <div class="note warning-note">
+                <mat-icon>warning</mat-icon>
+                <div>
+                    <strong>Doble protección</strong>
+                    <p>Pausar es el control manual. La caducidad es el control automático. Aunque olvides pausar, un trabajo vencido ya no será tomado por el agente.</p>
+                </div>
+            </div>
+            <p class="updated">Última actualización: {{ current.updatedUtc || '—' }} · {{ current.updatedBy || 'Sistema' }}</p>
+        </form>
+        }
+    </section>
+    }
 
     <section class="config-section">
-        <div class="section-title"><div><h2>Impresión</h2><p>Define el comportamiento global de la ticketera utilizada por el sistema.</p></div><button mat-flat-button type="button" (click)="saveImpresion()" [disabled]="!canEdit() || savingImpresion() || loadingImpresion()"><mat-icon>save</mat-icon>{{ savingImpresion() ? 'Guardando...' : 'Guardar impresión' }}</button></div>
+        <div class="section-title">
+            <div><h2>Impresión</h2><p>Define el comportamiento global de la ticketera utilizada por el sistema.</p></div>
+            <button mat-flat-button type="button" (click)="saveImpresion()" [disabled]="!canEdit() || savingImpresion() || loadingImpresion()"><mat-icon>save</mat-icon>{{ savingImpresion() ? 'Guardando...' : 'Guardar impresión' }}</button>
+        </div>
         @if (loadingImpresion()) { <mat-progress-bar mode="indeterminate" /> }
         @if (configImpresion(); as current) {
         <form class="config-card" [formGroup]="impresionForm">
@@ -16,7 +105,7 @@
                 <mat-form-field appearance="outline"><mat-label>Ancho de papel</mat-label><mat-select formControlName="anchoPapelMm" [disabled]="!canEdit()"><mat-option [value]="80">80 mm</mat-option><mat-option [value]="58">58 mm</mat-option></mat-select><mat-hint>La plantilla automática actual está optimizada para 80 mm.</mat-hint></mat-form-field>
             </div>
             <div class="options"><mat-slide-toggle formControlName="imprimirTicketVenta" [disabled]="!canEdit()">Imprimir ticket de venta automáticamente</mat-slide-toggle><mat-slide-toggle formControlName="imprimirDocumentosAsociados" [disabled]="!canEdit()">Imprimir documentos asociados automáticamente</mat-slide-toggle><mat-slide-toggle formControlName="cortarEntreDocumentos" [disabled]="!canEdit()">Separar documentos en trabajos independientes</mat-slide-toggle></div>
-            <div class="note"><mat-icon>info</mat-icon><div><strong>Configuración global</strong><p>Los cambios afectan el flujo de impresión del sistema.</p></div></div>
+            <div class="note"><mat-icon>info</mat-icon><div><strong>Configuración global</strong><p>Los cambios afectan el flujo de impresión del sistema. La cola se controla de manera independiente en la sección anterior.</p></div></div>
             <p class="updated">Última actualización: {{ current.updatedUtc || '—' }} · {{ current.updatedBy || 'Sistema' }}</p>
         </form>}
     </section>

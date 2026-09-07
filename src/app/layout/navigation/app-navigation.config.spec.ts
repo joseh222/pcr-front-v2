@@ -1,4 +1,4 @@
-import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
+﻿import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
 import { APP_NAVIGATION } from './app-navigation.config';
 
 describe('APP_NAVIGATION', () => {
@@ -22,6 +22,7 @@ describe('APP_NAVIGATION', () => {
         expect(items.get('catalogo-proveedores')?.permissions).toEqual([PERMISSION_CODE.SUPPLIER_VIEW]);
         expect(items.get('usuarios')?.permissions).toEqual([PERMISSION_CODE.USER_VIEW]);
         expect(items.get('roles')?.permissions).toEqual([PERMISSION_CODE.ROLE_VIEW]);
+        expect(items.get('configuracion-inicial')?.permissions).toEqual([PERMISSION_CODE.INITIAL_SETUP_VIEW]);
         expect(items.get('configuracion-mantenimientos')?.permissions).toEqual([PERMISSION_CODE.CONFIGURATION_VIEW]);
         expect(items.get('configuracion-general')?.permissions).toEqual([PERMISSION_CODE.CONFIGURATION_VIEW]);
         expect(items.get('libros-sacramentales')?.permissions).toEqual([PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW]);
