@@ -1,10 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { ConfiguracionImpresion, ConfiguracionImpresionUpdateRequest } from './models/configuracion-impresion.models';
 import { ConfiguracionSacramental, ConfiguracionSacramentalUpdateRequest } from './models/configuracion-sacramental.models';
-import { CatalogoEstadoRequest, ConfiguracionParroquia, ConfiguracionParroquiaUpdateRequest, MantenimientoWriteResponse, MetodoPagoCreateRequest, MetodoPagoMantenimiento, MetodoPagoUpdateRequest, TipoComprobanteCreateRequest, TipoComprobanteMantenimiento, TipoComprobanteUpdateRequest } from './models/configuracion-mantenimientos.models';
+import { CatalogoEstadoRequest, ConfiguracionParroquia, ConfiguracionParroquiaUpdateRequest, MantenimientoWriteResponse, MetodoPagoCreateRequest, MetodoPagoMantenimiento, MetodoPagoUpdateRequest, TipoComprobanteCreateRequest, TipoComprobanteMantenimiento, TipoComprobanteUpdateRequest, SerieComprobanteMantenimiento, SerieComprobanteCreateRequest, SerieComprobanteInicioUpdateRequest, SerieComprobanteDefaultRequest, MisaPrecioOpcion, MisaPrecioMantenimiento, MisaPrecioCreateRequest, MisaPrecioDesactivarRequest } from './models/configuracion-mantenimientos.models';
 
 @Injectable({ providedIn: 'root' })
 export class ConfiguracionApiService {
@@ -24,5 +24,14 @@ export class ConfiguracionApiService {
     createTipoComprobante(request: TipoComprobanteCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/tipos-comprobante`, request); }
     updateTipoComprobante(id: number, request: TipoComprobanteUpdateRequest): Observable<MantenimientoWriteResponse> { return this.http.put<MantenimientoWriteResponse>(`${this.url}/configuracion/tipos-comprobante/${id}`, request); }
     changeTipoComprobanteStatus(id: number, request: CatalogoEstadoRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/tipos-comprobante/${id}/estado`, request); }
+    getSeriesComprobante(idTipoComprobante?: number): Observable<readonly SerieComprobanteMantenimiento[]> { const suffix=idTipoComprobante?`?idTipoComprobante=${idTipoComprobante}`:''; return this.http.get<readonly SerieComprobanteMantenimiento[]>(`${this.url}/configuracion/series-comprobante${suffix}`); }
+    createSerieComprobante(request: SerieComprobanteCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/series-comprobante`,request); }
+    updateSerieInicio(idTipoComprobante:number,serie:string,request:SerieComprobanteInicioUpdateRequest): Observable<MantenimientoWriteResponse> { return this.http.put<MantenimientoWriteResponse>(`${this.url}/configuracion/series-comprobante/${idTipoComprobante}/${encodeURIComponent(serie)}/inicio`,request); }
+    changeSerieStatus(idTipoComprobante:number,serie:string,request:CatalogoEstadoRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/series-comprobante/${idTipoComprobante}/${encodeURIComponent(serie)}/estado`,request); }
+    setSerieDefault(idTipoComprobante:number,serie:string,request:SerieComprobanteDefaultRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/series-comprobante/${idTipoComprobante}/${encodeURIComponent(serie)}/predeterminada`,request); }
+    getMisaPrecioOpciones(): Observable<readonly MisaPrecioOpcion[]> { return this.http.get<readonly MisaPrecioOpcion[]>(`${this.url}/configuracion/precios-misa/opciones`); }
+    getMisaPrecios(): Observable<readonly MisaPrecioMantenimiento[]> { return this.http.get<readonly MisaPrecioMantenimiento[]>(`${this.url}/configuracion/precios-misa`); }
+    createMisaPrecio(request:MisaPrecioCreateRequest): Observable<MantenimientoWriteResponse> { return this.http.post<MantenimientoWriteResponse>(`${this.url}/configuracion/precios-misa`,request); }
+    deactivateMisaPrecio(idPrecio:number,request:MisaPrecioDesactivarRequest): Observable<MantenimientoWriteResponse> { return this.http.patch<MantenimientoWriteResponse>(`${this.url}/configuracion/precios-misa/${idPrecio}/desactivar`,request); }
     private get url(): string { return `${this.runtimeConfig.config.apiBaseUrl}/General`; }
 }

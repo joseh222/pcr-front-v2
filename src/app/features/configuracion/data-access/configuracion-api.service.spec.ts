@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+﻿import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
@@ -33,6 +33,19 @@ describe('ConfiguracionApiService', () => {
         service.createTipoComprobante({ codigo: 'TICKET', nombre: 'Ticket interno', serieDefault: 'T001' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante`); expect(req.request.method).toBe('POST'); req.flush({});
         service.updateTipoComprobante(1,{ codigo: 'TICKET', nombre: 'Ticket interno', serieDefault: 'T001', rowVersion: 'DDDD' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante/1`); expect(req.request.method).toBe('PUT'); req.flush({});
         service.changeTipoComprobanteStatus(1,{ isActive: false, rowVersion: 'EEEE' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante/1/estado`); expect(req.request.method).toBe('PATCH'); req.flush({});
+    });
+
+    it('should expose receipt series maintenance endpoints',()=>{
+        service.getSeriesComprobante().subscribe();let req=http.expectOne(`${apiBaseUrl}/General/configuracion/series-comprobante`);expect(req.request.method).toBe('GET');req.flush([]);
+        service.createSerieComprobante({idTipoComprobante:1,serie:'T002',primerNumero:500}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/series-comprobante`);expect(req.request.method).toBe('POST');req.flush({});
+        service.updateSerieInicio(1,'T002',{primerNumero:700,rowVersion:'AAAA'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/series-comprobante/1/T002/inicio`);expect(req.request.method).toBe('PUT');req.flush({});
+        service.setSerieDefault(1,'T002',{tipoRowVersion:'BBBB'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/series-comprobante/1/T002/predeterminada`);expect(req.request.method).toBe('PATCH');req.flush({});
+    });
+    it('should expose mass price maintenance endpoints',()=>{
+        service.getMisaPrecioOpciones().subscribe();let req=http.expectOne(`${apiBaseUrl}/General/configuracion/precios-misa/opciones`);expect(req.request.method).toBe('GET');req.flush([]);
+        service.getMisaPrecios().subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/precios-misa`);expect(req.request.method).toBe('GET');req.flush([]);
+        service.createMisaPrecio({idModalidad:1,idTipo:2,precio:50,modoCalculo:'FIJO'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/precios-misa`);expect(req.request.method).toBe('POST');req.flush({});
+        service.deactivateMisaPrecio(5,{rowVersion:'CCCC'}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/precios-misa/5/desactivar`);expect(req.request.method).toBe('PATCH');req.flush({});
     });
 
 });
