@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+﻿import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 
 import { AuthStore } from '../../data-access/auth.store';
+import { ConfiguracionParroquiaIdentidadStore } from '../../../configuracion/data-access/configuracion-parroquia-identidad.store';
 
 @Component({
     selector: 'pcr-change-password',
@@ -26,9 +27,11 @@ export class ChangePasswordPage {
     private readonly router = inject(Router);
 
     protected readonly authStore = inject(AuthStore);
+    protected readonly identidadStore = inject(ConfiguracionParroquiaIdentidadStore);
     protected readonly showPasswords = signal(false);
     protected readonly isSubmitting = signal(false);
     protected readonly errorMessage = signal<string | null>(null);
+    private readonly identidadLoad = this.identidadStore.load().catch(() => undefined);
 
     protected readonly form = this.formBuilder.group({
         currentPassword: ['', [Validators.required, Validators.maxLength(256)]],

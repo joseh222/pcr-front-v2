@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+﻿import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
@@ -7,6 +7,7 @@ import { ThemePreference } from '../../core/theme/theme.model';
 import { ThemeService } from '../../core/theme/theme.service';
 import { AuthStore } from '../../features/auth/data-access/auth.store';
 import { AppShell } from './app-shell';
+import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuracion/data-access/configuracion-parroquia-identidad.store';
 import { By } from '@angular/platform-browser';
 import { Sidebar } from '../sidebar/sidebar';
 
@@ -70,6 +71,7 @@ describe('AppShell', () => {
         await TestBed.configureTestingModule({
             imports: [AppShell],
             providers: [
+                { provide: ConfiguracionParroquiaIdentidadStore, useValue: { load: () => Promise.resolve({}), nombreParroquia: () => 'Parroquia Demo' } },
                 provideRouter([]),
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: ThemeService, useValue: themeServiceMock }

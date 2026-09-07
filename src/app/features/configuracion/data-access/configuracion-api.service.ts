@@ -5,6 +5,7 @@ import { RuntimeConfigService } from '../../../core/config/runtime-config.servic
 import { ConfiguracionColaImpresion, ConfiguracionColaImpresionUpdateRequest, ConfiguracionImpresion, ConfiguracionImpresionUpdateRequest, ImpresionColaCancelarResponse, ImpresionColaResumen } from './models/configuracion-impresion.models';
 import { ConfiguracionSacramental, ConfiguracionSacramentalUpdateRequest } from './models/configuracion-sacramental.models';
 import { ConfiguracionInicialEstado, ConfiguracionInicialFinalizarResponse } from './models/configuracion-inicial.models';
+import { ConfiguracionParroquiaIdentidad } from './models/configuracion-identidad.models';
 import { CatalogoEstadoRequest, ConfiguracionParroquia, ConfiguracionParroquiaUpdateRequest, MantenimientoWriteResponse, MetodoPagoCreateRequest, MetodoPagoMantenimiento, MetodoPagoUpdateRequest, TipoComprobanteCreateRequest, TipoComprobanteMantenimiento, TipoComprobanteUpdateRequest, SerieComprobanteMantenimiento, SerieComprobanteCreateRequest, SerieComprobanteInicioUpdateRequest, SerieComprobanteDefaultRequest, MisaPrecioOpcion, MisaPrecioMantenimiento, MisaPrecioCreateRequest, MisaPrecioDesactivarRequest, CatalogoConfiguracionMantenimiento, CatalogoConfiguracionCreateRequest, CatalogoConfiguracionUpdateRequest } from './models/configuracion-mantenimientos.models';
 
 @Injectable({ providedIn: 'root' })
@@ -21,6 +22,7 @@ export class ConfiguracionApiService {
     updateSacramental(request: ConfiguracionSacramentalUpdateRequest): Observable<ConfiguracionSacramental> { return this.http.put<ConfiguracionSacramental>(`${this.url}/configuracion/sacramental`, request); }
     getConfiguracionInicialEstado(): Observable<ConfiguracionInicialEstado> { return this.http.get<ConfiguracionInicialEstado>(`${this.url}/configuracion/inicial/estado`); }
     finalizarConfiguracionInicial(): Observable<ConfiguracionInicialFinalizarResponse> { return this.http.post<ConfiguracionInicialFinalizarResponse>(`${this.url}/configuracion/inicial/finalizar`, {}); }
+    getIdentidadParroquia(): Observable<ConfiguracionParroquiaIdentidad> { return this.http.get<ConfiguracionParroquiaIdentidad>(`${this.url}/configuracion/parroquia/identidad`); }
     getParroquia(): Observable<ConfiguracionParroquia> { return this.http.get<ConfiguracionParroquia>(`${this.url}/configuracion/parroquia`); }
     updateParroquia(request: ConfiguracionParroquiaUpdateRequest): Observable<ConfiguracionParroquia> { return this.http.put<ConfiguracionParroquia>(`${this.url}/configuracion/parroquia`, request); }
     getMetodosPago(): Observable<readonly MetodoPagoMantenimiento[]> { return this.http.get<readonly MetodoPagoMantenimiento[]>(`${this.url}/configuracion/metodos-pago`); }

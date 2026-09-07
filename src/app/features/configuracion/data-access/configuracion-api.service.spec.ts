@@ -85,4 +85,11 @@ describe('ConfiguracionApiService', () => {
         req.flush({mensaje:'OK',estado:{configuracionInicialCompletada:true}});
     });
 
+
+    it('consulta identidad de parroquia para la interfaz', () => {
+        service.getIdentidadParroquia().subscribe();
+        const req = http.expectOne(`${apiBaseUrl}/General/configuracion/parroquia/identidad`);
+        expect(req.request.method).toBe('GET');
+        req.flush({ nombreParroquia: 'Parroquia Demo', lugarExpedicion: 'Demo', direccion: null, distrito: null, provincia: null, departamento: null, telefono: null, ruc: null, configuracionInicialCompletada: true });
+    });
 });

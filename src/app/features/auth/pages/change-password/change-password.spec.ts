@@ -1,10 +1,11 @@
-import { HttpErrorResponse } from '@angular/common/http';
+﻿import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { vi } from 'vitest';
 
 import { AuthStore } from '../../data-access/auth.store';
 import { ChangePasswordPage } from './change-password';
+import { ConfiguracionParroquiaIdentidadStore } from '../../../configuracion/data-access/configuracion-parroquia-identidad.store';
 
 describe('ChangePasswordPage', () => {
     let fixture: ComponentFixture<ChangePasswordPage>;
@@ -26,7 +27,8 @@ describe('ChangePasswordPage', () => {
             imports: [ChangePasswordPage],
             providers: [
                 { provide: AuthStore, useValue: authStoreMock },
-                { provide: Router, useValue: routerMock }
+                { provide: Router, useValue: routerMock },
+                { provide: ConfiguracionParroquiaIdentidadStore, useValue: { load: () => Promise.resolve({}), nombreParroquia: () => 'Parroquia Demo' } }
             ]
         }).compileComponents();
 

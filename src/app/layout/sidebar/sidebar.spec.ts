@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
+﻿import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
 import { Sidebar } from './sidebar';
+import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuracion/data-access/configuracion-parroquia-identidad.store';
 import { AUTH_ROLE, AuthRole } from '../../core/auth/auth-role.model';
 import { AuthStore } from '../../features/auth/data-access/auth.store';
 import { ConfiguracionInicialStore } from '../../features/configuracion/data-access/configuracion-inicial.store';
@@ -47,7 +48,8 @@ describe('Sidebar', () => {
                     { path: 'personas', component: DashboardTestPage }
                 ]),
                 { provide: AuthStore, useValue: authStoreMock },
-                { provide: ConfiguracionInicialStore, useValue: setupStoreMock }
+                { provide: ConfiguracionInicialStore, useValue: setupStoreMock },
+                { provide: ConfiguracionParroquiaIdentidadStore, useValue: { nombreParroquia: () => 'Parroquia Demo' } }
             ]
         }).compileComponents();
 
