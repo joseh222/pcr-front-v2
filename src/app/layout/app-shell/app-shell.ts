@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+﻿import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
 import { Topbar } from '../topbar/topbar';
 import { Footer } from '../footer/footer';
+import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuracion/data-access/configuracion-parroquia-identidad.store';
 
 @Component({
     selector: 'pcr-app-shell',
@@ -10,9 +11,12 @@ import { Footer } from '../footer/footer';
     templateUrl: './app-shell.html',
     styleUrl: './app-shell.scss'
 })
-export class AppShell {
+export class AppShell implements OnInit {
+    private readonly identidadStore = inject(ConfiguracionParroquiaIdentidadStore);
     protected readonly sidebarOpen = signal(false);
     protected readonly sidebarCollapsed = signal(false);
+
+    ngOnInit(): void { void this.identidadStore.load().catch(() => undefined); }
 
     protected toggleSidebar(): void {
         this.sidebarOpen.update(open => !open);

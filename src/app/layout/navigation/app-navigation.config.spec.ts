@@ -1,4 +1,4 @@
-import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
+﻿import { PERMISSION_CODE } from '../../core/auth/permission-code.model';
 import { APP_NAVIGATION } from './app-navigation.config';
 
 describe('APP_NAVIGATION', () => {
@@ -22,11 +22,13 @@ describe('APP_NAVIGATION', () => {
         expect(items.get('catalogo-proveedores')?.permissions).toEqual([PERMISSION_CODE.SUPPLIER_VIEW]);
         expect(items.get('usuarios')?.permissions).toEqual([PERMISSION_CODE.USER_VIEW]);
         expect(items.get('roles')?.permissions).toEqual([PERMISSION_CODE.ROLE_VIEW]);
+        expect(items.get('configuracion-inicial')?.permissions).toEqual([PERMISSION_CODE.INITIAL_SETUP_VIEW]);
+        expect(items.get('configuracion-mantenimientos')?.permissions).toEqual([PERMISSION_CODE.CONFIGURATION_VIEW]);
         expect(items.get('configuracion-general')?.permissions).toEqual([PERMISSION_CODE.CONFIGURATION_VIEW]);
         expect(items.get('libros-sacramentales')?.permissions).toEqual([PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW]);
         expect(items.get('bautismos')?.permissions).toEqual([PERMISSION_CODE.BAPTISM_VIEW]);
         expect(items.get('confirmaciones')?.permissions).toEqual([PERMISSION_CODE.CONFIRMATION_VIEW]);
         expect(items.get('matrimonios')?.permissions).toEqual([PERMISSION_CODE.MARRIAGE_VIEW]);
     });
-    it('should place security, configuration, dashboard and reports in the expected order', () => { expect(APP_NAVIGATION[0]?.id).toBe('seguridad'); expect(APP_NAVIGATION[1]?.id).toBe('configuracion'); expect(APP_NAVIGATION[2]?.id).toBe('principal'); expect(APP_NAVIGATION[3]?.id).toBe('reportes'); });
+    it('should place the main sections in the expected order', () => { expect(APP_NAVIGATION[0]?.id).toBe('seguridad'); expect(APP_NAVIGATION[1]?.id).toBe('configuracion'); expect(APP_NAVIGATION[2]?.id).toBe('principal'); expect(APP_NAVIGATION[3]?.id).toBe('catalogos'); expect(APP_NAVIGATION.at(-1)?.id).toBe('reportes'); });
 });

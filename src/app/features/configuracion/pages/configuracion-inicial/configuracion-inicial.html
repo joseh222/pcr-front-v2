@@ -1,0 +1,66 @@
+<div class="setup-page">
+    <header class="setup-hero">
+        <div>
+            <p class="eyebrow">PCR · Configuración inicial</p>
+            <h1>Preparemos esta instalación para la parroquia</h1>
+            <p>Completa los pasos necesarios con los mismos mantenimientos que usarás después. Solo los datos generales son obligatorios para finalizar; lo demás puede configurarse según la realidad de cada parroquia.</p>
+        </div>
+        @if (state(); as s) {
+            <div class="progress-card">
+                <strong>{{ s.pasosConfigurados }} / {{ s.totalPasos }}</strong>
+                <span>pasos configurados</span>
+            </div>
+        }
+    </header>
+
+    @if (error()) { <div class="message error">{{ error() }} <button mat-button type="button" (click)="refresh()">Reintentar</button></div> }
+    @if (success()) { <div class="message success">{{ success() }}</div> }
+
+    @if (state(); as s) {
+        @if (s.configuracionInicialCompletada) {
+            <div class="message success">
+                Configuración inicial finalizada@if (s.configuracionInicialCompletadaBy) { por {{ s.configuracionInicialCompletadaBy }}}. Los mantenimientos siguen disponibles normalmente.
+            </div>
+        }
+
+        <section class="steps-grid">
+            @for (step of steps(); track step.title) {
+                <mat-card class="step-card">
+                    <mat-card-content>
+                        <div class="step-head">
+                            <mat-icon>{{ step.icon }}</mat-icon>
+                            <span class="status" [class.ok]="step.ok">{{ step.ok ? 'Configurado' : (step.required ? 'Obligatorio' : 'Pendiente') }}</span>
+                        </div>
+                        <h2>{{ step.title }}</h2>
+                        <p>{{ step.description }}</p>
+                        <small>{{ step.detail }}</small>
+                    </mat-card-content>
+                    <mat-card-actions align="end">
+                        <button mat-stroked-button type="button" (click)="go(step.route)">{{ step.ok ? 'Revisar' : 'Configurar' }}</button>
+                    </mat-card-actions>
+                </mat-card>
+            }
+        </section>
+
+        <mat-card class="finish-card">
+            <mat-card-content>
+                <h2>Finalizar configuración inicial</h2>
+                @if (!s.datosParroquiaOk) {
+                    <p>Completa primero el nombre de la parroquia y el lugar de expedición.</p>
+                } @else if (!s.configuracionInicialCompletada) {
+                    <p>Los pasos pendientes son recomendaciones operativas. Puedes terminarlos ahora o después desde Configuración.</p>
+                } @else {
+                    <p>Esta instalación ya está habilitada para operar. El wizard no reinicializa correlativos ni catálogos.</p>
+                }
+            </mat-card-content>
+            <mat-card-actions align="end">
+                <button mat-button type="button" (click)="refresh()" [disabled]="store.loading()">Actualizar estado</button>
+                @if (!s.configuracionInicialCompletada) {
+                    <button mat-flat-button type="button" (click)="finish()" [disabled]="!canFinish() || finalizing()">{{ finalizing() ? 'Finalizando...' : 'Finalizar y habilitar sistema' }}</button>
+                }
+            </mat-card-actions>
+        </mat-card>
+    } @else if (store.loading()) {
+        <p>Cargando estado de configuración...</p>
+    }
+</div>

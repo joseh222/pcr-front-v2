@@ -1,7 +1,8 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 import { guestGuard } from './core/auth/guards/guest.guard';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { passwordChangeRequiredGuard } from './core/auth/guards/password-change-required.guard';
+import { initialConfigurationGuard } from './core/auth/guards/initial-configuration.guard';
 import { permissionGuard } from './core/auth/guards/permission.guard';
 import { PERMISSION_CODE } from './core/auth/permission-code.model';
 
@@ -19,10 +20,16 @@ export const routes: Routes = [
     },
     {
         path: '',
-        canActivate: [authGuard, passwordChangeRequiredGuard],
+        canActivate: [authGuard, passwordChangeRequiredGuard, initialConfigurationGuard],
         loadComponent: () => import('./layout/app-shell/app-shell').then(module => module.AppShell),
 
         children: [
+            {
+                path: 'configuracion/inicial',
+                title: 'Configuración inicial | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.INITIAL_SETUP_VIEW] },
+                loadComponent: () => import('./features/configuracion/pages/configuracion-inicial/configuracion-inicial').then(module => module.ConfiguracionInicialPage)
+            },
             {
                 path: 'dashboard',
                 title: 'Dashboard | PCR Front V2',
@@ -34,6 +41,12 @@ export const routes: Routes = [
                 title: 'Configuración de impresión | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIGURATION_VIEW] },
                 loadComponent: () => import('./features/configuracion/pages/configuracion-impresion/configuracion-impresion').then(module => module.ConfiguracionImpresionPage)
+            },
+            {
+                path: 'configuracion/mantenimientos',
+                title: 'Configuración y mantenimientos | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.CONFIGURATION_VIEW] },
+                loadComponent: () => import('./features/configuracion/pages/configuracion-mantenimientos/configuracion-mantenimientos').then(module => module.ConfiguracionMantenimientosPage)
             },
             {
                 path: 'reportes/ventas',

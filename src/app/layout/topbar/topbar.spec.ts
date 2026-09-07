@@ -1,7 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 
 import { Topbar } from './topbar';
+import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuracion/data-access/configuracion-parroquia-identidad.store';
 import { AuthStore } from '../../features/auth/data-access/auth.store';
 import { Router } from '@angular/router';
 import { signal } from '@angular/core';
@@ -49,6 +50,7 @@ describe('Topbar', () => {
         await TestBed.configureTestingModule({
             imports: [Topbar],
             providers: [
+                { provide: ConfiguracionParroquiaIdentidadStore, useValue: { nombreParroquia: () => 'Parroquia Demo' } },
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: Router, useValue: routerMock },
                 { provide: ThemeService, useValue: themeServiceMock }
@@ -60,7 +62,7 @@ describe('Topbar', () => {
 
     it('should render the application title', () => {
         expect(fixture.nativeElement.textContent).toContain('Sistema de Gestión Parroquial');
-        expect(fixture.nativeElement.textContent).toContain('Parroquia Cristo Rey');
+        expect(fixture.nativeElement.textContent).toContain('Parroquia Demo');
     });
 
     it('should emit mobile menu requests', () => {

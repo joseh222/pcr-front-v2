@@ -31,3 +31,35 @@ export interface ConfiguracionImpresionUpdateRequest {
     readonly isActive: boolean;
     readonly rowVersion: string;
 }
+
+export interface ConfiguracionColaImpresion {
+    readonly colaHabilitada: boolean;
+    readonly maxAntiguedadAutomaticaMinutos: number;
+    readonly maxAntiguedadManualMinutos: number;
+    readonly updatedUtc: string | null;
+    readonly updatedBy: string | null;
+    readonly rowVersion: string;
+}
+
+export interface ConfiguracionColaImpresionUpdateRequest {
+    readonly colaHabilitada: boolean;
+    readonly maxAntiguedadAutomaticaMinutos: number;
+    readonly maxAntiguedadManualMinutos: number;
+    readonly rowVersion: string;
+}
+
+export interface ImpresionColaResumen {
+    readonly colaHabilitada: boolean;
+    readonly maxAntiguedadAutomaticaMinutos: number;
+    readonly maxAntiguedadManualMinutos: number;
+    readonly pendientes: number;
+    readonly pendientesVencidos: number;
+    readonly procesando: number;
+    readonly errores: number;
+    readonly pendienteMasAntiguoUtc: string | null;
+}
+
+export interface ImpresionColaCancelarResponse {
+    readonly cantidadCancelada: number;
+    readonly mensaje: string;
+}

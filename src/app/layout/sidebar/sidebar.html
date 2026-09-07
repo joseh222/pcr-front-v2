@@ -1,4 +1,4 @@
-<aside class="app-sidebar" [class.app-sidebar-open]="open()" [class.app-sidebar-collapsed]="collapsed()"
+﻿<aside class="app-sidebar" [class.app-sidebar-open]="open()" [class.app-sidebar-collapsed]="collapsed()"
     data-testid="app-sidebar">
 
     <div class="sidebar-header">
@@ -45,7 +45,7 @@
     </nav>
 
     <div class="sidebar-footer">
-        <p>Parroquia Cristo Rey</p>
+        <p>{{ identidadStore.nombreParroquia() }}</p>
     </div>
 
 </aside>
