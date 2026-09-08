@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { LicenciamientoApiService } from '../../data-access/licenciamiento-api.service';
 import { LicenciaSistemaPage } from './licencia-sistema';
@@ -14,7 +15,7 @@ describe('LicenciaSistemaPage',()=>{
     };
     const auth={hasPermission:()=>true,permissions:signal<string[]>([]).asReadonly()};
     beforeEach(async()=>{
-        await TestBed.configureTestingModule({imports:[LicenciaSistemaPage],providers:[{provide:LicenciamientoApiService,useValue:api},{provide:AuthStore,useValue:auth},{provide:ModuleStore,useValue:{setStatus:()=>undefined}}]}).compileComponents();
+        await TestBed.configureTestingModule({imports:[LicenciaSistemaPage],providers:[provideRouter([]),{provide:LicenciamientoApiService,useValue:api},{provide:AuthStore,useValue:auth},{provide:ModuleStore,useValue:{setStatus:()=>undefined}}]}).compileComponents();
         fixture=TestBed.createComponent(LicenciaSistemaPage); fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
     });
     it('muestra el código de instalación y CORE',()=>{

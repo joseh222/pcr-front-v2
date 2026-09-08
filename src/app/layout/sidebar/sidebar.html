@@ -1,4 +1,4 @@
-﻿<aside class="app-sidebar" [class.app-sidebar-open]="open()" [class.app-sidebar-collapsed]="collapsed()"
+<aside class="app-sidebar" [class.app-sidebar-open]="open()" [class.app-sidebar-collapsed]="collapsed()"
     data-testid="app-sidebar">
 
     <div class="sidebar-header">
@@ -36,6 +36,7 @@
                         [attr.data-testid]="'nav-' + item.id" (click)="navigate()">
                         <mat-icon>{{ item.icon }}</mat-icon>
                         <span>{{ item.label }}</span>
+                        @if (item.badge) { <small class="sidebar-item-badge">{{ item.badge }}</small> }
                     </a>
                 }
             }

@@ -9,6 +9,7 @@ export interface NavigationItem {
     readonly route: string;
     readonly exact?: boolean;
     readonly disabled?: boolean;
+    readonly badge?: string;
     readonly roles?: readonly AuthRole[];
     readonly permissions?: readonly PermissionCode[];
     readonly modules?: readonly ModuleCode[];

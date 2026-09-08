@@ -347,6 +347,12 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/roles/pages/rol-list/rol-list').then(module => module.RolListPage)
             },
             {
+                path: 'inscripciones',
+                title: 'Inscripciones | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.INSCRIPTION_VIEW] },
+                loadComponent: () => import('./features/inscripciones/pages/inscripciones-home/inscripciones-home').then(module => module.InscripcionesHomePage)
+            },
+            {
                 path: 'module-unavailable',
                 title: 'Módulo no habilitado | PCR Front V2',
                 loadComponent: () => import('./shared/pages/module-unavailable/module-unavailable').then(module => module.ModuleUnavailablePage)

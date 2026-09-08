@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { firstValueFrom } from 'rxjs';
+import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 import { LicenciamientoApiService } from '../../data-access/licenciamiento-api.service';
@@ -12,7 +13,7 @@ import { ModuleStore } from '../../data-access/module.store';
 @Component({
     selector:'app-licencia-sistema',
     standalone:true,
-    imports:[MatButtonModule,MatCardModule,MatIconModule],
+    imports:[MatButtonModule,MatCardModule,MatIconModule,RouterLink],
     templateUrl:'./licencia-sistema.html',
     styleUrl:'./licencia-sistema.scss'
 })

@@ -40,6 +40,11 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
         ]
     },
     {
+        id: 'proximamente', label: 'Próximamente', items: [
+            { id: 'inscripciones', label: 'Inscripciones', icon: 'how_to_reg', route: '/inscripciones', exact: true, permissions: [PERMISSION_CODE.INSCRIPTION_VIEW], badge: 'Próximamente' }
+        ]
+    },
+    {
         id: 'inventario', label: 'Inventario', items: [
             { id: 'productos', label: 'Productos', icon: 'inventory_2', route: '/productos', exact: true, permissions: [PERMISSION_CODE.PRODUCT_VIEW], modules: [MODULE_CODE.INVENTORY] },
             { id: 'movimientos', label: 'Movimientos', icon: 'swap_vert', route: '/inventario/movimientos', exact: true, permissions: [PERMISSION_CODE.INVENTORY_VIEW], modules: [MODULE_CODE.INVENTORY] }

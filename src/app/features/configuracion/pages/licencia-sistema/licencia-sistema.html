@@ -57,6 +57,11 @@
                 <button mat-flat-button type="button" (click)="exportRequest()" [disabled]="!canView()">
                     <mat-icon>file_download</mat-icon> Exportar solicitud
                 </button>
+                @if (s.licenciaValida) {
+                    <a mat-stroked-button routerLink="/configuracion/inicial">
+                        <mat-icon>arrow_forward</mat-icon> Continuar configuración inicial
+                    </a>
+                }
             </mat-card-actions>
         </mat-card>
 

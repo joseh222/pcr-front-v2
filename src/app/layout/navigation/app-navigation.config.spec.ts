@@ -31,11 +31,13 @@ describe('APP_NAVIGATION', () => {
         expect(items.get('bautismos')?.permissions).toEqual([PERMISSION_CODE.BAPTISM_VIEW]);
         expect(items.get('confirmaciones')?.permissions).toEqual([PERMISSION_CODE.CONFIRMATION_VIEW]);
         expect(items.get('matrimonios')?.permissions).toEqual([PERMISSION_CODE.MARRIAGE_VIEW]);
+        expect(items.get('inscripciones')?.permissions).toEqual([PERMISSION_CODE.INSCRIPTION_VIEW]);
     });
 
     it('should associate commercial navigation with licensed modules', () => {
         const items = new Map(APP_NAVIGATION.flatMap(section => section.items.map(item => [item.id, item] as const)));
         expect(items.get('personas')?.modules).toBeUndefined();
+        expect(items.get('inscripciones')?.modules).toBeUndefined();
         expect(items.get('ventas')?.modules).toEqual([MODULE_CODE.SALES]);
         expect(items.get('compras')?.modules).toEqual([MODULE_CODE.PURCHASES]);
         expect(items.get('misas')?.modules).toEqual([MODULE_CODE.MASSES]);
