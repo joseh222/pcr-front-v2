@@ -17,6 +17,8 @@ import { VentaProductoBusqueda, VentaSolicitudPendiente } from '../../data-acces
 import { VentaCreateRequest } from '../../data-access/models/venta-write.models';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
+import { MODULE_CODE } from '../../../../core/licensing/module-code.model';
+import { ModuleStore } from '../../../configuracion/data-access/module.store';
 
 @Component({
     selector: 'pcr-venta-form',
@@ -42,7 +44,10 @@ export class VentaFormPage implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
     private readonly authStore = inject(AuthStore);
+    private readonly moduleStore = inject(ModuleStore);
     protected readonly canCreatePerson = () => this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE);
+    protected readonly canSellProducts = computed(() => this.moduleStore.isEnabled(MODULE_CODE.INVENTORY));
+    protected readonly canSellServices = computed(() => this.moduleStore.isEnabled(MODULE_CODE.SERVICES));
 
     protected readonly form = this.fb.group({
         idPersona: this.fb.control<number | null>(null, Validators.required),
@@ -194,6 +199,11 @@ export class VentaFormPage implements OnInit {
     }
 
     protected selectProduct(product: VentaProductoBusqueda): void {
+        if (!this.canSellProducts()) {
+            this.feedback.warning('El módulo Inventario no está habilitado para esta instalación.');
+            return;
+        }
+
         if (product.stockActual <= 0) {
             this.feedback.warning('El producto no tiene stock disponible.');
             return;
@@ -208,6 +218,11 @@ export class VentaFormPage implements OnInit {
     }
 
     protected selectService(service: VentaSolicitudPendiente): void {
+        if (!this.canSellServices()) {
+            this.feedback.warning('El módulo Servicios parroquiales no está habilitado para esta instalación.');
+            return;
+        }
+
         if (!service.puedeCobrar) {
             this.feedback.warning(service.motivoNoCobrable || 'La solicitud todavía no está lista para cobrar.');
             return;
@@ -333,11 +348,23 @@ export class VentaFormPage implements OnInit {
     private setupSearches(): void {
         this.form.controls.productoSearch.valueChanges
             .pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-            .subscribe(value => this.store.searchProducts(value));
+            .subscribe(value => {
+                if (!this.canSellProducts()) {
+                    this.store.clearProductSearch();
+                    return;
+                }
+                this.store.searchProducts(value);
+            });
 
         this.form.controls.servicioSearch.valueChanges
             .pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-            .subscribe(value => this.store.searchServices(value));
+            .subscribe(value => {
+                if (!this.canSellServices()) {
+                    this.store.clearServiceSearch();
+                    return;
+                }
+                this.store.searchServices(value);
+            });
 
         this.form.controls.nombre.valueChanges
             .pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))

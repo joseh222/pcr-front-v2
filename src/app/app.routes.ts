@@ -1,10 +1,11 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { guestGuard } from './core/auth/guards/guest.guard';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { passwordChangeRequiredGuard } from './core/auth/guards/password-change-required.guard';
 import { initialConfigurationGuard } from './core/auth/guards/initial-configuration.guard';
 import { permissionGuard } from './core/auth/guards/permission.guard';
 import { PERMISSION_CODE } from './core/auth/permission-code.model';
+import { moduleAccessGuard } from './core/licensing/module-access.guard';
 
 export const routes: Routes = [
     {
@@ -21,6 +22,7 @@ export const routes: Routes = [
     {
         path: '',
         canActivate: [authGuard, passwordChangeRequiredGuard, initialConfigurationGuard],
+        canActivateChild: [moduleAccessGuard],
         loadComponent: () => import('./layout/app-shell/app-shell').then(module => module.AppShell),
 
         children: [
@@ -29,6 +31,12 @@ export const routes: Routes = [
                 title: 'Configuración inicial | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.INITIAL_SETUP_VIEW] },
                 loadComponent: () => import('./features/configuracion/pages/configuracion-inicial/configuracion-inicial').then(module => module.ConfiguracionInicialPage)
+            },
+            {
+                path: 'configuracion/licencia',
+                title: 'Licencia del sistema | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.LICENSE_VIEW] },
+                loadComponent: () => import('./features/configuracion/pages/licencia-sistema/licencia-sistema').then(module => module.LicenciaSistemaPage)
             },
             {
                 path: 'dashboard',
@@ -337,6 +345,17 @@ export const routes: Routes = [
                 title: 'Roles y permisos | PCR Front V2',
                 canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.ROLE_VIEW] },
                 loadComponent: () => import('./features/roles/pages/rol-list/rol-list').then(module => module.RolListPage)
+            },
+            {
+                path: 'inscripciones',
+                title: 'Inscripciones | PCR Front V2',
+                canActivate: [permissionGuard], data: { permissions: [PERMISSION_CODE.INSCRIPTION_VIEW] },
+                loadComponent: () => import('./features/inscripciones/pages/inscripciones-home/inscripciones-home').then(module => module.InscripcionesHomePage)
+            },
+            {
+                path: 'module-unavailable',
+                title: 'Módulo no habilitado | PCR Front V2',
+                loadComponent: () => import('./shared/pages/module-unavailable/module-unavailable').then(module => module.ModuleUnavailablePage)
             },
             {
                 path: 'forbidden',

@@ -14,14 +14,9 @@ describe('DashboardPage', () => {
         fixture.detectChanges();
     });
 
-    it('should render the dashboard page', () => {
-        expect(
-            fixture.nativeElement.querySelector('[data-testid="dashboard-page"]')
-        ).toBeTruthy();
-
-        expect(fixture.nativeElement.textContent).toContain('Dashboard');
-        expect(fixture.nativeElement.textContent).toContain(
-            'Bienvenido al Sistema de Gestión Parroquial.'
-        );
+    it('should render the dashboard as under construction', () => {
+        expect(fixture.nativeElement.querySelector('[data-testid="dashboard-page"]')).toBeTruthy();
+        expect(fixture.nativeElement.textContent).toContain('Dashboard en construcción');
+        expect(fixture.nativeElement.textContent).toContain('Próximamente');
     });
 });

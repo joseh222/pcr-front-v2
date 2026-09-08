@@ -6,6 +6,8 @@ import { ConstanciaApiService } from '../../../sacramentos/constancias/data-acce
 import { SacramentalTextCaseService } from '../../../sacramentos/shared/sacramental-text-case.service';
 import { ConfiguracionApiService } from '../../data-access/configuracion-api.service';
 import { ConfiguracionImpresionPage } from './configuracion-impresion';
+import { ModuleStore } from '../../data-access/module.store';
+import { MODULE_CODE } from '../../../../core/licensing/module-code.model';
 
 const PRINT = { modo: 'MANUAL', motor: 'PRINT_AGENT', tipoConexion: 'RED', nombreImpresoraWindows: '80mm Series Printer', direccionIp: '192.168.1.114', puerto: 9100, anchoPapelMm: 80, imprimirTicketVenta: true, imprimirDocumentosAsociados: true, cortarEntreDocumentos: true, isActive: true, updatedUtc: null, updatedBy: null, rowVersion: 'AAAA' } as const;
 const QUEUE = { colaHabilitada: false, maxAntiguedadAutomaticaMinutos: 10, maxAntiguedadManualMinutos: 60, updatedUtc: null, updatedBy: null, rowVersion: 'QQQQ' } as const;
@@ -33,7 +35,8 @@ describe('ConfiguracionImpresionPage', () => {
                 { provide: ConstanciaApiService, useValue: constanciaApi },
                 { provide: AuthStore, useValue: { hasPermission: vi.fn((_code: string) => true) } },
                 { provide: FeedbackService, useValue: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } },
-                { provide: SacramentalTextCaseService, useValue: textCase }
+                { provide: SacramentalTextCaseService, useValue: textCase },
+                { provide: ModuleStore, useValue: { isEnabled: () => true } }
             ]
         });
     });
@@ -52,4 +55,28 @@ describe('ConfiguracionImpresionPage', () => {
         expect(fixture.nativeElement.textContent).toContain('Impresión de constancias');
         expect(textCase.setForzarMayusculas).toHaveBeenCalledWith(true);
     });
+
+
+    it('should not load or render sacramental configuration when SACRAMENTOS is not licensed', () => {
+        TestBed.resetTestingModule();
+        vi.clearAllMocks();
+        TestBed.configureTestingModule({
+            imports: [ConfiguracionImpresionPage],
+            providers: [
+                { provide: ConfiguracionApiService, useValue: api },
+                { provide: ConstanciaApiService, useValue: constanciaApi },
+                { provide: AuthStore, useValue: { hasPermission: vi.fn((_code: string) => true) } },
+                { provide: FeedbackService, useValue: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } },
+                { provide: SacramentalTextCaseService, useValue: textCase },
+                { provide: ModuleStore, useValue: { isEnabled: (code: string) => code !== MODULE_CODE.SACRAMENTS } }
+            ]
+        });
+        const fixture = TestBed.createComponent(ConfiguracionImpresionPage);
+        fixture.detectChanges();
+        expect(api.getSacramental).not.toHaveBeenCalled();
+        expect(constanciaApi.getConfiguracion).not.toHaveBeenCalled();
+        expect(fixture.nativeElement.textContent).not.toContain('Registros sacramentales');
+        expect(fixture.nativeElement.textContent).not.toContain('Impresión de constancias');
+    });
+
 });

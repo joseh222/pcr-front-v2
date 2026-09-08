@@ -3,7 +3,7 @@
         <div>
             <p class="eyebrow">VENTAS</p>
             <h1>Nueva venta</h1>
-            <p>Registra productos y servicios pendientes en una sola operación.</p>
+            <p>Registra los conceptos habilitados para esta instalación en una sola operación.</p>
         </div>
         <a mat-stroked-button routerLink="/ventas"><mat-icon>arrow_back</mat-icon>Volver</a>
     </header>
@@ -100,11 +100,18 @@
                 <div class="section-icon"><mat-icon>add_shopping_cart</mat-icon></div>
                 <div>
                     <h2>Agregar a la venta</h2>
+                    @if (canSellProducts() && canSellServices()) {
                     <p>Busca productos o solicitudes de servicio pendientes.</p>
+                    } @else if (canSellProducts()) {
+                    <p>Busca productos disponibles para agregar a la venta.</p>
+                    } @else if (canSellServices()) {
+                    <p>Busca solicitudes de servicio pendientes para cobrar.</p>
+                    }
                 </div>
             </header>
 
             <div class="section-body lookup-grid">
+                @if (canSellProducts()) {
                 <div class="lookup-panel">
                     <h3>Producto</h3>
                     <mat-form-field appearance="outline" class="full-width">
@@ -125,7 +132,9 @@
                     </div>
                     }
                 </div>
+                }
 
+                @if (canSellServices()) {
                 <div class="lookup-panel">
                     <h3>Servicio pendiente</h3>
                     <mat-form-field appearance="outline" class="full-width">
@@ -151,6 +160,7 @@
                     </div>
                     }
                 </div>
+                }
             </div>
         </section>
 
@@ -165,8 +175,7 @@
 
             <div class="section-body">
                 @if (store.items().length === 0) {
-                <div class="empty-detail"><mat-icon>shopping_basket</mat-icon><span>Aún no has agregado productos o
-                        servicios.</span></div>
+                <div class="empty-detail"><mat-icon>shopping_basket</mat-icon><span>Aún no has agregado conceptos a la venta.</span></div>
                 } @else {
                 <div class="detail-table-wrap">
                     <table class="detail-table">

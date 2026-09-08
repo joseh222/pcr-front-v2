@@ -7,6 +7,8 @@ import { ConfiguracionParroquiaIdentidadStore } from '../../data-access/configur
 import { ConfiguracionApiService } from '../../data-access/configuracion-api.service';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { AuthStore } from '../../../auth/data-access/auth.store';
+import { ModuleStore } from '../../data-access/module.store';
+import { MODULE_CODE } from '../../../../core/licensing/module-code.model';
 
 describe('ConfiguracionMantenimientosPage',()=>{
     it('carga parroquia, catálogos, series y tarifas',()=>{
@@ -21,8 +23,22 @@ describe('ConfiguracionMantenimientosPage',()=>{
             getCategoriasProducto:()=>of([{id:1,codigo:'LIBROS',nombre:'Libros',descripcion:null,isActive:true,tieneDependenciasActivas:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}]),
             getMarcasProducto:()=>of([{id:1,codigo:'SAN_PABLO',nombre:'San Pablo',descripcion:null,isActive:true,tieneDependenciasActivas:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}])
         };
-        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideNoopAnimations(),provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}}]});
+        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideNoopAnimations(),provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:()=>true}}]});
         const fixture=TestBed.createComponent(ConfiguracionMantenimientosPage);fixture.detectChanges();const text=fixture.nativeElement.textContent;
         expect(text).toContain('PARROQUIA TEST');expect(text).toContain('Efectivo');expect(text).toContain('Pago 5');expect(text).not.toContain('Pago 6');expect(text).toContain('T001');expect(text).toContain('Precios de Misas');expect(text).toContain('S/ 50.00');expect(text).toContain('Celebraciones');expect(text).toContain('Libros');expect(text).toContain('San Pablo');expect(text).not.toMatch(/16\.\d/);
+    });
+
+    it('oculta mantenimientos de módulos no licenciados y no los consulta',()=>{
+        const calls={misa:vi.fn(()=>of([])),servicios:vi.fn(()=>of([])),productos:vi.fn(()=>of([])),marcas:vi.fn(()=>of([]))};
+        const api:any={
+            getParroquia:()=>of({idConfiguracion:1,nombreParroquia:'PARROQUIA TEST',lugarExpedicion:'LIMA',direccion:null,distrito:null,provincia:null,departamento:null,telefono:null,correo:null,ruc:null,nombreParroco:null,configuracionInicialCompletada:true,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null,updatedUtc:null,updatedBy:null,rowVersion:'A'}),
+            getMetodosPago:()=>of([]),getTiposComprobante:()=>of([]),getSeriesComprobante:()=>of([]),
+            getMisaPrecios:calls.misa,getMisaPrecioOpciones:()=>of([]),getCategoriasServicio:calls.servicios,getCategoriasProducto:calls.productos,getMarcasProducto:calls.marcas
+        };
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideNoopAnimations(),provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:(code:string)=>code===MODULE_CODE.SALES}}]});
+        const fixture=TestBed.createComponent(ConfiguracionMantenimientosPage);fixture.detectChanges();const text=fixture.nativeElement.textContent;
+        expect(text).not.toContain('Precios de Misas');expect(text).not.toContain('Servicios parroquiales y precios');expect(text).not.toContain('Categorías y marcas de productos');
+        expect(calls.misa).not.toHaveBeenCalled();expect(calls.servicios).not.toHaveBeenCalled();expect(calls.productos).not.toHaveBeenCalled();expect(calls.marcas).not.toHaveBeenCalled();
     });
 });

@@ -1,4 +1,4 @@
-﻿import { signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
@@ -10,6 +10,7 @@ import { AppShell } from './app-shell';
 import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuracion/data-access/configuracion-parroquia-identidad.store';
 import { By } from '@angular/platform-browser';
 import { Sidebar } from '../sidebar/sidebar';
+import { ModuleStore } from '../../features/configuracion/data-access/module.store';
 
 describe('AppShell', () => {
     let fixture: ComponentFixture<AppShell>;
@@ -72,6 +73,7 @@ describe('AppShell', () => {
             imports: [AppShell],
             providers: [
                 { provide: ConfiguracionParroquiaIdentidadStore, useValue: { load: () => Promise.resolve({}), nombreParroquia: () => 'Parroquia Demo' } },
+                { provide: ModuleStore, useValue: { load: () => Promise.resolve({}), hasAll: () => true } },
                 provideRouter([]),
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: ThemeService, useValue: themeServiceMock }

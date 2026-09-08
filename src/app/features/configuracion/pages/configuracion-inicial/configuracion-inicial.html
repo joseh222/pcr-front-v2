@@ -3,11 +3,11 @@
         <div>
             <p class="eyebrow">PCR · Configuración inicial</p>
             <h1>Preparemos esta instalación para la parroquia</h1>
-            <p>Completa los pasos necesarios con los mismos mantenimientos que usarás después. Solo los datos generales son obligatorios para finalizar; lo demás puede configurarse según la realidad de cada parroquia.</p>
+            <p>La licencia es el primer paso. Después, el asistente muestra únicamente la configuración relacionada con los módulos habilitados para esta instalación.</p>
         </div>
-        @if (state(); as s) {
+        @if (state()) {
             <div class="progress-card">
-                <strong>{{ s.pasosConfigurados }} / {{ s.totalPasos }}</strong>
+                <strong>{{ configuredSteps() }} / {{ totalSteps() }}</strong>
                 <span>pasos configurados</span>
             </div>
         }
@@ -23,9 +23,18 @@
             </div>
         }
 
+        @if (licenseValid() && enabledCommercialModules().length) {
+            <section class="licensed-summary" aria-label="Módulos licenciados">
+                <strong>Módulos habilitados para esta instalación</strong>
+                <div class="module-chips">
+                    @for (module of enabledCommercialModules(); track module) { <span>{{ module }}</span> }
+                </div>
+            </section>
+        }
+
         <section class="steps-grid">
-            @for (step of steps(); track step.title) {
-                <mat-card class="step-card">
+            @for (step of steps(); track step.id) {
+                <mat-card class="step-card" [class.required-step]="step.required">
                     <mat-card-content>
                         <div class="step-head">
                             <mat-icon>{{ step.icon }}</mat-icon>
@@ -45,22 +54,24 @@
         <mat-card class="finish-card">
             <mat-card-content>
                 <h2>Finalizar configuración inicial</h2>
-                @if (!s.datosParroquiaOk) {
+                @if (!licenseValid()) {
+                    <p>Activa primero una licencia válida para esta instalación. Mientras no exista una licencia, los módulos operativos permanecerán bloqueados.</p>
+                } @else if (!s.datosParroquiaOk) {
                     <p>Completa primero el nombre de la parroquia y el lugar de expedición.</p>
                 } @else if (!s.configuracionInicialCompletada) {
-                    <p>Los pasos pendientes son recomendaciones operativas. Puedes terminarlos ahora o después desde Configuración.</p>
+                    <p>Los demás pasos corresponden a los módulos licenciados y son recomendaciones operativas. Puedes terminarlos ahora o después desde Configuración.</p>
                 } @else {
-                    <p>Esta instalación ya está habilitada para operar. El wizard no reinicializa correlativos ni catálogos.</p>
+                    <p>Esta instalación ya está habilitada para operar. El wizard no reinicializa correlativos, catálogos ni licencias.</p>
                 }
             </mat-card-content>
             <mat-card-actions align="end">
-                <button mat-button type="button" (click)="refresh()" [disabled]="store.loading()">Actualizar estado</button>
+                <button mat-button type="button" (click)="refresh()" [disabled]="store.loading() || modules.loading()">Actualizar estado</button>
                 @if (!s.configuracionInicialCompletada) {
                     <button mat-flat-button type="button" (click)="finish()" [disabled]="!canFinish() || finalizing()">{{ finalizing() ? 'Finalizando...' : 'Finalizar y habilitar sistema' }}</button>
                 }
             </mat-card-actions>
         </mat-card>
-    } @else if (store.loading()) {
+    } @else if (store.loading() || modules.loading()) {
         <p>Cargando estado de configuración...</p>
     }
 </div>

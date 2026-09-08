@@ -110,3 +110,14 @@
 
 .sidebar-item-disabled:hover { background: transparent; }
 .sidebar-item-disabled small { margin-left: auto; font-size: .62rem; }
+
+.sidebar-item-badge {
+    margin-left: auto;
+    padding: .18rem .45rem;
+    border-radius: 999px;
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+    font-size: .62rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
