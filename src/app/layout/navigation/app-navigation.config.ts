@@ -32,7 +32,7 @@ export const APP_NAVIGATION: readonly NavigationSection[] = [
     { id: 'venta', label: 'Venta', items: [{ id: 'ventas', label: 'Ventas', icon: 'point_of_sale', route: '/ventas', exact: true, permissions: [PERMISSION_CODE.SALE_VIEW], modules: [MODULE_CODE.SALES] }] },
     { id: 'compra', label: 'Compra', items: [{ id: 'compras', label: 'Compras', icon: 'shopping_cart', route: '/compras', exact: true, permissions: [PERMISSION_CODE.PURCHASE_VIEW], modules: [MODULE_CODE.PURCHASES] }] },
     {
-        id: 'registros-sacramentales', label: 'Registros sacramentales', items: [
+        id: 'registros-sacramentales', label: 'Constancias sacramentales', items: [
             { id: 'libros-sacramentales', label: 'Libros sacramentales', icon: 'auto_stories', route: '/sacramentos/libros', exact: true, permissions: [PERMISSION_CODE.SACRAMENTAL_BOOK_VIEW], modules: [MODULE_CODE.SACRAMENTS] },
             { id: 'bautismos', label: 'Bautismos', icon: 'water_drop', route: '/sacramentos/bautismos', exact: true, permissions: [PERMISSION_CODE.BAPTISM_VIEW], modules: [MODULE_CODE.SACRAMENTS] },
             { id: 'confirmaciones', label: 'Confirmaciones', icon: 'verified', route: '/sacramentos/confirmaciones', exact: true, permissions: [PERMISSION_CODE.CONFIRMATION_VIEW], modules: [MODULE_CODE.SACRAMENTS] },

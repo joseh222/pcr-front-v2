@@ -6,8 +6,14 @@ import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { VentaFormStore } from '../../data-access/models/venta-form.store';
 import { VentaFormPage } from './venta-form';
 import { AuthStore } from '../../../auth/data-access/auth.store';
+import { ModuleStore } from '../../../configuracion/data-access/module.store';
+import { MODULE_CODE } from '../../../../core/licensing/module-code.model';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
+const enabledModules = new Set<string>([MODULE_CODE.CORE, MODULE_CODE.SALES, MODULE_CODE.SERVICES]);
+const moduleStoreMock = {
+    isEnabled: vi.fn((code: string) => enabledModules.has(code))
+};
 
 describe('VentaFormPage', () => {
     const loading = signal(false);
@@ -51,6 +57,11 @@ describe('VentaFormPage', () => {
         Object.values(feedbackMock).forEach(mock => mock.mockClear());
         storeMock.addProduct.mockReturnValue(true); storeMock.addService.mockReturnValue(true);
         hasInvalidItems.set(false);
+        enabledModules.clear();
+        enabledModules.add(MODULE_CODE.CORE);
+        enabledModules.add(MODULE_CODE.SALES);
+        enabledModules.add(MODULE_CODE.SERVICES);
+        moduleStoreMock.isEnabled.mockClear();
     });
 
     it('should initialize without an initial service', async () => {
@@ -83,6 +94,7 @@ describe('VentaFormPage', () => {
     });
 
     it('should warn instead of adding a duplicated product', async () => {
+        enabledModules.add(MODULE_CODE.INVENTORY);
         const fixture = await createFixture({});
         const component = fixture.componentInstance;
         storeMock.addProduct.mockReturnValue(false);
@@ -93,6 +105,26 @@ describe('VentaFormPage', () => {
         });
 
         expect(feedbackMock.warning).toHaveBeenCalledWith('El producto ya se encuentra en el detalle de venta.');
+    });
+
+    it('should hide product sales when Inventario is not licensed', async () => {
+        const fixture = await createFixture({});
+        expect(fixture.nativeElement.textContent).not.toContain('Código, nombre o SKU');
+        expect(fixture.nativeElement.textContent).toContain('Servicio pendiente');
+    });
+
+    it('should show product sales when Inventario is licensed', async () => {
+        enabledModules.add(MODULE_CODE.INVENTORY);
+        const fixture = await createFixture({});
+        expect(fixture.nativeElement.textContent).toContain('Código, nombre o SKU');
+    });
+
+    it('should hide service search when Servicios is not licensed', async () => {
+        enabledModules.delete(MODULE_CODE.SERVICES);
+        enabledModules.add(MODULE_CODE.INVENTORY);
+        const fixture = await createFixture({});
+        expect(fixture.nativeElement.textContent).not.toContain('Servicio pendiente');
+        expect(fixture.nativeElement.textContent).toContain('Código, nombre o SKU');
     });
 
     it('should calculate cash change visually', async () => {
@@ -259,7 +291,8 @@ describe('VentaFormPage', () => {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
             imports: [VentaFormPage],
-            providers: [{ provide: AuthStore, useValue: authStoreMock }, 
+            providers: [{ provide: AuthStore, useValue: authStoreMock },
+                { provide: ModuleStore, useValue: moduleStoreMock },
                 provideRouter([]),
                 { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(queryParams) } } },
                 { provide: FeedbackService, useValue: feedbackMock }
