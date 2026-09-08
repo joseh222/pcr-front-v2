@@ -1,5 +1,6 @@
 import { AuthRole } from '../../core/auth/auth-role.model';
 import { PermissionCode } from '../../core/auth/permission-code.model';
+import { ModuleCode } from '../../core/licensing/module-code.model';
 
 export interface NavigationItem {
     readonly id: string;
@@ -10,4 +11,5 @@ export interface NavigationItem {
     readonly disabled?: boolean;
     readonly roles?: readonly AuthRole[];
     readonly permissions?: readonly PermissionCode[];
+    readonly modules?: readonly ModuleCode[];
 }

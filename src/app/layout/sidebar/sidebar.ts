@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -6,6 +6,7 @@ import { isInitialConfigurationRouteAllowed } from '../../core/auth/guards/initi
 import { AuthStore } from '../../features/auth/data-access/auth.store';
 import { ConfiguracionInicialStore } from '../../features/configuracion/data-access/configuracion-inicial.store';
 import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuracion/data-access/configuracion-parroquia-identidad.store';
+import { ModuleStore } from '../../features/configuracion/data-access/module.store';
 import { APP_NAVIGATION } from '../navigation/app-navigation.config';
 import { filterNavigationByAccess } from '../navigation/navigation-access';
 
@@ -18,6 +19,7 @@ import { filterNavigationByAccess } from '../navigation/navigation-access';
 export class Sidebar {
     private readonly authStore = inject(AuthStore);
     private readonly configuracionInicialStore = inject(ConfiguracionInicialStore);
+    private readonly moduleStore = inject(ModuleStore);
     protected readonly identidadStore = inject(ConfiguracionParroquiaIdentidadStore);
 
     readonly open = input(false);
@@ -35,12 +37,19 @@ export class Sidebar {
         const estado = this.configuracionInicialStore.state();
         const configuracionPendiente = estado?.configuracionInicialCompletada !== true;
 
-        if (!configuracionPendiente) return sections;
+        const setupFiltered = configuracionPendiente
+            ? sections
+                .map(section => ({
+                    ...section,
+                    items: section.items.filter(item => isInitialConfigurationRouteAllowed(item.route))
+                }))
+                .filter(section => section.items.length > 0)
+            : sections;
 
-        return sections
+        return setupFiltered
             .map(section => ({
                 ...section,
-                items: section.items.filter(item => isInitialConfigurationRouteAllowed(item.route))
+                items: section.items.filter(item => !item.modules?.length || this.moduleStore.hasAll(item.modules))
             }))
             .filter(section => section.items.length > 0);
     });

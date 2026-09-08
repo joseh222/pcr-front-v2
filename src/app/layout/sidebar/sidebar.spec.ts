@@ -1,4 +1,4 @@
-﻿import { Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
@@ -9,6 +9,8 @@ import { AUTH_ROLE, AuthRole } from '../../core/auth/auth-role.model';
 import { AuthStore } from '../../features/auth/data-access/auth.store';
 import { ConfiguracionInicialStore } from '../../features/configuracion/data-access/configuracion-inicial.store';
 import { ConfiguracionInicialEstado } from '../../features/configuracion/data-access/models/configuracion-inicial.models';
+import { ModuleStore } from '../../features/configuracion/data-access/module.store';
+import { MODULE_CODE } from '../../core/licensing/module-code.model';
 
 @Component({
     standalone: true,
@@ -23,15 +25,18 @@ describe('Sidebar', () => {
     const permissions = signal<readonly string[]>(['USUARIO_VER', 'ROL_VER']);
     const grantsAllPermissions = signal(true);
     const setupState = signal<ConfiguracionInicialEstado | null>({ configuracionInicialCompletada: true } as ConfiguracionInicialEstado);
+    const enabledModules = signal<readonly string[]>([MODULE_CODE.SALES, MODULE_CODE.PURCHASES, MODULE_CODE.INVENTORY, MODULE_CODE.SERVICES, MODULE_CODE.MASSES, MODULE_CODE.SACRAMENTS, MODULE_CODE.REPORTS]);
 
     const authStoreMock = { roleCode: roleCode.asReadonly(), permissions: permissions.asReadonly(), grantsAllPermissions: grantsAllPermissions.asReadonly() };
     const setupStoreMock = { state: setupState.asReadonly() };
+    const moduleStoreMock = { hasAll: (codes: readonly string[]) => codes.every(code => enabledModules().includes(code)) };
 
     beforeEach(async () => {
         roleCode.set(AUTH_ROLE.ADMIN);
         permissions.set(['USUARIO_VER', 'ROL_VER']);
         grantsAllPermissions.set(true);
         setupState.set({ configuracionInicialCompletada: true } as ConfiguracionInicialEstado);
+        enabledModules.set([MODULE_CODE.SALES, MODULE_CODE.PURCHASES, MODULE_CODE.INVENTORY, MODULE_CODE.SERVICES, MODULE_CODE.MASSES, MODULE_CODE.SACRAMENTS, MODULE_CODE.REPORTS]);
 
         await TestBed.configureTestingModule({
             imports: [Sidebar],
@@ -39,6 +44,7 @@ describe('Sidebar', () => {
                 provideRouter([
                     { path: 'dashboard', component: DashboardTestPage },
                     { path: 'configuracion/inicial', component: DashboardTestPage },
+                    { path: 'configuracion/licencia', component: DashboardTestPage },
                     { path: 'configuracion/mantenimientos', component: DashboardTestPage },
                     { path: 'configuracion/impresion', component: DashboardTestPage },
                     { path: 'catalogos/servicios', component: DashboardTestPage },
@@ -49,6 +55,7 @@ describe('Sidebar', () => {
                 ]),
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: ConfiguracionInicialStore, useValue: setupStoreMock },
+                { provide: ModuleStore, useValue: moduleStoreMock },
                 { provide: ConfiguracionParroquiaIdentidadStore, useValue: { nombreParroquia: () => 'Parroquia Demo' } }
             ]
         }).compileComponents();
@@ -73,11 +80,27 @@ describe('Sidebar', () => {
         expect(fixture.nativeElement.querySelector('[data-testid="nav-ventas"]')).toBeFalsy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-personas"]')).toBeFalsy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-configuracion-inicial"]')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-licencia-sistema"]')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-configuracion-mantenimientos"]')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-configuracion-general"]')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-catalogo-servicios"]')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-usuarios"]')).toBeTruthy();
         expect(fixture.nativeElement.querySelector('[data-testid="nav-roles"]')).toBeTruthy();
+    });
+
+
+    it('should hide modules that are not enabled by the installation license', () => {
+        enabledModules.set([MODULE_CODE.SALES, MODULE_CODE.SERVICES, MODULE_CODE.SACRAMENTS]);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-ventas"]')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-servicios"]')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-bautismos"]')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-compras"]')).toBeFalsy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-productos"]')).toBeFalsy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-misas"]')).toBeFalsy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-reporte-ventas"]')).toBeFalsy();
+        expect(fixture.nativeElement.querySelector('[data-testid="nav-personas"]')).toBeTruthy();
     });
 
     it('should mark the current route as active', async () => {

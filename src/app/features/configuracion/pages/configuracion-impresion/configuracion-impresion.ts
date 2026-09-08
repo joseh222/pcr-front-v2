@@ -10,11 +10,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
+import { MODULE_CODE } from '../../../../core/licensing/module-code.model';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { SacramentalTextCaseService } from '../../../sacramentos/shared/sacramental-text-case.service';
 import { ConfiguracionApiService } from '../../data-access/configuracion-api.service';
+import { ModuleStore } from '../../data-access/module.store';
 import {
     ConfiguracionColaImpresion,
     ConfiguracionImpresion,
@@ -49,6 +51,7 @@ export class ConfiguracionImpresionPage implements OnInit {
     private readonly authStore = inject(AuthStore);
     private readonly sacramentalText = inject(SacramentalTextCaseService);
     private readonly dialog = inject(MatDialog);
+    private readonly moduleStore = inject(ModuleStore);
 
     protected readonly loadingCola = signal(false);
     protected readonly savingCola = signal(false);
@@ -68,6 +71,7 @@ export class ConfiguracionImpresionPage implements OnInit {
     protected readonly canViewQueue = () => this.authStore.hasPermission(PERMISSION_CODE.PRINT_QUEUE_VIEW);
     protected readonly canEditQueue = () => this.authStore.hasPermission(PERMISSION_CODE.PRINT_QUEUE_EDIT);
     protected readonly canCancelQueue = () => this.authStore.hasPermission(PERMISSION_CODE.PRINT_QUEUE_CANCEL);
+    protected readonly hasSacramentsModule = () => this.moduleStore.isEnabled(MODULE_CODE.SACRAMENTS);
 
     protected readonly modos: readonly { value: ModoImpresion; label: string }[] = [
         { value: 'MANUAL', label: 'Manual' },
@@ -104,7 +108,7 @@ export class ConfiguracionImpresionPage implements OnInit {
     ngOnInit(): void {
         if (this.canViewQueue()) this.loadCola();
         this.loadImpresion();
-        this.loadSacramental();
+        if (this.hasSacramentsModule()) this.loadSacramental();
     }
 
     protected saveCola(): void {
@@ -196,7 +200,7 @@ export class ConfiguracionImpresionPage implements OnInit {
     }
 
     protected saveSacramental(): void {
-        if (!this.canEdit() || this.savingSacramental()) return;
+        if (!this.hasSacramentsModule() || !this.canEdit() || this.savingSacramental()) return;
         const current = this.configSacramental();
         if (!current) return;
         this.savingSacramental.set(true);

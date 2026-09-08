@@ -1,0 +1,120 @@
+<div class="license-page">
+    <header class="hero">
+        <div>
+            <p class="eyebrow">PCR · Licenciamiento</p>
+            <h1>Licencia del sistema</h1>
+            <p>El código de instalación identifica permanentemente este despliegue. La clave privada nunca se guarda en esta computadora.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="refresh()" [disabled]="loading()">
+            <mat-icon>refresh</mat-icon> Actualizar
+        </button>
+    </header>
+
+    @if (error()) { <div class="message error">{{ error() }}</div> }
+    @if (success()) { <div class="message success">{{ success() }}</div> }
+
+    @if (estado(); as s) {
+        <section class="summary-grid">
+            <mat-card>
+                <mat-card-content>
+                    <span class="label">Código de instalación</span>
+                    <strong class="installation-code">{{ s.installationCode }}</strong>
+                    <div class="actions"><button mat-button type="button" (click)="copyInstallationCode()"><mat-icon>content_copy</mat-icon> Copiar código</button></div>
+                </mat-card-content>
+            </mat-card>
+            <mat-card>
+                <mat-card-content>
+                    <span class="label">Estado</span>
+                    <strong [class.ok]="s.licenciaValida">{{ s.estado }}</strong>
+                    <small>{{ s.mensaje }}</small>
+                </mat-card-content>
+            </mat-card>
+            <mat-card>
+                <mat-card-content>
+                    <span class="label">Cliente</span>
+                    <strong>{{ s.customerName || s.parishName || 'Sin configurar' }}</strong>
+                    <small>@if (s.keyId) { Clave emisora: {{ s.keyId }} } @else { Sin licencia importada }</small>
+                </mat-card-content>
+            </mat-card>
+        </section>
+
+        @if (!s.licenciamientoConfigurado) {
+            <div class="message warning">
+                Falta copiar la clave pública <code>pcr-license-public.pem</code> al Back. Puedes exportar la solicitud, pero no podrás activar una licencia hasta configurar esa clave.
+            </div>
+        }
+
+        <mat-card class="workflow-card">
+            <mat-card-content>
+                <h2>Activación offline</h2>
+                <div class="workflow">
+                    <div><mat-icon>description</mat-icon><span>1. Exporta la solicitud</span></div>
+                    <div><mat-icon>vpn_key</mat-icon><span>2. Se firma en PCR License Generator</span></div>
+                    <div><mat-icon>upload_file</mat-icon><span>3. Importa el archivo .pcrlic</span></div>
+                </div>
+            </mat-card-content>
+            <mat-card-actions>
+                <button mat-flat-button type="button" (click)="exportRequest()" [disabled]="!canView()">
+                    <mat-icon>file_download</mat-icon> Exportar solicitud
+                </button>
+            </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="import-card">
+            <mat-card-content>
+                <h2>Importar / actualizar licencia</h2>
+                <p>Una nueva licencia reemplaza la licencia activa, pero conserva el historial. Los datos de módulos no se borran.</p>
+                <input #licenseFileInput class="license-file-input" type="file" accept=".pcrlic,application/json" (change)="fileSelected($event)" [disabled]="!canUpdate() || importing()">
+                <div class="file-picker-row">
+                    <button mat-stroked-button type="button" (click)="openFilePicker(licenseFileInput)" [disabled]="!canUpdate() || importing()">
+                        <mat-icon>attach_file</mat-icon> Seleccionar archivo .pcrlic
+                    </button>
+                    @if (selectedFile(); as file) {
+                        <span class="selected-file"><mat-icon>description</mat-icon>{{ file.name }}</span>
+                    } @else {
+                        <span class="selected-file empty">Ningún archivo seleccionado</span>
+                    }
+                </div>
+            </mat-card-content>
+            <mat-card-actions align="end">
+                <button mat-flat-button type="button" (click)="importLicense()" [disabled]="!selectedFile() || !canUpdate() || importing()">
+                    {{ importing() ? 'Validando...' : 'Importar licencia' }}
+                </button>
+            </mat-card-actions>
+        </mat-card>
+
+        <mat-card class="modules-card">
+            <mat-card-content>
+                <h2>Módulos</h2>
+                <div class="module-list">
+                    @for (module of s.modulos; track module.codigo) {
+                        <div class="module-row" [class.enabled]="module.habilitado">
+                            <mat-icon>{{ module.habilitado ? 'check_circle' : 'lock' }}</mat-icon>
+                            <div>
+                                <strong>{{ module.nombre }}</strong>
+                                <span>{{ module.codigo }} · {{ moduleState(module.habilitado) }}@if (module.esCore) { · CORE }</span>
+                                @if (module.dependencias.length) { <small>Requiere: {{ module.dependencias.join(', ') }}</small> }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        @if (historial().length) {
+            <mat-card class="history-card">
+                <mat-card-content>
+                    <h2>Historial de licencias</h2>
+                    @for (item of historial(); track item.licenseId) {
+                        <div class="history-row">
+                            <div><strong>{{ item.estado }}</strong><span>{{ item.customerName }}</span></div>
+                            <div><span>{{ item.modulos.join(', ') || 'Sin módulos comerciales' }}</span><small>{{ item.activatedAtUtc }}</small></div>
+                        </div>
+                    }
+                </mat-card-content>
+            </mat-card>
+        }
+    } @else if (loading()) {
+        <p>Cargando información de licencia...</p>
+    }
+</div>

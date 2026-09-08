@@ -110,6 +110,7 @@
         </form>}
     </section>
 
+    @if (hasSacramentsModule()) {
     <section class="config-section">
         <div class="section-title"><div><h2>Registros sacramentales</h2><p>Controla cómo se normaliza el texto de Bautismos, Confirmaciones, Matrimonios y sus libros.</p></div><button mat-flat-button type="button" (click)="saveSacramental()" [disabled]="!canEdit() || savingSacramental() || loadingSacramental()"><mat-icon>save</mat-icon>{{ savingSacramental() ? 'Guardando...' : 'Guardar sacramentos' }}</button></div>
         @if (loadingSacramental()) { <mat-progress-bar mode="indeterminate" /> }
@@ -122,4 +123,5 @@
     </section>
 
     <pcr-constancia-print-settings />
+    }
 </section>
