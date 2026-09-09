@@ -71,8 +71,8 @@
             <section class="detail-card full-card">
                 <header><mat-icon>history</mat-icon><div><h2>Registro</h2><p>Fechas de creación y última modificación de la ficha.</p></div></header>
                 <dl>
-                    <div><dt>Creada</dt><dd>{{ person.createdUtc | date:'dd/MM/yyyy HH:mm' }}</dd></div>
-                    <div><dt>Última actualización</dt><dd>{{ person.updatedUtc ? (person.updatedUtc | date:'dd/MM/yyyy HH:mm') : 'Sin modificaciones' }}</dd></div>
+                    <div><dt>Creada</dt><dd>{{ person.createdUtc | date:'dd/MM/yyyy HH:mm':'-0500' }}</dd></div>
+                    <div><dt>Última actualización</dt><dd>{{ person.updatedUtc ? (person.updatedUtc | date:'dd/MM/yyyy HH:mm':'-0500') : 'Sin modificaciones' }}</dd></div>
                 </dl>
             </section>
         </div>
