@@ -46,7 +46,8 @@ const DETAIL = {
     }]
 } as any;
 
-const authStoreMock = { hasPermission: vi.fn(() => true) };
+const grantedPermissions = new Set<string>();
+const authStoreMock = { hasPermission: vi.fn((permission: string) => grantedPermissions.size === 0 || grantedPermissions.has(permission)) };
 const dialogMock = { open: vi.fn(() => ({ afterClosed: () => of(true) })) };
 const apiMock = {
     getTicket: vi.fn(() => of(new Blob(['pdf'], { type: 'application/pdf' }))),
@@ -80,6 +81,7 @@ describe('VentaDetailPage', () => {
         cancellationMock.cancel.mockClear();
         Object.values(apiMock).forEach(mock => mock.mockClear());
         detail.set(DETAIL);
+        grantedPermissions.clear();
 
         TestBed.configureTestingModule({
             imports: [VentaDetailPage],
@@ -160,6 +162,29 @@ describe('VentaDetailPage', () => {
         expect(storeMock.load).toHaveBeenCalledWith(15);
     });
 
+
+
+    it('should hide physical print actions when VENTA_IMPRIMIR is not granted', () => {
+        grantedPermissions.add('VENTA_VER');
+        const fixture = TestBed.createComponent(VentaDetailPage);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).toContain('Ver ticket');
+        expect(fixture.nativeElement.textContent).not.toContain('Reimprimir');
+        expect(fixture.nativeElement.textContent).not.toContain('Imprimir');
+    });
+
+    it('should not call physical print API without VENTA_IMPRIMIR', () => {
+        grantedPermissions.add('VENTA_VER');
+        const fixture = TestBed.createComponent(VentaDetailPage);
+        fixture.detectChanges();
+        const doc = fixture.componentInstance['documents']()!.documentos[1];
+
+        fixture.componentInstance['printDocument'](doc);
+
+        expect(apiMock.requestPrint).not.toHaveBeenCalled();
+        expect(apiMock.printDocument).not.toHaveBeenCalled();
+    });
 
     it('should register print request before opening document', () => {
         const popup = { location: { href: '' }, close: vi.fn() } as any;

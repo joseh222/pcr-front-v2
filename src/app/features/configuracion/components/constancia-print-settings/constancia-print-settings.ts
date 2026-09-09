@@ -310,6 +310,7 @@ export class ConstanciaPrintSettingsComponent implements OnInit {
     }
 
     protected printTest(): void {
+        if (!this.canEdit()) return;
         if (this.hasUnsavedCalibrationChanges()) {
             this.feedback.warning('Guarda los parámetros antes de imprimir la hoja de prueba para que la impresora use la calibración actual.');
             return;

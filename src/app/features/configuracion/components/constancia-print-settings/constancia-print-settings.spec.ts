@@ -2,6 +2,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { PERMISSION_CODE } from '../../../../core/auth/permission-code.model';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { ConstanciaApiService } from '../../../sacramentos/constancias/data-access/constancia-api.service';
 import { ConstanciaPrintSettingsComponent } from './constancia-print-settings';
@@ -17,6 +18,8 @@ const TEMPLATE = {
 } as const;
 
 describe('ConstanciaPrintSettingsComponent', () => {
+    const grantedPermissions = new Set<string>();
+    const authStore = { hasPermission: vi.fn((permission: string) => grantedPermissions.size === 0 || grantedPermissions.has(permission)) };
     const api = {
         getConfiguracion: vi.fn(() => of(CONFIG)),
         updateConfiguracion: vi.fn(() => of(CONFIG)),
@@ -34,11 +37,12 @@ describe('ConstanciaPrintSettingsComponent', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        grantedPermissions.clear();
         TestBed.configureTestingModule({
             imports: [ConstanciaPrintSettingsComponent],
             providers: [
                 { provide: ConstanciaApiService, useValue: api },
-                { provide: AuthStore, useValue: { hasPermission: vi.fn(() => true) } },
+                { provide: AuthStore, useValue: authStore },
                 { provide: FeedbackService, useValue: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }
             ]
         });
@@ -55,5 +59,17 @@ describe('ConstanciaPrintSettingsComponent', () => {
         expect(fixture.nativeElement.textContent).toContain('HP CONSTANCIAS');
         expect(fixture.nativeElement.textContent).toContain('Offset global X');
         expect(fixture.nativeElement.textContent).toContain('PENDIENTE DE CALIBRACIÓN');
+    });
+
+    it('should keep preview visible but hide physical test print without CONFIGURACION_EDITAR', () => {
+        grantedPermissions.add(PERMISSION_CODE.CONFIGURATION_VIEW);
+        const fixture = TestBed.createComponent(ConstanciaPrintSettingsComponent);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).toContain('Ver hoja de prueba');
+        expect(fixture.nativeElement.textContent).not.toContain('Imprimir hoja de prueba');
+
+        fixture.componentInstance['printTest']();
+        expect(api.imprimirPrueba).not.toHaveBeenCalled();
     });
 });

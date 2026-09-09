@@ -109,9 +109,11 @@
                 <button mat-stroked-button type="button" (click)="viewTest()" [disabled]="generatingTest() || loadingPlantilla()">
                     <mat-icon>picture_as_pdf</mat-icon>{{ generatingTest() ? 'Generando...' : 'Ver hoja de prueba' }}
                 </button>
+                @if (canEdit()) {
                 <button mat-stroked-button type="button" (click)="printTest()" [disabled]="printingTest() || loadingPlantilla() || !printer()?.estaConfigurada">
                     <mat-icon>print</mat-icon>{{ printingTest() ? 'Imprimiendo...' : 'Imprimir hoja de prueba' }}
                 </button>
+                }
 
                 @if (plantilla(); as stateTemplate) {
                     @if (stateTemplate.estaCalibrada) {

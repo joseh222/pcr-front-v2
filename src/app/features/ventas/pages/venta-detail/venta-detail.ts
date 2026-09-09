@@ -42,6 +42,7 @@ export class VentaDetailPage implements OnInit {
     }
 
     protected canCancel(): boolean { const venta = this.store.detail(); return !!venta && this.authStore.hasPermission(PERMISSION_CODE.SALE_CANCEL) && venta.puedeAnular; }
+    protected canPrint(): boolean { return this.authStore.hasPermission(PERMISSION_CODE.SALE_PRINT); }
     protected canCorrectMisa(): boolean { return this.authStore.hasPermission(PERMISSION_CODE.MASS_EDIT); }
 
     protected cancel(): void {
@@ -71,7 +72,7 @@ export class VentaDetailPage implements OnInit {
     }
 
     protected printDocument(documento: VentaDocumentoItem): void {
-        if (this.idVenta <= 0) return;
+        if (!this.canPrint() || this.idVenta <= 0) return;
         if (this.printMode().isActive && this.printMode().modo === 'AUTOMATICO') {
             this.api.printDocument(this.idVenta, documento.tipo).subscribe({
                 next: result => { this.refreshPrintStatus(); this.snackBar.open(result.mensaje, 'Cerrar', { duration: result.exitosa ? 2500 : 5000 }); },
