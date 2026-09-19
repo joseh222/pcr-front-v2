@@ -16,7 +16,7 @@ describe('LicenciaSistemaPage',()=>{
     const auth={hasPermission:()=>true,permissions:signal<string[]>([]).asReadonly()};
     beforeEach(async()=>{
         await TestBed.configureTestingModule({imports:[LicenciaSistemaPage],providers:[provideRouter([]),{provide:LicenciamientoApiService,useValue:api},{provide:AuthStore,useValue:auth},{provide:ModuleStore,useValue:{setStatus:()=>undefined}}]}).compileComponents();
-        fixture=TestBed.createComponent(LicenciaSistemaPage); fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+        fixture=TestBed.createComponent(LicenciaSistemaPage); fixture.detectChanges(); await (fixture.componentInstance as any).refresh(); await fixture.whenStable(); fixture.detectChanges();
     });
     it('muestra el código de instalación y CORE',()=>{
         expect(fixture.nativeElement.textContent).toContain('PCR-11111111-1111-1111-1111-111111111111');

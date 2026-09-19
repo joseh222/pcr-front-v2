@@ -56,7 +56,7 @@ describe('ConstanciaPrintSettingsComponent', () => {
         expect(api.getImpresora).toHaveBeenCalled();
         expect(api.getPlantilla).toHaveBeenCalledWith('BAUTISMO');
         expect(fixture.nativeElement.textContent).toContain('PUEBLO NUEVO');
-        expect(fixture.nativeElement.textContent).toContain('HP CONSTANCIAS');
+        expect((fixture.componentInstance as any).printerForm.controls.nombreImpresoraWindows.value).toBe('HP CONSTANCIAS');
         expect(fixture.nativeElement.textContent).toContain('Offset global X');
         expect(fixture.nativeElement.textContent).toContain('PENDIENTE DE CALIBRACIÓN');
     });

@@ -1,0 +1,1 @@
+import{Pr as w$1,an as b,gn as de,lt as Ng}from"./chunk-CEhjPZN3.js";function w(t){t||(t=w$1(de));let i=new b(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Ng(i))}export{w as t};

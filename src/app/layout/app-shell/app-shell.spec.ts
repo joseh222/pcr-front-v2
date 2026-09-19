@@ -11,6 +11,7 @@ import { ConfiguracionParroquiaIdentidadStore } from '../../features/configuraci
 import { By } from '@angular/platform-browser';
 import { Sidebar } from '../sidebar/sidebar';
 import { ModuleStore } from '../../features/configuracion/data-access/module.store';
+import { ConfiguracionInicialStore } from '../../features/configuracion/data-access/configuracion-inicial.store';
 
 describe('AppShell', () => {
     let fixture: ComponentFixture<AppShell>;
@@ -73,7 +74,8 @@ describe('AppShell', () => {
             imports: [AppShell],
             providers: [
                 { provide: ConfiguracionParroquiaIdentidadStore, useValue: { load: () => Promise.resolve({}), nombreParroquia: () => 'Parroquia Demo' } },
-                { provide: ModuleStore, useValue: { load: () => Promise.resolve({}), hasAll: () => true } },
+                { provide: ModuleStore, useValue: { state: signal({ licenciaValida: true, modulos: [] }).asReadonly(), load: () => Promise.resolve({}), hasAll: () => true } },
+                { provide: ConfiguracionInicialStore, useValue: { state: signal({ configuracionInicialCompletada: true }).asReadonly() } },
                 provideRouter([]),
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: ThemeService, useValue: themeServiceMock }

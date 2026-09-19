@@ -15,7 +15,19 @@ import { FileDownloadService } from '../../../../core/files/file-download.servic
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 
 const authStoreMock = { hasPermission: vi.fn(() => true) };
-const apiMock = { exportExcel: vi.fn(() => of(new Blob(['excel']))), exportPdf: vi.fn(() => of(new Blob(['pdf']))), getCalendar: vi.fn(() => of({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] })) };
+const DEFAULT_MISA_PROGRAM_STATUS = {
+    idProgramacion: null, fecha: '2026-09-09', hora: '18:00:00', estadoProgramacion: 'ABIERTA', versionActual: 0,
+    totalMisas: 0, totalPersonales: 0, totalComunitarias: 0, totalConformes: 0, totalPendientesPago: 0,
+    totalSolicitudInvalida: 0, totalPagoInvalido: 0, programacionCerrada: false, programacionCelebrada: false,
+    puedeCerrar: false, puedeReabrir: false, ultimaReaperturaUtc: null, motivoUltimaReapertura: null,
+    codigo: 'NOT_FOUND', mensaje: 'No existen Misas.', pendientes: []
+};
+const apiMock = {
+    exportExcel: vi.fn(() => of(new Blob(['excel']))), exportPdf: vi.fn(() => of(new Blob(['pdf']))),
+    getCalendar: vi.fn(() => of({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] })),
+    getPersonalDayDocumentStatus: vi.fn(() => of({ fecha: '2026-09-09', cantidadMisas: 0, cantidadProgramaciones: 0, cantidadProgramacionesListas: 0, cantidadPendientesCierre: 0, cantidadProgramacionesGeneradas: 0, totalDesactualizados: 0, puedeGenerar: false, todoGenerado: false })),
+    getProgramStatus: vi.fn(() => of(DEFAULT_MISA_PROGRAM_STATUS)), getCelebrantDocumentStatus: vi.fn(() => of(null))
+};
 const fileDownloadMock = { download: vi.fn() };
 const feedbackMock = { success: vi.fn(), error: vi.fn() };
 
