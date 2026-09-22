@@ -35,6 +35,14 @@ describe('ConfiguracionApiService', () => {
         service.changeTipoComprobanteStatus(1,{ isActive: false, rowVersion: 'EEEE' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante/1/estado`); expect(req.request.method).toBe('PATCH'); req.flush({});
     });
 
+    it('should expose purchase receipt type maintenance endpoints', () => {
+        service.getTiposComprobanteCompra().subscribe(); let req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante-compra`); expect(req.request.method).toBe('GET'); req.flush([]);
+        service.createTipoComprobanteCompra({ codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante-compra`); expect(req.request.method).toBe('POST'); req.flush({});
+        service.updateTipoComprobanteCompra(2,{ codigo: 'FACTURA', nombre: 'Factura electrónica', requiereSerie: true, requiereNumero: true, rowVersion: 'FFFF' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante-compra/2`); expect(req.request.method).toBe('PUT'); req.flush({});
+        service.changeTipoComprobanteCompraStatus(2,{ isActive: false, rowVersion: 'GGGG' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante-compra/2/estado`); expect(req.request.method).toBe('PATCH'); req.flush({});
+        service.setTipoComprobanteCompraPredeterminado(2,{ esPredeterminado: true, rowVersion: 'HHHH' }).subscribe(); req = http.expectOne(`${apiBaseUrl}/General/configuracion/tipos-comprobante-compra/2/predeterminado`); expect(req.request.method).toBe('PATCH'); req.flush({});
+    });
+
     it('should expose receipt series maintenance endpoints',()=>{
         service.getSeriesComprobante().subscribe();let req=http.expectOne(`${apiBaseUrl}/General/configuracion/series-comprobante`);expect(req.request.method).toBe('GET');req.flush([]);
         service.createSerieComprobante({idTipoComprobante:1,serie:'T002',primerNumero:500}).subscribe();req=http.expectOne(`${apiBaseUrl}/General/configuracion/series-comprobante`);expect(req.request.method).toBe('POST');req.flush({});

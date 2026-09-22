@@ -18,6 +18,16 @@ export interface TipoComprobanteMantenimiento {
     idTipoComprobante: number; codigo: string; nombre: string; serieDefault: string; isActive: boolean; esPredeterminado: boolean;
     ultimoNumero: number; tieneMovimientos: boolean; createdUtc: string; updatedUtc: string | null; updatedBy: string | null; rowVersion: string;
 }
+export interface TipoComprobanteCompraMantenimiento {
+    idTipoComprobanteCompra:number; codigo:string; nombre:string; requiereSerie:boolean; requiereNumero:boolean;
+    isActive:boolean; esPredeterminado:boolean; tieneMovimientos:boolean; createdUtc:string; updatedUtc:string|null;
+    updatedBy:string|null; rowVersion:string;
+}
+export interface TipoComprobanteCompraCreateRequest {
+    codigo:string; nombre:string; requiereSerie:boolean; requiereNumero:boolean;
+}
+export interface TipoComprobanteCompraUpdateRequest extends TipoComprobanteCompraCreateRequest { rowVersion:string; }
+
 export interface MantenimientoWriteResponse { id: number; mensaje: string; rowVersion: string; }
 export interface CatalogoEstadoRequest { isActive: boolean; rowVersion: string; }
 export interface CatalogoPredeterminadoRequest { esPredeterminado: boolean; rowVersion: string; }

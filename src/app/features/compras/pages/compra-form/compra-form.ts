@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, effect, inject } from '@angular/core';
+﻿import { Component, DestroyRef, OnInit, effect, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -50,6 +50,13 @@ export class CompraFormPage implements OnInit {
         numeroComprobante: this.fb.nonNullable.control('', Validators.maxLength(30)),
         productoSearch: this.fb.nonNullable.control(''),
         observaciones: this.fb.nonNullable.control('', Validators.maxLength(500))
+    });
+
+    private readonly syncDefaultVoucher = effect(() => {
+        const voucher = this.store.tiposComprobante().find(item => item.isActive && item.esPredeterminado);
+        if (voucher && this.form.controls.idTipoComprobanteCompra.value == null) {
+            this.form.controls.idTipoComprobanteCompra.setValue(voucher.idTipoComprobanteCompra);
+        }
     });
 
     private readonly syncErrors = effect(() => {
@@ -115,7 +122,7 @@ export class CompraFormPage implements OnInit {
 
     protected resetForm(): void {
         this.store.reset();
-        this.form.reset({ proveedorSearch: '', idProveedor: null, fechaCompra: todayLocal(), idTipoComprobanteCompra: null, serieComprobante: '', numeroComprobante: '', productoSearch: '', observaciones: '' });
+        this.form.reset({ proveedorSearch: '', idProveedor: null, fechaCompra: todayLocal(), idTipoComprobanteCompra: this.defaultVoucherId(), serieComprobante: '', numeroComprobante: '', productoSearch: '', observaciones: '' });
         this.syncVoucherValidators();
     }
 
@@ -124,8 +131,13 @@ export class CompraFormPage implements OnInit {
         const serie = this.form.controls.serieComprobante; const numero = this.form.controls.numeroComprobante;
         serie.setValidators(voucher?.requiereSerie ? [Validators.required, Validators.maxLength(20)] : [Validators.maxLength(20)]);
         numero.setValidators(voucher?.requiereNumero ? [Validators.required, Validators.maxLength(30)] : [Validators.maxLength(30)]);
-        if (voucher?.codigo === 'SIN_COMPROBANTE') { serie.setValue('', { emitEvent: false }); numero.setValue('', { emitEvent: false }); }
+        if (!voucher?.requiereSerie) serie.setValue('', { emitEvent: false });
+        if (!voucher?.requiereNumero) numero.setValue('', { emitEvent: false });
         serie.updateValueAndValidity({ emitEvent: false }); numero.updateValueAndValidity({ emitEvent: false });
+    }
+
+    private defaultVoucherId(): number | null {
+        return this.store.tiposComprobante().find(item => item.isActive && item.esPredeterminado)?.idTipoComprobanteCompra ?? null;
     }
 
     private nullableText(value: string): string | null { const normalized = value.trim(); return normalized || null; }

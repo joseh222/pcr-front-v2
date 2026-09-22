@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+﻿import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -306,7 +306,7 @@ describe('Application routes', () => {
     const proveedorStatusMock = { change: vi.fn(() => of(null)) };
     const compraApiMock = {
         getEstados: vi.fn(() => of([{ idEstadoCompra: 1, codigo: 'REGISTRADA', nombre: 'Registrada', isActive: true }])),
-        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true }])),
+        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true, esPredeterminado: false }])),
         getList: vi.fn(() => of({ pageNumber: 1, pageSize: 20, totalRows: 0, totalPages: 0, items: [] })),
         getById: vi.fn(() => of({
             idCompra: 5, codCompra: 'CMP2026-000005', fechaCompra: '2026-08-25', idProveedor: 2, tipoDocumentoProveedor: 'RUC', numeroDocumentoProveedor: '20123456789', razonSocialProveedor: 'Distribuidora San José SAC', nombreComercialProveedor: 'San José', idTipoComprobanteCompra: 1, codigoTipoComprobante: 'FACTURA', nombreTipoComprobante: 'Factura', serieComprobante: 'F001', numeroComprobante: '000123', idEstadoCompra: 1, codigoEstadoCompra: 'REGISTRADA', nombreEstadoCompra: 'Registrada', moneda: 'PEN', total: 55, cantidadDetalles: 1, cantidadTotal: 10, observaciones: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, createdUtc: '2026-08-25T20:00:00Z', createdById: 9, puedeAnular: true, rowVersion: 'A', detalles: [{ idCompraDetalle: 10, idProducto: 8, codigoProducto: 'P2026-000008', sku: 'VEL-001', descripcion: 'Vela blanca', cantidad: 10, costoUnitario: 5.5, subTotal: 55 }]

@@ -1,11 +1,11 @@
-import { TestBed } from '@angular/core/testing';
+﻿import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { CompraApiService } from '../compra-api.service';
 import { CompraFormStore } from './compra-form.store';
 
 describe('CompraFormStore', () => {
     const apiMock = {
-        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true }])),
+        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true, esPredeterminado: true }])),
         searchProveedores: vi.fn(() => of([{ idProveedor: 2, codProveedor: 'PRV2', razonSocial: 'Proveedor', isActive: true }])),
         searchProductos: vi.fn(() => of([{ idProducto: 8, codProducto: 'P8', nombre: 'Vela', sku: null, idCategoriaProducto: 1, nombreCategoria: 'Velas', idMarcaProducto: null, nombreMarca: null, precioVenta: 10, stockActual: 5 }])),
         getProductoById: vi.fn(() => of({ idProducto: 8, codProducto: 'P8', nombre: 'Vela', sku: null, precioCompra: 5 })),
