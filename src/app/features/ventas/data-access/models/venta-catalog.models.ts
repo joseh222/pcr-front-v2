@@ -3,6 +3,7 @@ export interface VentaMetodoPago {
     readonly codigo: string;
     readonly nombre: string;
     readonly isActive: boolean;
+    readonly esPredeterminado: boolean;
 }
 
 export interface VentaTipoComprobante {

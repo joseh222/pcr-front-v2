@@ -107,6 +107,12 @@ export class VentaFormPage implements OnInit {
         if (message) this.feedback.error(message);
     });
 
+    private readonly syncDefaultPayment = effect(() => {
+        if (this.form.controls.idMetodoPago.value !== null) return;
+        const preferred = this.store.metodosPago().find(item => item.esPredeterminado);
+        if (preferred) this.form.controls.idMetodoPago.setValue(preferred.idMetodoPago);
+    });
+
     private readonly syncSaveResult = effect(() => {
         const result = this.store.saveResult();
         if (!result) return;
@@ -403,7 +409,7 @@ export class VentaFormPage implements OnInit {
             productoSearch: '',
             servicioSearch: '',
             idTipoComprobante: null,
-            idMetodoPago: null,
+            idMetodoPago: this.store.metodosPago().find(item => item.esPredeterminado)?.idMetodoPago ?? null,
             montoRecibido: null,
             observaciones: ''
         });
