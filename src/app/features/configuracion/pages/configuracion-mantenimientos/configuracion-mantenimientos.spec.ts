@@ -26,7 +26,14 @@ describe('ConfiguracionMantenimientosPage',()=>{
         TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:()=>true}}]});
         const fixture=TestBed.createComponent(ConfiguracionMantenimientosPage);fixture.detectChanges();const text=fixture.nativeElement.textContent;
         const nombreParroquiaInput=fixture.nativeElement.querySelector('input[formControlName="nombreParroquia"]') as HTMLInputElement;
-        expect(nombreParroquiaInput.value).toBe('PARROQUIA TEST');expect(text).toContain('Efectivo');expect(text).toContain('Pago 5');expect(text).not.toContain('Pago 6');expect(text).toContain('T001');expect(text).toContain('Tipos de comprobante de compra');expect(text).toContain('Factura');expect(text).toContain('Precios de Misas');expect(text).toContain('S/ 50.00');expect(text).toContain('Celebraciones');expect(text).toContain('Libros');expect(text).toContain('San Pablo');expect(text).not.toMatch(/16\.\d/);
+        expect(nombreParroquiaInput.value).toBe('PARROQUIA TEST');
+        expect(fixture.nativeElement.querySelector('#datos-parroquia')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#metodos-pago')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#comprobantes-venta')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#series-correlativos')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#comprobantes-compra')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#servicios-parroquiales')).toBeTruthy();
+        expect(text).toContain('Efectivo');expect(text).toContain('Pago 5');expect(text).not.toContain('Pago 6');expect(text).toContain('T001');expect(text).toContain('Tipos de comprobante de compra');expect(text).toContain('Factura');expect(text).toContain('Precios de Misas');expect(text).toContain('S/ 50.00');expect(text).toContain('Celebraciones');expect(text).toContain('Libros');expect(text).toContain('San Pablo');expect(text).not.toMatch(/16\.\d/);
     });
 
     it('oculta mantenimientos de módulos no licenciados y no los consulta',()=>{

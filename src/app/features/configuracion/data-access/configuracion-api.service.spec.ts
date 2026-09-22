@@ -83,7 +83,7 @@ describe('ConfiguracionApiService', () => {
         service.getConfiguracionInicialEstado().subscribe();
         const req=http.expectOne(`${apiBaseUrl}/General/configuracion/inicial/estado`);
         expect(req.request.method).toBe('GET');
-        req.flush({configuracionInicialCompletada:false,datosParroquiaOk:false,metodosPagoOk:false,cantidadMetodosPagoActivos:0,comprobantesSeriesOk:false,cantidadTiposComprobanteActivos:0,cantidadSeriesPredeterminadasActivas:0,serviciosOk:false,cantidadServiciosActivos:0,preciosMisaOk:false,cantidadPreciosMisaActivos:0,catalogosProductoOk:false,cantidadCategoriasProductoActivas:0,cantidadMarcasProductoActivas:0,impresionOk:false,impresionTicketConfigurada:false,impresionA4Configurada:false,colaHabilitada:false,pasosConfigurados:0,totalPasos:7,puedeFinalizar:false,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null});
+        req.flush({configuracionInicialCompletada:false,datosParroquiaOk:false,metodosPagoOk:false,cantidadMetodosPagoActivos:0,tiposComprobanteVentaOk:false,cantidadTiposComprobanteActivos:0,seriesComprobanteOk:false,cantidadSeriesPredeterminadasActivas:0,comprobantesSeriesOk:false,comprobantesCompraOk:false,cantidadTiposComprobanteCompraActivos:0,serviciosOk:false,cantidadServiciosActivos:0,preciosMisaOk:false,cantidadPreciosMisaActivos:0,catalogosProductoOk:false,cantidadCategoriasProductoActivas:0,cantidadMarcasProductoActivas:0,impresionOk:false,impresionTicketConfigurada:false,impresionA4Configurada:false,colaHabilitada:false,pasosConfigurados:0,totalPasos:9,puedeFinalizar:false,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null});
     });
 
     it('should finalize initial configuration',()=>{
