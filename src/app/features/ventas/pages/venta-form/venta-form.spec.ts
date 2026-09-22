@@ -1,4 +1,4 @@
-import { signal } from '@angular/core';
+﻿import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 
@@ -18,8 +18,8 @@ const moduleStoreMock = {
 describe('VentaFormPage', () => {
     const loading = signal(false);
     const error = signal<string | null>(null);
-    const metodosPago = signal([{ idMetodoPago: 1, codigo: 'EFECTIVO', nombre: 'Efectivo', isActive: true }]);
-    const tiposComprobante = signal([{ idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true }]);
+    const metodosPago = signal([{ idMetodoPago: 1, codigo: 'EFECTIVO', nombre: 'Efectivo', isActive: true, esPredeterminado: false }]);
+    const tiposComprobante = signal([{ idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true, esPredeterminado: false }]);
     const tiposDocumento = signal([{ idTipoDocumento: 1, codigo: 'DNI', nombre: 'DNI', longitudMinima: 8, longitudMaxima: 8, soloNumeros: true, isActive: true }]);
     const initialPerson = signal<any>(null);
     const documentPerson = signal<any>(null);
@@ -52,6 +52,8 @@ describe('VentaFormPage', () => {
 
     beforeEach(() => {
         initialPerson.set(null); documentPerson.set(null); productResults.set([]); serviceResults.set([]); personResults.set([]); items.set([]); total.set(0);
+        metodosPago.set([{ idMetodoPago: 1, codigo: 'EFECTIVO', nombre: 'Efectivo', isActive: true, esPredeterminado: false }]);
+        tiposComprobante.set([{ idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true, esPredeterminado: false }]);
         saving.set(false); saveError.set(null); saveResult.set(null); createdPerson.set(null); createPersonError.set(null);
         Object.values(storeMock).forEach(value => { if (typeof value === 'function' && 'mockClear' in value) (value as any).mockClear(); });
         Object.values(feedbackMock).forEach(mock => mock.mockClear());
@@ -73,6 +75,17 @@ describe('VentaFormPage', () => {
     it('should initialize from a service id', async () => {
         await createFixture({ solicitudServicioId: '50', origen: 'misa' });
         expect(storeMock.initialize).toHaveBeenCalledWith(50);
+    });
+
+    it('should select the default receipt type when catalogs are available', async () => {
+        tiposComprobante.set([
+            { idTipoComprobante: 1, codigo: 'RECIBO', nombre: 'Recibo interno', serieDefault: 'R001', isActive: true, esPredeterminado: false },
+            { idTipoComprobante: 2, codigo: 'TICKET', nombre: 'Ticket interno', serieDefault: 'T001', isActive: true, esPredeterminado: true }
+        ]);
+
+        const fixture = await createFixture({});
+
+        expect(fixture.componentInstance['form'].controls.idTipoComprobante.value).toBe(2);
     });
 
     it('should open the sale detail after paying a misa', async () => {

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, effect, inject } from '@angular/core';
+﻿import { Component, DestroyRef, OnInit, computed, effect, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -111,6 +111,12 @@ export class VentaFormPage implements OnInit {
         if (this.form.controls.idMetodoPago.value !== null) return;
         const preferred = this.store.metodosPago().find(item => item.esPredeterminado);
         if (preferred) this.form.controls.idMetodoPago.setValue(preferred.idMetodoPago);
+    });
+
+    private readonly syncDefaultReceipt = effect(() => {
+        if (this.form.controls.idTipoComprobante.value !== null) return;
+        const preferred = this.store.tiposComprobante().find(item => item.esPredeterminado);
+        if (preferred) this.form.controls.idTipoComprobante.setValue(preferred.idTipoComprobante);
     });
 
     private readonly syncSaveResult = effect(() => {
@@ -408,7 +414,7 @@ export class VentaFormPage implements OnInit {
             telefono: '',
             productoSearch: '',
             servicioSearch: '',
-            idTipoComprobante: null,
+            idTipoComprobante: this.store.tiposComprobante().find(item => item.esPredeterminado)?.idTipoComprobante ?? null,
             idMetodoPago: this.store.metodosPago().find(item => item.esPredeterminado)?.idMetodoPago ?? null,
             montoRecibido: null,
             observaciones: ''

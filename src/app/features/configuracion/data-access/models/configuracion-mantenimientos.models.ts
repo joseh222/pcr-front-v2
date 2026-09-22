@@ -15,7 +15,7 @@ export interface MetodoPagoMantenimiento {
     updatedUtc: string | null; updatedBy: string | null; rowVersion: string;
 }
 export interface TipoComprobanteMantenimiento {
-    idTipoComprobante: number; codigo: string; nombre: string; serieDefault: string; isActive: boolean;
+    idTipoComprobante: number; codigo: string; nombre: string; serieDefault: string; isActive: boolean; esPredeterminado: boolean;
     ultimoNumero: number; tieneMovimientos: boolean; createdUtc: string; updatedUtc: string | null; updatedBy: string | null; rowVersion: string;
 }
 export interface MantenimientoWriteResponse { id: number; mensaje: string; rowVersion: string; }
