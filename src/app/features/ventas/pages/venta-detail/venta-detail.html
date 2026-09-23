@@ -161,9 +161,9 @@
                         <td>{{ itemCode(item) }}</td>
                         <td>{{ item.descripcion }}</td>
                         <td>{{ item.cantidad }}</td>
-                        <td>{{ item.precioUnitario | currency:'PEN':'symbol':'1.2-2' }}</td>
+                        <td>{{ item.precioUnitario | currency:'PEN':'S/':'1.2-2' }}</td>
                         <td>
-                            <strong>{{ item.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                            <strong>{{ item.subTotal | currency:'PEN':'S/':'1.2-2' }}</strong>
                         </td>
                     </tr>
                     }
@@ -174,19 +174,19 @@
         <div class="totals">
             <div>
                 <span>Subtotal</span>
-                <strong>{{ venta.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                <strong>{{ venta.subTotal | currency:'PEN':'S/':'1.2-2' }}</strong>
             </div>
 
             @if (venta.impuesto > 0) {
             <div>
                 <span>Impuesto</span>
-                <strong>{{ venta.impuesto | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                <strong>{{ venta.impuesto | currency:'PEN':'S/':'1.2-2' }}</strong>
             </div>
             }
 
             <div class="grand-total">
                 <span>Total</span>
-                <strong>{{ venta.total | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                <strong>{{ venta.total | currency:'PEN':'S/':'1.2-2' }}</strong>
             </div>
         </div>
     </article>

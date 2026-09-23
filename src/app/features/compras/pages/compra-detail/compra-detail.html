@@ -42,11 +42,11 @@
                 <table class="detail-table">
                     <thead><tr><th>Código</th><th>SKU</th><th>Producto</th><th>Cantidad</th><th>Costo unit.</th><th>Subtotal</th></tr></thead>
                     <tbody>@for (item of compra.detalles; track item.idCompraDetalle) {
-                        <tr><td>{{ item.codigoProducto || '—' }}</td><td>{{ item.sku || '—' }}</td><td>{{ item.descripcion }}</td><td>{{ item.cantidad }}</td><td>{{ item.costoUnitario | currency:'PEN':'symbol':'1.2-2' }}</td><td><strong>{{ item.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong></td></tr>
+                        <tr><td>{{ item.codigoProducto || '—' }}</td><td>{{ item.sku || '—' }}</td><td>{{ item.descripcion }}</td><td>{{ item.cantidad }}</td><td>{{ item.costoUnitario | currency:'PEN':'S/':'1.2-2' }}</td><td><strong>{{ item.subTotal | currency:'PEN':'S/':'1.2-2' }}</strong></td></tr>
                     }</tbody>
                 </table>
             </div>
-            <div class="totals"><div><span>Productos</span><strong>{{ compra.cantidadDetalles }}</strong></div><div><span>Unidades</span><strong>{{ compra.cantidadTotal }}</strong></div><div class="grand-total"><span>Total</span><strong>{{ compra.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div></div>
+            <div class="totals"><div><span>Productos</span><strong>{{ compra.cantidadDetalles }}</strong></div><div><span>Unidades</span><strong>{{ compra.cantidadTotal }}</strong></div><div class="grand-total"><span>Total</span><strong>{{ compra.total | currency:'PEN':'S/':'1.2-2' }}</strong></div></div>
         </article>
 
         @if (compra.observaciones) {
@@ -55,11 +55,11 @@
 
         <article class="detail-card">
             <header><mat-icon>history</mat-icon><h2>Registro</h2></header>
-            <div class="detail-body info-list audit-list"><div><span>Registrada</span><strong>{{ compra.createdUtc | date:'dd/MM/yyyy HH:mm':'-0500' }}</strong></div><div><span>Usuario</span><strong>{{ compra.createdByNombre }}</strong></div></div>
+            <div class="detail-body info-list audit-list"><div><span>Registrada</span><strong>{{ compra.createdUtc | date:'dd/MM/yyyy HH:mm':'-0500' }}</strong></div><div><span>Usuario</span><strong>#{{ compra.createdById }}</strong></div></div>
         </article>
 
         @if (compra.codigoEstadoCompra === 'ANULADA') {
-            <article class="detail-card cancellation-card"><header><mat-icon>cancel</mat-icon><h2>Anulación</h2></header><div class="detail-body info-list cancellation-grid"><div><span>Fecha</span><strong>{{ compra.anuladaUtc ? (compra.anuladaUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div><div><span>Usuario</span><strong>{{ compra.anuladaByNombre || '—' }}</strong></div><div class="full-row"><span>Motivo</span><strong>{{ compra.motivoAnulacion || 'Sin detalle.' }}</strong></div></div></article>
+            <article class="detail-card cancellation-card"><header><mat-icon>cancel</mat-icon><h2>Anulación</h2></header><div class="detail-body info-list cancellation-grid"><div><span>Fecha</span><strong>{{ compra.anuladaUtc ? (compra.anuladaUtc | date:'dd/MM/yyyy HH:mm':'-0500') : '—' }}</strong></div><div><span>Usuario</span><strong>{{ compra.anuladaById ? '#' + compra.anuladaById : '—' }}</strong></div><div class="full-row"><span>Motivo</span><strong>{{ compra.motivoAnulacion || 'Sin detalle.' }}</strong></div></div></article>
         }
     }
 </section>

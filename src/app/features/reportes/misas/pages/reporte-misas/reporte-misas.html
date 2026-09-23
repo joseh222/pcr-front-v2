@@ -42,8 +42,8 @@
     @if (report(); as data) {
         <section class="kpi-grid" aria-label="Indicadores de misas">
             <article class="kpi-card primary"><span class="kpi-label">Total de misas</span><strong>{{ data.cantidadMisas | number }}</strong><small>{{ data.cantidadCelebradas | number }} celebradas</small></article>
-            <article class="kpi-card"><span class="kpi-label">Misas pagadas</span><strong>{{ data.cantidadPagadas | number }}</strong><small>{{ data.montoPagado | currency:'PEN':'symbol':'1.2-2' }} cobrado</small></article>
-            <article class="kpi-card warning"><span class="kpi-label">Pendientes de pago</span><strong>{{ data.cantidadPendientesPago | number }}</strong><small>{{ data.montoPendiente | currency:'PEN':'symbol':'1.2-2' }} pendiente</small></article>
+            <article class="kpi-card"><span class="kpi-label">Misas pagadas</span><strong>{{ data.cantidadPagadas | number }}</strong><small>{{ data.montoPagado | currency:'PEN':'S/':'1.2-2' }} cobrado</small></article>
+            <article class="kpi-card warning"><span class="kpi-label">Pendientes de pago</span><strong>{{ data.cantidadPendientesPago | number }}</strong><small>{{ data.montoPendiente | currency:'PEN':'S/':'1.2-2' }} pendiente</small></article>
             <article class="kpi-card"><span class="kpi-label">Sin cobro</span><strong>{{ data.cantidadNoRequierenPago | number }}</strong><small>{{ data.cantidadSinSolicitud | number }} sin solicitud asociada</small></article>
         </section>
 
@@ -73,7 +73,7 @@
                 <div class="card-heading"><div><p class="card-eyebrow">Cobranza</p><h2>Estado de pago</h2></div><mat-icon>payments</mat-icon></div>
                 @if (data.estadosPago.length === 0) { <p class="empty-state">No hay información de pago para mostrar.</p> }
                 @for (item of data.estadosPago; track item.estadoPago) {
-                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreEstadoPago }}</span><strong>{{ item.cantidadMisas | number }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxEstadoPago())"></span></div><small>{{ item.importe | currency:'PEN':'symbol':'1.2-2' }}</small></div>
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreEstadoPago }}</span><strong>{{ item.cantidadMisas | number }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxEstadoPago())"></span></div><small>{{ item.importe | currency:'PEN':'S/':'1.2-2' }}</small></div>
                 }
             </section>
         </div>
@@ -82,7 +82,7 @@
             <div class="card-heading"><div><p class="card-eyebrow">Tendencia</p><h2>Misas por día</h2></div><mat-icon>show_chart</mat-icon></div>
             @if (data.tendenciaDiaria.length === 0) { <p class="empty-state">No hay misas para mostrar en la tendencia.</p> }
             @for (item of data.tendenciaDiaria; track item.fecha) {
-                <div class="trend-row"><time>{{ formatDate(item.fecha) }}</time><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxDia())"></span></div><strong>{{ item.cantidadMisas | number }} misa{{ item.cantidadMisas === 1 ? '' : 's' }}</strong><small>{{ item.cantidadPagadas }} pagadas · {{ item.montoPagado | currency:'PEN':'symbol':'1.2-2' }}</small></div>
+                <div class="trend-row"><time>{{ formatDate(item.fecha) }}</time><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.cantidadMisas, maxDia())"></span></div><strong>{{ item.cantidadMisas | number }} misa{{ item.cantidadMisas === 1 ? '' : 's' }}</strong><small>{{ item.cantidadPagadas }} pagadas · {{ item.montoPagado | currency:'PEN':'S/':'1.2-2' }}</small></div>
             }
         </section>
     }

@@ -36,7 +36,7 @@ describe('ReporteVentasPage', () => {
         fixture.detectChanges();
         expect(api.get).toHaveBeenCalledTimes(1);
         expect(fixture.nativeElement.textContent).toContain('Reporte de ventas');
-        expect(fixture.nativeElement.textContent).toContain('PEN');
+        expect(fixture.nativeElement.textContent).toContain('S/');
     });
 
     it('should apply the current day shortcut', () => {
