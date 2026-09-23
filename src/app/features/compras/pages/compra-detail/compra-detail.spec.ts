@@ -8,7 +8,7 @@ import { CompraDetailPage } from './compra-detail';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 
 const DETAIL = {
-    idCompra: 5, codCompra: 'CMP2026-000005', fechaCompra: '2026-08-25', razonSocialProveedor: 'Distribuidora San José SAC', tipoDocumentoProveedor: 'RUC', numeroDocumentoProveedor: '20123456789', nombreComercialProveedor: 'San José', nombreTipoComprobante: 'Factura', serieComprobante: 'F001', numeroComprobante: '000123', codigoEstadoCompra: 'REGISTRADA', nombreEstadoCompra: 'Registrada', moneda: 'PEN', total: 55, cantidadDetalles: 1, cantidadTotal: 10, observaciones: null, createdUtc: '2026-08-25T20:00:00Z', createdById: 9, puedeAnular: true, rowVersion: 'AAAAAAAABQ=', motivoAnulacion: null, anuladaUtc: null, anuladaById: null,
+    idCompra: 5, codCompra: 'CMP2026-000005', fechaCompra: '2026-08-25', razonSocialProveedor: 'Distribuidora San José SAC', tipoDocumentoProveedor: 'RUC', numeroDocumentoProveedor: '20123456789', nombreComercialProveedor: 'San José', nombreTipoComprobante: 'Factura', serieComprobante: 'F001', numeroComprobante: '000123', codigoEstadoCompra: 'REGISTRADA', nombreEstadoCompra: 'Registrada', moneda: 'PEN', total: 55, cantidadDetalles: 1, cantidadTotal: 10, observaciones: null, createdUtc: '2026-08-25T20:00:00Z', createdById: 9, createdByNombre: 'José Administrador', puedeAnular: true, rowVersion: 'AAAAAAAABQ=', motivoAnulacion: null, anuladaUtc: null, anuladaById: null, anuladaByNombre: null,
     detalles: [{ idCompraDetalle: 10, idProducto: 8, codigoProducto: 'P2026-000008', sku: 'VEL-001', descripcion: 'Vela blanca', cantidad: 10, costoUnitario: 5.5, subTotal: 55 }]
 } as any;
 
@@ -27,7 +27,7 @@ describe('CompraDetailPage', () => {
 
     it('should load and render purchase detail', () => {
         const fixture = TestBed.createComponent(CompraDetailPage); fixture.detectChanges();
-        expect(storeMock.load).toHaveBeenCalledWith(5); expect(fixture.nativeElement.textContent).toContain('CMP2026-000005'); expect(fixture.nativeElement.textContent).toContain('Distribuidora San José SAC'); expect(fixture.nativeElement.textContent).toContain('Vela blanca');
+        expect(storeMock.load).toHaveBeenCalledWith(5); expect(fixture.nativeElement.textContent).toContain('CMP2026-000005'); expect(fixture.nativeElement.textContent).toContain('Distribuidora San José SAC'); expect(fixture.nativeElement.textContent).toContain('Vela blanca'); expect(fixture.nativeElement.textContent).toContain('José Administrador'); expect(fixture.nativeElement.textContent).not.toContain('#9');
     });
 
     it('should cancel purchase and reload detail', () => {
@@ -35,5 +35,24 @@ describe('CompraDetailPage', () => {
         fixture.componentInstance['cancel']();
         expect(cancellationMock.cancel).toHaveBeenCalledWith({ idCompra: 5, codCompra: 'CMP2026-000005', rowVersion: 'AAAAAAAABQ=' });
         expect(storeMock.load).toHaveBeenCalledWith(5);
+    });
+
+    it('should render cancellation user name instead of user id', () => {
+        detail.set({
+            ...DETAIL,
+            codigoEstadoCompra: 'ANULADA',
+            nombreEstadoCompra: 'Anulada',
+            puedeAnular: false,
+            motivoAnulacion: 'Registro duplicado',
+            anuladaUtc: '2026-08-25T21:00:00Z',
+            anuladaById: 4,
+            anuladaByNombre: 'María Secretaria'
+        });
+
+        const fixture = TestBed.createComponent(CompraDetailPage);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).toContain('María Secretaria');
+        expect(fixture.nativeElement.textContent).not.toContain('#4');
     });
 });

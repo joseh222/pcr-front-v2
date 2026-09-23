@@ -87,8 +87,10 @@ export interface CompraDetailResponse {
     readonly motivoAnulacion: string | null;
     readonly anuladaUtc: string | null;
     readonly anuladaById: number | null;
+    readonly anuladaByNombre: string | null;
     readonly createdUtc: string;
     readonly createdById: number;
+    readonly createdByNombre: string;
     readonly puedeAnular: boolean;
     readonly rowVersion: string;
     readonly detalles: readonly CompraDetailItem[];
