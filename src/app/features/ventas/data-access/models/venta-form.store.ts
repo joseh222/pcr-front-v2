@@ -1,6 +1,6 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+﻿import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, of } from 'rxjs';
+import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 import { PersonaLookup, PersonaCreateRequest, PersonaCreateResponse, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
@@ -124,6 +124,78 @@ export class VentaFormStore {
                     this.errorSignal.set(getApiErrorMessage(error, 'No se pudo cargar la información necesaria para registrar la venta.'));
                 }
             });
+    }
+
+    loadProducts(): Observable<readonly VentaProductoBusqueda[]> {
+        return this.loadAllPages(pageNumber =>
+            this.api.getProductosSelector({
+                pageNumber,
+                pageSize: 100,
+                search: null,
+                idCategoriaProducto: null,
+                idMarcaProducto: null,
+                isActive: true
+            })
+        ).pipe(map(items => items.map(item => ({
+            idProducto: item.idProducto,
+            codProducto: item.codProducto,
+            nombre: item.nombre,
+            sku: item.sku,
+            idCategoriaProducto: item.idCategoriaProducto,
+            nombreCategoria: item.nombreCategoria,
+            idMarcaProducto: item.idMarcaProducto,
+            nombreMarca: item.nombreMarca,
+            precioVenta: item.precioVenta,
+            stockActual: item.stockActual
+        }))));
+
+    }
+
+    loadServices(): Observable<readonly VentaSolicitudPendiente[]> {
+        return this.loadAllPages(pageNumber =>
+            this.api.getSolicitudesPendientesSelector({
+                pageNumber,
+                pageSize: 100,
+                search: null,
+                idServicio: null,
+                estadoSolicitud: 'ACTIVA',
+                estadoPago: 'PENDIENTE',
+                requierePago: true,
+                fechaInicio: null,
+                fechaFin: null
+            })
+        ).pipe(map(items => items.map(item => ({
+            idSolicitudServicio: item.idSolicitudServicio,
+            codSolicitudServicio: item.codSolicitudServicio,
+            idServicio: item.idServicio,
+            codigoServicio: item.codigoServicio,
+            nombreServicio: item.nombreServicio,
+            idPersona: item.idPersona,
+            numeroDocumento: item.numeroDocumento,
+            nombreCompleto: item.nombreCompleto,
+            telefono: item.telefono,
+            requierePago: item.requierePago,
+            cantidad: item.cantidad,
+            importe: item.importe,
+            importeTotal: item.importeTotal,
+            estadoSolicitud: item.estadoSolicitud,
+            estadoPago: item.estadoPago,
+            idTipoSacramentoRequerido: item.idTipoSacramentoRequerido,
+            codigoTipoSacramentoRequerido: item.codigoTipoSacramentoRequerido,
+            nombreTipoSacramentoRequerido: item.nombreTipoSacramentoRequerido,
+            requiereRegistroSacramental: item.requiereRegistroSacramental,
+            tieneRegistroSacramental: item.tieneRegistroSacramental,
+            codigoTipoSacramentoRegistro: item.codigoTipoSacramentoRegistro,
+            idRegistroSacramental: item.idRegistroSacramental,
+            nombreRegistroSacramental: item.nombreRegistroSacramental,
+            numeroLibroRegistro: item.numeroLibroRegistro,
+            numeroFolioRegistro: item.numeroFolioRegistro,
+            numeroPartidaRegistro: item.numeroPartidaRegistro,
+            puedeCobrar: item.puedeCobrar,
+            motivoNoCobrable: item.motivoNoCobrable,
+            createdUtc: item.createdUtc
+        }))));
+
     }
 
     searchProducts(search: string): void {
@@ -414,6 +486,28 @@ export class VentaFormStore {
         this.saveErrorSignal.set(null);
     }
 
+
+    private loadAllPages<T>(
+        loadPage: (pageNumber: number) => Observable<{ readonly items: readonly T[]; readonly totalPages: number; }>
+    ): Observable<readonly T[]> {
+        return loadPage(1).pipe(
+            switchMap(first => {
+                if (first.totalPages <= 1) return of(first.items);
+
+                const requests = Array.from(
+                    { length: first.totalPages - 1 },
+                    (_, index) => loadPage(index + 2)
+                );
+
+                return forkJoin(requests).pipe(
+                    map(pages => [
+                        ...first.items,
+                        ...pages.flatMap(page => page.items)
+                    ])
+                );
+            })
+        );
+    }
 
     private loadInitialPerson(idPersona: number): void {
         this.api.getPersonaById(idPersona)

@@ -2,14 +2,16 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { map } from 'rxjs';
 import { Router } from '@angular/router';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { LookupSelectorDialog, LookupSelectorDialogData, LookupSelectorItem } from '../../../../shared/pages/dialogs/lookup-selector-dialog/lookup-selector-dialog';
 import { ProductoSearchItem } from '../../../productos/data-access/models/producto-read.models';
 import { ProveedorSearchItem } from '../../../proveedores/data-access/models/proveedor-read.models';
 import { CompraFormStore } from '../../data-access/models/compra-form.store';
@@ -39,6 +41,7 @@ export class CompraFormPage implements OnInit {
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
     private readonly router = inject(Router);
+    private readonly dialog = inject(MatDialog);
     protected readonly today = todayLocal();
 
     protected readonly form = this.fb.group({
@@ -74,9 +77,39 @@ export class CompraFormPage implements OnInit {
 
     ngOnInit(): void {
         this.store.initialize();
-        this.form.controls.proveedorSearch.valueChanges.pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(value => this.store.searchProveedores(value));
-        this.form.controls.productoSearch.valueChanges.pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(value => this.store.searchProductos(value));
         this.form.controls.idTipoComprobanteCompra.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.syncVoucherValidators());
+    }
+
+    protected openProveedorSelector(): void {
+        const data: LookupSelectorDialogData<ProveedorSearchItem> = {
+            title: 'Seleccionar proveedor',
+            icon: 'local_shipping',
+            searchLabel: 'Filtrar proveedores',
+            placeholder: 'Razón social, nombre comercial, documento o código',
+            hint: 'Se muestran todos los proveedores activos. Escribe para filtrar la lista.',
+            emptyText: 'No se encontraron proveedores con ese filtro.',
+            load: () => this.store.loadProveedores().pipe(map(items => items.map(proveedor => ({
+                id: proveedor.idProveedor,
+                title: `${proveedor.codProveedor} · ${proveedor.razonSocial}`,
+                subtitle: [
+                    proveedor.nombreComercial,
+                    proveedor.numeroDocumento
+                        ? `${proveedor.codigoTipoDocumento || 'Documento'} ${proveedor.numeroDocumento}`
+                        : null
+                ].filter(Boolean).join(' · '),
+                detail: [proveedor.telefono, proveedor.email].filter(Boolean).join(' · ') || null,
+                value: proveedor
+            } satisfies LookupSelectorItem<ProveedorSearchItem>))))
+        };
+
+        this.dialog.open(LookupSelectorDialog, {
+            width: 'min(860px, calc(100vw - 2rem))',
+            maxWidth: '98vw',
+            data
+        }).afterClosed().subscribe(result => {
+            if (!result) return;
+            this.selectProveedor(result as ProveedorSearchItem);
+        });
     }
 
     protected selectProveedor(proveedor: ProveedorSearchItem): void {
@@ -85,6 +118,33 @@ export class CompraFormPage implements OnInit {
 
     protected clearProveedor(): void {
         this.store.clearProveedor(); this.form.patchValue({ idProveedor: null, proveedorSearch: '' }, { emitEvent: false });
+    }
+
+    protected openProductSelector(): void {
+        const data: LookupSelectorDialogData<ProductoSearchItem> = {
+            title: 'Seleccionar producto',
+            icon: 'inventory_2',
+            searchLabel: 'Filtrar productos',
+            placeholder: 'Código, SKU, nombre, categoría o marca',
+            hint: 'Se muestran todos los productos activos. Escribe para filtrar la lista.',
+            emptyText: 'No se encontraron productos con ese filtro.',
+            load: () => this.store.loadProducts().pipe(map(items => items.map(product => ({
+                id: product.idProducto,
+                title: `${product.codProducto} · ${product.nombre}`,
+                subtitle: [product.sku, product.nombreCategoria, product.nombreMarca].filter(Boolean).join(' · '),
+                detail: `Stock actual: ${product.stockActual} · Precio venta: S/ ${product.precioVenta.toFixed(2)}`,
+                value: product
+            } satisfies LookupSelectorItem<ProductoSearchItem>))))
+        };
+
+        this.dialog.open(LookupSelectorDialog, {
+            width: 'min(860px, calc(100vw - 2rem))',
+            maxWidth: '98vw',
+            data
+        }).afterClosed().subscribe(result => {
+            if (!result) return;
+            this.addProduct(result as ProductoSearchItem);
+        });
     }
 
     protected addProduct(product: ProductoSearchItem): void {

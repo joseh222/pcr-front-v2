@@ -18,18 +18,11 @@
                             @if (!isEditMode()) { <button mat-stroked-button type="button" (click)="clearService()"><mat-icon>close</mat-icon>Cambiar</button> }
                         </div>
                     } @else {
-                        <mat-form-field appearance="outline" class="full-width">
-                            <mat-label>Buscar servicio</mat-label><mat-icon matPrefix>search</mat-icon>
-                            <input matInput formControlName="serviceSearch" [matAutocomplete]="serviceAutocomplete" autocomplete="off" placeholder="Código o nombre del servicio">
-                            @if (store.searchingServices()) { <mat-icon matSuffix>hourglass_top</mat-icon> }
-                            <mat-autocomplete #serviceAutocomplete="matAutocomplete">
-                                @for (service of store.serviceResults(); track service.idServicio) {
-                                    <mat-option [value]="service.nombre" (onSelectionChange)="$event.source.selected && selectService(service)"><div class="option-content"><strong>{{ service.nombre }}</strong><span>{{ service.codigo }} · {{ service.nombreCategoria }} · {{ service.modoPrecio }}</span></div></mat-option>
-                                }
-                            </mat-autocomplete>
-                            @if (form.controls.idServicio.touched && form.controls.idServicio.hasError('required')) { <mat-error>Selecciona un servicio.</mat-error> }
-                        </mat-form-field>
-                        <p class="helper-text">Las Misas no aparecen aquí porque deben registrarse desde el módulo Misas.</p>
+                        <div class="service-selector-empty">
+                            <div><strong>Revisa los servicios disponibles</strong><p>Abre el catálogo para ver nombre, categoría y precio antes de elegir.</p><small>Las Misas no aparecen aquí porque deben registrarse desde el módulo Misas.</small></div>
+                            <button mat-flat-button type="button" (click)="openServiceSelector()"><mat-icon>search</mat-icon>Seleccionar servicio</button>
+                        </div>
+                        @if (form.controls.idServicio.touched && form.controls.idServicio.hasError('required')) { <p class="field-error">Selecciona un servicio.</p> }
                     }
                 </div>
             </section>

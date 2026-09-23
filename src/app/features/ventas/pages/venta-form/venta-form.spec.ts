@@ -1,6 +1,8 @@
 ﻿import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { EMPTY, of } from 'rxjs';
 
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { VentaFormStore } from '../../data-access/models/venta-form.store';
@@ -42,13 +44,14 @@ describe('VentaFormPage', () => {
         serviceResults: serviceResults.asReadonly(), serviceLoading: signal(false).asReadonly(), personResults: personResults.asReadonly(),
         creatingPerson: signal(false).asReadonly(), createdPerson: createdPerson.asReadonly(), createPersonError: createPersonError.asReadonly(),
         items: items.asReadonly(), total: total.asReadonly(), saving: saving.asReadonly(), saveError: saveError.asReadonly(), saveResult: saveResult.asReadonly(),
-        initialize: vi.fn(), searchProducts: vi.fn(), searchServices: vi.fn(), searchPersons: vi.fn(), findPersonByDocument: vi.fn(), createPerson: vi.fn(),
+        initialize: vi.fn(), loadProducts: vi.fn(() => of([])), loadServices: vi.fn(() => of([])), searchProducts: vi.fn(), searchServices: vi.fn(), searchPersons: vi.fn(), findPersonByDocument: vi.fn(), createPerson: vi.fn(),
         addProduct: vi.fn(() => true), addService: vi.fn(() => true), updateProductQuantity: vi.fn(() => null), removeItem: vi.fn(), clearProductSearch: vi.fn(),
         clearServiceSearch: vi.fn(), clearPersonSearch: vi.fn(), clearDocumentPerson: vi.fn(), clearCreatedPerson: vi.fn(), createSale: vi.fn(), clearSaveResult: vi.fn(),
         hasInvalidItems: hasInvalidItems.asReadonly()
     };
 
     const feedbackMock = { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() };
+    const dialogMock = { open: vi.fn(() => ({ afterClosed: () => EMPTY })) };
 
     beforeEach(() => {
         initialPerson.set(null); documentPerson.set(null); productResults.set([]); serviceResults.set([]); personResults.set([]); items.set([]); total.set(0);
@@ -122,14 +125,14 @@ describe('VentaFormPage', () => {
 
     it('should hide product sales when Inventario is not licensed', async () => {
         const fixture = await createFixture({});
-        expect(fixture.nativeElement.textContent).not.toContain('Código, nombre o SKU');
+        expect(fixture.nativeElement.textContent).not.toContain('Seleccionar producto');
         expect(fixture.nativeElement.textContent).toContain('Servicio pendiente');
     });
 
     it('should show product sales when Inventario is licensed', async () => {
         enabledModules.add(MODULE_CODE.INVENTORY);
         const fixture = await createFixture({});
-        expect(fixture.nativeElement.textContent).toContain('Código, nombre o SKU');
+        expect(fixture.nativeElement.textContent).toContain('Seleccionar producto');
     });
 
     it('should hide service search when Servicios is not licensed', async () => {
@@ -137,7 +140,7 @@ describe('VentaFormPage', () => {
         enabledModules.add(MODULE_CODE.INVENTORY);
         const fixture = await createFixture({});
         expect(fixture.nativeElement.textContent).not.toContain('Servicio pendiente');
-        expect(fixture.nativeElement.textContent).toContain('Código, nombre o SKU');
+        expect(fixture.nativeElement.textContent).toContain('Seleccionar producto');
     });
 
     it('should calculate cash change visually', async () => {
@@ -308,7 +311,8 @@ describe('VentaFormPage', () => {
                 { provide: ModuleStore, useValue: moduleStoreMock },
                 provideRouter([]),
                 { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap(queryParams) } } },
-                { provide: FeedbackService, useValue: feedbackMock }
+                { provide: FeedbackService, useValue: feedbackMock },
+                { provide: MatDialog, useValue: dialogMock }
             ]
         });
         TestBed.overrideComponent(VentaFormPage, { set: { providers: [{ provide: VentaFormStore, useValue: storeMock }] } });

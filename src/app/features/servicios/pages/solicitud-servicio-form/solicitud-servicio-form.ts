@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
+﻿import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -14,6 +14,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { ConfirmActionDialog } from '../../../../shared/pages/dialogs/confirm-action-dialog/confirm-action-dialog';
+import { LookupSelectorDialog, LookupSelectorDialogData, LookupSelectorItem } from '../../../../shared/pages/dialogs/lookup-selector-dialog/lookup-selector-dialog';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 import { SolicitudServicioFormStore } from '../../data-access/models/solicitud-servicio-form.store';
 import { SolicitudServicioApiService } from '../../data-access/solicitud-servicio-api.service';
@@ -162,6 +163,38 @@ export class SolicitudServicioFormPage implements OnInit {
         this.idSolicitudServicio.set(id); this.store.initialize(id);
     }
 
+    protected openServiceSelector(): void {
+        if (this.isEditMode()) return;
+
+        const mapService = (service: ServicioLookupItem): LookupSelectorItem<ServicioLookupItem> => ({
+            id: service.idServicio,
+            title: `${service.codigo} · ${service.nombre}`,
+            subtitle: `${service.nombreCategoria} · ${service.modoPrecio === 'FIJO' ? 'Precio fijo' : 'Precio variable'}`,
+            detail: service.descripcion || (service.requiereRegistroSacramental ? `Requiere registro de ${service.nombreTipoSacramentoRequerido || 'sacramento'}.` : null),
+            badge: service.modoPrecio === 'FIJO' && service.precioBase !== null ? `S/ ${service.precioBase.toFixed(2)}` : 'Variable',
+            value: service
+        });
+
+        const data: LookupSelectorDialogData<ServicioLookupItem> = {
+            title: 'Seleccionar servicio parroquial',
+            icon: 'church',
+            searchLabel: 'Filtrar servicios',
+            placeholder: 'Código, nombre o categoría',
+            hint: 'Se muestran todos los servicios parroquiales activos. Escribe para filtrar la lista.',
+            emptyText: 'No se encontraron servicios con ese filtro.',
+            load: () => this.store.loadServices().pipe(map(items => items.map(mapService)))
+        };
+
+        this.dialog.open(LookupSelectorDialog, {
+            width: 'min(820px, calc(100vw - 2rem))',
+            maxWidth: '98vw',
+            data
+        }).afterClosed().subscribe(result => {
+            if (!result) return;
+            this.selectService(result as ServicioLookupItem);
+        });
+    }
+
     protected selectService(service: ServicioLookupItem): void {
         this.selectedService.set(service); this.selectedRegistro.set(null); this.registroChanged.set(false);
         this.form.patchValue({ idServicio: service.idServicio, serviceSearch: '' }, { emitEvent: false });
@@ -265,7 +298,6 @@ export class SolicitudServicioFormPage implements OnInit {
     }
 
     private setupSearches(): void {
-        this.form.controls.serviceSearch.valueChanges.pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(value => this.store.searchServices(value));
         this.form.controls.personaSearch.valueChanges.pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(value => this.store.searchPersons(value));
     }
 

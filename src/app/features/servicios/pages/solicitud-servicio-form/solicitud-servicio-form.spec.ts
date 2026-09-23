@@ -1,8 +1,8 @@
-import { signal } from '@angular/core';
+﻿import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { SolicitudServicioFormStore } from '../../data-access/models/solicitud-servicio-form.store';
 import { SolicitudServicioApiService } from '../../data-access/solicitud-servicio-api.service';
@@ -15,7 +15,7 @@ describe('SolicitudServicioFormPage', () => {
     const storeMock = {
         detail: signal<any>(null).asReadonly(), serviceDetail: signal<any>(null).asReadonly(), tiposDocumento: signal<any[]>([]).asReadonly(), serviceResults: signal<any[]>([]).asReadonly(), personResults: signal<any[]>([]).asReadonly(), createdPerson: signal<any>(null).asReadonly(),
         loading: signal(false).asReadonly(), saving: signal(false).asReadonly(), searchingServices: signal(false).asReadonly(), searchingPersons: signal(false).asReadonly(), error: signal<string | null>(null).asReadonly(), saveError: signal<string | null>(null).asReadonly(), personError: signal<string | null>(null).asReadonly(), saveResult: signal<any>(null).asReadonly(),
-        initialize: vi.fn(), searchServices: vi.fn(), clearServiceSearch: vi.fn(), searchPersons: vi.fn(), clearPersonSearch: vi.fn(), createPerson: vi.fn(), clearCreatedPerson: vi.fn(), create: vi.fn(), update: vi.fn(), clearSaveResult: vi.fn()
+        initialize: vi.fn(), loadServices: vi.fn(() => of([])), searchServices: vi.fn(), clearServiceSearch: vi.fn(), searchPersons: vi.fn(), clearPersonSearch: vi.fn(), createPerson: vi.fn(), clearCreatedPerson: vi.fn(), create: vi.fn(), update: vi.fn(), clearSaveResult: vi.fn()
     };
     const feedbackMock = { success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() };
     const dialogMock = { open: vi.fn(() => ({ afterClosed: () => EMPTY })) };

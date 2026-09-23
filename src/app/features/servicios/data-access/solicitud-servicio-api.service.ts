@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+﻿import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
@@ -37,7 +37,17 @@ export class SolicitudServicioApiService {
         return this.http.get<SolicitudServicioDetailResponse>(`${this.apiUrl}/${idSolicitudServicio}`);
     }
 
-    getServicios(): Observable<ServicioPagedResponse> { const params = new HttpParams().set('pageNumber', 1).set('pageSize', 100).set('isActive', true); return this.http.get<ServicioPagedResponse>(`${this.apiUrl}/servicios`, { params }); }
+    getServicios(): Observable<ServicioPagedResponse> {
+        return this.getServiciosPage(1, 100);
+    }
+
+    getServiciosPage(pageNumber: number, pageSize = 100): Observable<ServicioPagedResponse> {
+        const params = new HttpParams()
+            .set('pageNumber', pageNumber)
+            .set('pageSize', pageSize)
+            .set('isActive', true);
+        return this.http.get<ServicioPagedResponse>(`${this.apiUrl}/servicios`, { params });
+    }
 
     searchServicios(search: string, top = 10): Observable<readonly ServicioLookupItem[]> { const params = new HttpParams().set('search', search).set('top', top); return this.http.get<readonly ServicioLookupItem[]>(`${this.apiUrl}/servicios/search`, { params }); }
 

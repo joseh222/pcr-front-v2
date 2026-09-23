@@ -38,4 +38,8 @@
 .detail-total strong { font-size:1.5rem; }
 .form-actions { display:flex; justify-content:flex-end; gap:.75rem; padding-bottom:1rem; }
 @media (max-width:1000px) { .purchase-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (max-width:700px) { .page-header,.selected-card { flex-direction:column; } .form-grid,.purchase-grid { grid-template-columns:1fr; } .form-actions { flex-direction:column-reverse; } .form-actions button { width:100%; } }
+@media (max-width:700px) { .page-header,.selected-card,.selector-action { flex-direction:column; align-items:stretch; } .form-grid,.purchase-grid { grid-template-columns:1fr; } .form-actions { flex-direction:column-reverse; } .form-actions button { width:100%; } }
+
+.selector-action { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:.9rem 1rem; margin-bottom:1rem; border:1px solid var(--mat-sys-outline-variant); border-radius:.8rem; background:var(--mat-sys-surface-container-low); }
+.selector-action div { display:grid; gap:.2rem; }
+.selector-action span { opacity:.7; font-size:.86rem; }

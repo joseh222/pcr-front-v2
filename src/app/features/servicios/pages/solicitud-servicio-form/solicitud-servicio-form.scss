@@ -31,5 +31,10 @@
 .form-actions { display:flex; justify-content:flex-end; gap:.75rem; }
 .message-card { display:flex; align-items:center; gap:.5rem; padding:1rem; }
 .message-card.error { color:var(--mat-sys-error); }
-@media (max-width:700px) { .page-header { flex-direction:column; } .person-search-row,.form-grid { grid-template-columns:1fr; } .selected-card { align-items:flex-start; flex-direction:column; } .form-actions { flex-direction:column-reverse; } .form-actions a,.form-actions button { width:100%; } }
+@media (max-width:700px) { .page-header,.service-selector-empty { flex-direction:column; align-items:stretch; } .person-search-row,.form-grid { grid-template-columns:1fr; } .selected-card { align-items:flex-start; flex-direction:column; } .form-actions { flex-direction:column-reverse; } .form-actions a,.form-actions button { width:100%; } }
 .sacramental-empty{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem;border:1px dashed var(--mat-sys-outline);border-radius:12px}.sacramental-empty p{margin:.25rem 0 0;color:var(--mat-sys-on-surface-variant)}.selected-actions{display:flex;gap:.5rem;flex-wrap:wrap}@media(max-width:700px){.sacramental-empty{align-items:stretch;flex-direction:column}}
+
+.service-selector-empty { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem; border:1px dashed var(--mat-sys-outline-variant); border-radius:.8rem; background:var(--mat-sys-surface-container-low); }
+.service-selector-empty > div { display:grid; gap:.2rem; }
+.service-selector-empty p,.service-selector-empty small { margin:0; opacity:.7; }
+.field-error { color:var(--mat-sys-error); font-size:.8rem; margin:.45rem 0 0; }

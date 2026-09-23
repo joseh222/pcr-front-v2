@@ -2,6 +2,8 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { EMPTY, of } from 'rxjs';
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
 import { CompraFormStore } from '../../data-access/models/compra-form.store';
 import { CompraFormPage } from './compra-form';
@@ -12,13 +14,14 @@ describe('CompraFormPage', () => {
         tiposComprobante: signal<any[]>([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true, esPredeterminado: true }]).asReadonly(),
         loading: signal(false).asReadonly(), loadError: signal<string | null>(null).asReadonly(), proveedorResults: signal<any[]>([]).asReadonly(), proveedorLoading: signal(false).asReadonly(), proveedorError: signal<string | null>(null).asReadonly(), selectedProveedor: selectedProveedor.asReadonly(),
         productoResults: signal<any[]>([]).asReadonly(), productoLoading: signal(false).asReadonly(), productoError: signal<string | null>(null).asReadonly(), items: items.asReadonly(), total: signal(10).asReadonly(), hasInvalidItems: signal(false).asReadonly(), saving: signal(false).asReadonly(), saveError: signal<string | null>(null).asReadonly(), saveResult: saveResult.asReadonly(),
-        initialize: vi.fn(), searchProveedores: vi.fn(), selectProveedor: vi.fn(), clearProveedor: vi.fn(), searchProductos: vi.fn(), addProduct: vi.fn(() => 'ADDED'), updateQuantity: vi.fn(), updateCost: vi.fn(), removeProduct: vi.fn(), create: vi.fn(), reset: vi.fn(), clearSaveResult: vi.fn()
+        initialize: vi.fn(), loadProveedores: vi.fn(() => of([])), selectProveedor: vi.fn(), clearProveedor: vi.fn(), loadProducts: vi.fn(() => of([])), searchProductos: vi.fn(), addProduct: vi.fn(() => 'ADDED'), updateQuantity: vi.fn(), updateCost: vi.fn(), removeProduct: vi.fn(), create: vi.fn(), reset: vi.fn(), clearSaveResult: vi.fn()
     };
     const feedbackMock = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
     const routerMock = { navigate: vi.fn(() => Promise.resolve(true)) };
+    const dialogMock = { open: vi.fn(() => ({ afterClosed: () => EMPTY })) };
 
     async function createFixture() {
-        TestBed.configureTestingModule({ imports: [CompraFormPage], providers: [{ provide: FeedbackService, useValue: feedbackMock }, { provide: Router, useValue: routerMock }] });
+        TestBed.configureTestingModule({ imports: [CompraFormPage], providers: [{ provide: FeedbackService, useValue: feedbackMock }, { provide: Router, useValue: routerMock }, { provide: MatDialog, useValue: dialogMock }] });
         TestBed.overrideComponent(CompraFormPage, { set: { providers: [{ provide: CompraFormStore, useValue: storeMock }] } });
         await TestBed.compileComponents(); const fixture = TestBed.createComponent(CompraFormPage); fixture.detectChanges(); return fixture;
     }

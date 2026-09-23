@@ -381,3 +381,8 @@
     line-height: 1.25;
 }
 .search-result-disabled{opacity:.68}.search-result-disabled mat-icon{color:var(--mat-sys-error)}
+
+.selector-panel { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.selector-panel > div { display:grid; gap:.2rem; }
+.selector-panel p { margin:0; opacity:.7; font-size:.86rem; }
+.selector-panel button { flex:none; }

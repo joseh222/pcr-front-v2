@@ -2,6 +2,7 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -11,6 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs';
 
 import { FeedbackService } from '../../../../core/feedback/feedback.service';
+import { LookupSelectorDialog, LookupSelectorDialogData, LookupSelectorItem } from '../../../../shared/pages/dialogs/lookup-selector-dialog/lookup-selector-dialog';
 import { PersonaSearchItem } from '../../../personas/data-access/models/persona-api.models';
 import { VentaFormStore } from '../../data-access/models/venta-form.store';
 import { VentaProductoBusqueda, VentaSolicitudPendiente } from '../../data-access/models/venta-lookup.models';
@@ -43,6 +45,7 @@ export class VentaFormPage implements OnInit {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
     private readonly feedback = inject(FeedbackService);
+    private readonly dialog = inject(MatDialog);
     private readonly authStore = inject(AuthStore);
     private readonly moduleStore = inject(ModuleStore);
     protected readonly canCreatePerson = () => this.authStore.hasPermission(PERMISSION_CODE.SALE_CREATE);
@@ -210,6 +213,78 @@ export class VentaFormPage implements OnInit {
         });
     }
 
+    protected openProductSelector(): void {
+        if (!this.canSellProducts()) {
+            this.feedback.warning('El módulo Inventario no está habilitado para esta instalación.');
+            return;
+        }
+
+        const data: LookupSelectorDialogData<VentaProductoBusqueda> = {
+            title: 'Seleccionar producto',
+            icon: 'inventory_2',
+            searchLabel: 'Filtrar productos',
+            placeholder: 'Código, SKU, nombre, categoría o marca',
+            hint: 'Se muestran todos los productos activos. Escribe para filtrar la lista.',
+            emptyText: 'No se encontraron productos con ese filtro.',
+            load: () => this.store.loadProducts().pipe(map(items => items.map(product => ({
+                id: product.idProducto,
+                title: `${product.codProducto} · ${product.nombre}`,
+                subtitle: [product.sku, product.nombreCategoria, product.nombreMarca].filter(Boolean).join(' · '),
+                detail: `Stock: ${product.stockActual} · Precio: S/ ${product.precioVenta.toFixed(2)}`,
+                badge: product.stockActual > 0 ? `Stock ${product.stockActual}` : 'Sin stock',
+                disabled: product.stockActual <= 0,
+                disabledReason: product.stockActual <= 0 ? 'Producto sin stock disponible.' : null,
+                value: product
+            } satisfies LookupSelectorItem<VentaProductoBusqueda>))))
+        };
+
+        this.dialog.open(LookupSelectorDialog, {
+            width: 'min(860px, calc(100vw - 2rem))',
+            maxWidth: '98vw',
+            data
+        }).afterClosed().subscribe(result => {
+            if (!result) return;
+            this.selectProduct(result as VentaProductoBusqueda);
+        });
+    }
+
+    protected openServiceSelector(): void {
+        if (!this.canSellServices()) {
+            this.feedback.warning('El módulo Servicios parroquiales no está habilitado para esta instalación.');
+            return;
+        }
+
+        const data: LookupSelectorDialogData<VentaSolicitudPendiente> = {
+            title: 'Seleccionar servicio pendiente',
+            icon: 'church',
+            searchLabel: 'Filtrar servicios pendientes',
+            placeholder: 'Solicitud, servicio, persona o documento',
+            hint: 'Se muestran todas las solicitudes pendientes de cobro. Escribe para filtrar la lista.',
+            emptyText: 'No se encontraron solicitudes pendientes con ese filtro.',
+            load: () => this.store.loadServices().pipe(map(items => items.map(service => ({
+                id: service.idSolicitudServicio,
+                title: `${service.codSolicitudServicio} · ${service.nombreServicio}`,
+                subtitle: `${service.nombreCompleto || 'Sin persona'}${service.numeroDocumento ? ' · ' + service.numeroDocumento : ''}`,
+                detail: `${service.cantidad} ud. × S/ ${service.importe.toFixed(2)} = S/ ${service.importeTotal.toFixed(2)}`,
+                badge: service.puedeCobrar ? 'Listo para cobrar' : 'No cobrable',
+                disabled: !service.puedeCobrar,
+                disabledReason: !service.puedeCobrar
+                    ? (service.motivoNoCobrable || 'La solicitud todavía no está lista para cobrar.')
+                    : null,
+                value: service
+            } satisfies LookupSelectorItem<VentaSolicitudPendiente>))))
+        };
+
+        this.dialog.open(LookupSelectorDialog, {
+            width: 'min(900px, calc(100vw - 2rem))',
+            maxWidth: '98vw',
+            data
+        }).afterClosed().subscribe(result => {
+            if (!result) return;
+            this.selectService(result as VentaSolicitudPendiente);
+        });
+    }
+
     protected selectProduct(product: VentaProductoBusqueda): void {
         if (!this.canSellProducts()) {
             this.feedback.warning('El módulo Inventario no está habilitado para esta instalación.');
@@ -358,26 +433,6 @@ export class VentaFormPage implements OnInit {
     }
 
     private setupSearches(): void {
-        this.form.controls.productoSearch.valueChanges
-            .pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-            .subscribe(value => {
-                if (!this.canSellProducts()) {
-                    this.store.clearProductSearch();
-                    return;
-                }
-                this.store.searchProducts(value);
-            });
-
-        this.form.controls.servicioSearch.valueChanges
-            .pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-            .subscribe(value => {
-                if (!this.canSellServices()) {
-                    this.store.clearServiceSearch();
-                    return;
-                }
-                this.store.searchServices(value);
-            });
-
         this.form.controls.nombre.valueChanges
             .pipe(map(value => value.trim()), debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
             .subscribe(value => {
