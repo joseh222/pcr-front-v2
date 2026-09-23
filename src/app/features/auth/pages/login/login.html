@@ -112,6 +112,13 @@
                             </button>
                         </div>
 
+                        @if (sessionExpired) {
+                        <div class="mb-5 rounded-xl border border-[var(--mat-sys-tertiary)] bg-[var(--mat-sys-tertiary-container)] p-4 text-sm text-[var(--mat-sys-on-tertiary-container)]"
+                            role="alert" data-testid="session-expired">
+                            Tu sesión ha finalizado. Vuelve a iniciar sesión para continuar.
+                        </div>
+                        }
+
                         @if (errorMessage()) {
                         <div class="mb-5 rounded-xl border border-[var(--mat-sys-error)] bg-[var(--mat-sys-error-container)] p-4 text-sm text-[var(--mat-sys-on-error-container)]"
                             role="alert" data-testid="login-error">

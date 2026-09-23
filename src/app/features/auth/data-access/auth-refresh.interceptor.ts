@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+﻿import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, from, switchMap, throwError } from 'rxjs';
@@ -41,7 +41,10 @@ export const authRefreshInterceptor: HttpInterceptorFn = (request, next) => {
                 switchMap(accessToken => next(withBearerToken(request, accessToken))),
                 catchError(refreshError => {
                     authStore.clearSession();
-                    void router.navigate(['/login'], { replaceUrl: true });
+                    void router.navigate(['/login'], {
+                        replaceUrl: true,
+                        queryParams: { sessionExpired: '1' }
+                    });
 
                     return throwError(() => refreshError);
                 })

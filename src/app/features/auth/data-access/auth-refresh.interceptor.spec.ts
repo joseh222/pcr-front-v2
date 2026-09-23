@@ -1,4 +1,4 @@
-import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from '@angular/common/http';
+﻿import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -198,7 +198,8 @@ describe('authRefreshInterceptor', () => {
 
         expect(authStoreMock.clearSession).toHaveBeenCalled();
         expect(routerMock.navigate).toHaveBeenCalledWith(['/login'], {
-            replaceUrl: true
+            replaceUrl: true,
+            queryParams: { sessionExpired: '1' }
         });
     });
 });
