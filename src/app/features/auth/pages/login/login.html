@@ -66,11 +66,12 @@
                         </div>
                     </div>
 
-                    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+                    <form [formGroup]="form" (ngSubmit)="submit()" autocomplete="off" novalidate>
                         <mat-form-field appearance="outline" class="w-full">
                             <mat-label>Usuario</mat-label>
 
-                            <input matInput type="text" formControlName="username" autocomplete="username"
+                            <input matInput type="text" formControlName="username" autocomplete="off"
+                                autocapitalize="none" spellcheck="false"
                                 maxlength="100" data-testid="login-username">
 
                             @if (form.controls.username.hasError('required')) {
@@ -90,7 +91,7 @@
                             <mat-label>Contraseña</mat-label>
 
                             <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
-                                autocomplete="current-password" maxlength="256" data-testid="login-password">
+                                autocomplete="off" maxlength="256" data-testid="login-password">
 
                             @if (form.controls.password.hasError('required')) {
                             <mat-error>

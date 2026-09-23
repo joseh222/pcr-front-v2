@@ -93,6 +93,16 @@ describe('LoginPage', () => {
         fixture.detectChanges();
     });
 
+    it('should request browser credential saving and autofill to stay disabled', () => {
+        const formElement = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+        const username = fixture.nativeElement.querySelector('[data-testid="login-username"]') as HTMLInputElement;
+        const password = fixture.nativeElement.querySelector('[data-testid="login-password"]') as HTMLInputElement;
+
+        expect(formElement.getAttribute('autocomplete')).toBe('off');
+        expect(username.getAttribute('autocomplete')).toBe('off');
+        expect(password.getAttribute('autocomplete')).toBe('off');
+    });
+
     it('should not login when the form is invalid', async () => {
         submitForm();
 
