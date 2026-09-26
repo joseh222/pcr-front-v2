@@ -49,4 +49,18 @@ describe('ConfiguracionMantenimientosPage',()=>{
         expect(text).not.toContain('Precios de Misas');expect(text).not.toContain('Servicios parroquiales y precios');expect(text).not.toContain('Categorías y marcas de productos');
         expect(calls.misa).not.toHaveBeenCalled();expect(calls.servicios).not.toHaveBeenCalled();expect(calls.productos).not.toHaveBeenCalled();expect(calls.marcas).not.toHaveBeenCalled();
     });
+
+    it('oculta mantenimientos de módulos no licenciados y no los consulta',()=>{
+        const calls={misa:vi.fn(()=>of([])),servicios:vi.fn(()=>of([])),productos:vi.fn(()=>of([])),marcas:vi.fn(()=>of([]))};
+        const api:any={
+            getParroquia:()=>of({idConfiguracion:1,nombreParroquia:'PARROQUIA TEST',lugarExpedicion:'LIMA',direccion:null,distrito:null,provincia:null,departamento:null,telefono:null,correo:null,ruc:null,nombreParroco:null,configuracionInicialCompletada:true,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null,updatedUtc:null,updatedBy:null,rowVersion:'A'}),
+            getMetodosPago:()=>of([]),getTiposComprobante:()=>of([]),getSeriesComprobante:()=>of([]),
+            getMisaPrecios:calls.misa,getMisaPrecioOpciones:()=>of([]),getCategoriasServicio:calls.servicios,getCategoriasProducto:calls.productos,getMarcasProducto:calls.marcas
+        };
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideNoopAnimations(),provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:(code:string)=>code===MODULE_CODE.SALES}}]});
+        const fixture=TestBed.createComponent(ConfiguracionMantenimientosPage);fixture.detectChanges();const text=fixture.nativeElement.textContent;
+        expect(text).not.toContain('Precios de Misas');expect(text).not.toContain('Servicios parroquiales y precios');expect(text).not.toContain('Categorías y marcas de productos');
+        expect(calls.misa).not.toHaveBeenCalled();expect(calls.servicios).not.toHaveBeenCalled();expect(calls.productos).not.toHaveBeenCalled();expect(calls.marcas).not.toHaveBeenCalled();
+    });
 });
