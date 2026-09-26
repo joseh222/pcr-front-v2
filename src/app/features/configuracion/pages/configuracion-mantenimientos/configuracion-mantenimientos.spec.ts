@@ -1,6 +1,5 @@
-import { of } from 'rxjs';
+﻿import { of } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { ConfiguracionMantenimientosPage } from './configuracion-mantenimientos';
 import { ConfiguracionParroquiaIdentidadStore } from '../../data-access/configuracion-parroquia-identidad.store';
@@ -15,7 +14,8 @@ describe('ConfiguracionMantenimientosPage',()=>{
         const api:any={
             getParroquia:()=>of({idConfiguracion:1,nombreParroquia:'PARROQUIA TEST',lugarExpedicion:'LIMA',direccion:null,distrito:null,provincia:null,departamento:null,telefono:null,correo:null,ruc:null,nombreParroco:null,configuracionInicialCompletada:false,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null,updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}),
             getMetodosPago:()=>of(Array.from({length:6},(_,i)=>({idMetodoPago:i+1,codigo:`PAGO_${i+1}`,nombre:i===0?'Efectivo':`Pago ${i+1}`,isActive:true,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}))),
-            getTiposComprobante:()=>of([{idTipoComprobante:1,codigo:'TICKET',nombre:'Ticket',serieDefault:'T001',isActive:true,ultimoNumero:0,tieneMovimientos:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}]),
+            getTiposComprobante:()=>of([{idTipoComprobante:1,codigo:'TICKET',nombre:'Ticket',serieDefault:'T001',isActive:true,esPredeterminado:false,ultimoNumero:0,tieneMovimientos:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}]),
+            getTiposComprobanteCompra:()=>of([{idTipoComprobanteCompra:2,codigo:'FACTURA',nombre:'Factura',requiereSerie:true,requiereNumero:true,isActive:true,esPredeterminado:true,tieneMovimientos:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'CCCCCCCCCCC='}]),
             getSeriesComprobante:()=>of([{idTipoComprobante:1,codigoTipoComprobante:'TICKET',nombreTipoComprobante:'Ticket',serie:'T001',ultimoNumero:0,siguienteNumero:1,isActive:true,esPredeterminada:true,tieneMovimientos:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA=',tipoRowVersion:'BBBBBBBBBBB='}]),
             getMisaPrecioOpciones:()=>of([{idModalidad:1,nombreModalidad:'Personal',idTipo:1,codigoTipo:'SALUD',nombreTipo:'Salud'}]),
             getMisaPrecios:()=>of([{idPrecio:1,idModalidad:1,nombreModalidad:'Personal',idTipo:1,codigoTipo:'SALUD',nombreTipo:'Salud',precio:50,modoCalculo:'FIJO',fechaVigencia:'2026-01-01',fechaFin:null,esActivo:true,createdBy:null,updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}]),
@@ -23,9 +23,31 @@ describe('ConfiguracionMantenimientosPage',()=>{
             getCategoriasProducto:()=>of([{id:1,codigo:'LIBROS',nombre:'Libros',descripcion:null,isActive:true,tieneDependenciasActivas:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}]),
             getMarcasProducto:()=>of([{id:1,codigo:'SAN_PABLO',nombre:'San Pablo',descripcion:null,isActive:true,tieneDependenciasActivas:false,createdUtc:'2026-01-01',updatedUtc:null,updatedBy:null,rowVersion:'AAAAAAAAAAA='}])
         };
-        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideNoopAnimations(),provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:()=>true}}]});
+        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:()=>true}}]});
         const fixture=TestBed.createComponent(ConfiguracionMantenimientosPage);fixture.detectChanges();const text=fixture.nativeElement.textContent;
-        expect(text).toContain('PARROQUIA TEST');expect(text).toContain('Efectivo');expect(text).toContain('Pago 5');expect(text).not.toContain('Pago 6');expect(text).toContain('T001');expect(text).toContain('Precios de Misas');expect(text).toContain('S/ 50.00');expect(text).toContain('Celebraciones');expect(text).toContain('Libros');expect(text).toContain('San Pablo');expect(text).not.toMatch(/16\.\d/);
+        const nombreParroquiaInput=fixture.nativeElement.querySelector('input[formControlName="nombreParroquia"]') as HTMLInputElement;
+        expect(nombreParroquiaInput.value).toBe('PARROQUIA TEST');
+        expect(fixture.nativeElement.querySelector('#datos-parroquia')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#metodos-pago')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#comprobantes-venta')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#series-correlativos')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#comprobantes-compra')).toBeTruthy();
+        expect(fixture.nativeElement.querySelector('#servicios-parroquiales')).toBeTruthy();
+        expect(text).toContain('Efectivo');expect(text).toContain('Pago 5');expect(text).not.toContain('Pago 6');expect(text).toContain('T001');expect(text).toContain('Tipos de comprobante de compra');expect(text).toContain('Factura');expect(text).toContain('Precios de Misas');expect(text).toContain('S/ 50.00');expect(text).toContain('Celebraciones');expect(text).toContain('Libros');expect(text).toContain('San Pablo');expect(text).not.toMatch(/16\.\d/);
+    });
+
+    it('oculta mantenimientos de módulos no licenciados y no los consulta',()=>{
+        const calls={misa:vi.fn(()=>of([])),servicios:vi.fn(()=>of([])),productos:vi.fn(()=>of([])),marcas:vi.fn(()=>of([]))};
+        const api:any={
+            getParroquia:()=>of({idConfiguracion:1,nombreParroquia:'PARROQUIA TEST',lugarExpedicion:'LIMA',direccion:null,distrito:null,provincia:null,departamento:null,telefono:null,correo:null,ruc:null,nombreParroco:null,configuracionInicialCompletada:true,configuracionInicialCompletadaUtc:null,configuracionInicialCompletadaBy:null,updatedUtc:null,updatedBy:null,rowVersion:'A'}),
+            getMetodosPago:()=>of([]),getTiposComprobante:()=>of([]),getTiposComprobanteCompra:()=>of([]),getSeriesComprobante:()=>of([]),
+            getMisaPrecios:calls.misa,getMisaPrecioOpciones:()=>of([]),getCategoriasServicio:calls.servicios,getCategoriasProducto:calls.productos,getMarcasProducto:calls.marcas
+        };
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({imports:[ConfiguracionMantenimientosPage],providers:[provideRouter([]),{provide:ConfiguracionApiService,useValue:api},{provide:FeedbackService,useValue:{success:()=>{},error:()=>{},warning:()=>{}}},{provide:AuthStore,useValue:{hasPermission:(_c:string)=>true}},{provide:ConfiguracionParroquiaIdentidadStore,useValue:{load:()=>Promise.resolve({})}},{provide:ModuleStore,useValue:{isEnabled:(code:string)=>code===MODULE_CODE.SALES}}]});
+        const fixture=TestBed.createComponent(ConfiguracionMantenimientosPage);fixture.detectChanges();const text=fixture.nativeElement.textContent;
+        expect(text).not.toContain('Precios de Misas');expect(text).not.toContain('Servicios parroquiales y precios');expect(text).not.toContain('Categorías y marcas de productos');
+        expect(calls.misa).not.toHaveBeenCalled();expect(calls.servicios).not.toHaveBeenCalled();expect(calls.productos).not.toHaveBeenCalled();expect(calls.marcas).not.toHaveBeenCalled();
     });
 
     it('oculta mantenimientos de módulos no licenciados y no los consulta',()=>{

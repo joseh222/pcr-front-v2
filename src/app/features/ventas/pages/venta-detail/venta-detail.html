@@ -37,13 +37,13 @@
             </a>
 
             <button mat-stroked-button type="button" (click)="openTicket()" [disabled]="generatingTicket()">
-                <mat-icon>print</mat-icon>
-                {{ generatingTicket() ? 'Generando...' : 'Ver / imprimir ticket' }}
+                <mat-icon>visibility</mat-icon>
+                {{ generatingTicket() ? 'Generando...' : 'Ver ticket' }}
             </button>
 
             @if (documents()?.tieneDocumentosAdicionales) {
             <button mat-flat-button type="button" (click)="openDocuments()" [disabled]="generatingDocuments()">
-                <mat-icon>print</mat-icon>
+                <mat-icon>visibility</mat-icon>
                 {{ generatingDocuments() ? 'Generando...' : 'Ver paquete completo' }}
             </button>
             }
@@ -119,7 +119,9 @@
                 <div class="document-info"><strong>{{ documento.titulo }}</strong><span>{{ documento.codigoReferencia || 'Documento de venta' }}</span><small>Solicitudes de impresión: {{ documento.cantidadSolicitudesImpresion }}@if (documento.cantidadImpresionesConfirmadas > 0) { · Enviadas al spooler: {{ documento.cantidadImpresionesConfirmadas }} }</small>@if (documento.estadoUltimoTrabajo) { <small class="print-job-status" [class.error]="documento.estadoUltimoTrabajo === 'ERROR'">Cola: {{ printJobLabel(documento) }}@if (documento.intentosUltimoTrabajo) { · Intento {{ documento.intentosUltimoTrabajo }}/{{ documento.maxIntentosUltimoTrabajo }} }</small> }@if (documento.estadoUltimoTrabajo === 'ERROR' && documento.ultimoErrorTrabajo) { <small class="print-job-error">{{ documento.ultimoErrorTrabajo }}</small> }</div>
                 <div class="document-actions">
                     <button mat-stroked-button type="button" (click)="openDocument(documento)"><mat-icon>visibility</mat-icon>Ver</button>
+                    @if (canPrint()) {
                     <button mat-flat-button type="button" (click)="printDocument(documento)"><mat-icon>print</mat-icon>{{ documento.cantidadSolicitudesImpresion > 0 ? 'Reimprimir' : 'Imprimir' }}</button>
+                    }
                     @if (documento.tipo === 'MISA_REGISTRO' && canCorrectMisa() && documento.misas.length > 0) { <button mat-stroked-button type="button" (click)="correctIntentions(documento)"><mat-icon>edit_note</mat-icon>Corregir intenciones</button> }
                 </div>
             </div>
@@ -159,9 +161,9 @@
                         <td>{{ itemCode(item) }}</td>
                         <td>{{ item.descripcion }}</td>
                         <td>{{ item.cantidad }}</td>
-                        <td>{{ item.precioUnitario | currency:'PEN':'symbol':'1.2-2' }}</td>
+                        <td>{{ item.precioUnitario | currency:'PEN':'S/':'1.2-2' }}</td>
                         <td>
-                            <strong>{{ item.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                            <strong>{{ item.subTotal | currency:'PEN':'S/':'1.2-2' }}</strong>
                         </td>
                     </tr>
                     }
@@ -172,19 +174,19 @@
         <div class="totals">
             <div>
                 <span>Subtotal</span>
-                <strong>{{ venta.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                <strong>{{ venta.subTotal | currency:'PEN':'S/':'1.2-2' }}</strong>
             </div>
 
             @if (venta.impuesto > 0) {
             <div>
                 <span>Impuesto</span>
-                <strong>{{ venta.impuesto | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                <strong>{{ venta.impuesto | currency:'PEN':'S/':'1.2-2' }}</strong>
             </div>
             }
 
             <div class="grand-total">
                 <span>Total</span>
-                <strong>{{ venta.total | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                <strong>{{ venta.total | currency:'PEN':'S/':'1.2-2' }}</strong>
             </div>
         </div>
     </article>

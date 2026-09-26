@@ -112,53 +112,22 @@
 
             <div class="section-body lookup-grid">
                 @if (canSellProducts()) {
-                <div class="lookup-panel">
-                    <h3>Producto</h3>
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Código, nombre o SKU</mat-label>
-                        <input matInput formControlName="productoSearch" placeholder="Ej. vela">
-                        <mat-icon matSuffix>inventory_2</mat-icon>
-                    </mat-form-field>
-                    @if (store.productLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
-                    @if (store.productResults().length > 0) {
-                    <div class="search-results compact">
-                        @for (product of store.productResults(); track product.idProducto) {
-                        <button type="button" class="search-result" (click)="selectProduct(product)">
-                            <span><strong>{{ product.codProducto }} · {{ product.nombre }}</strong><small>Stock {{
-                                    product.stockActual }} · S/ {{ product.precioVenta.toFixed(2) }}</small></span>
-                            <mat-icon>add_circle_outline</mat-icon>
-                        </button>
-                        }
+                <div class="lookup-panel selector-panel">
+                    <div>
+                        <h3>Producto</h3>
+                        <p>Abre el catálogo, busca visualmente el producto y confirma antes de agregarlo.</p>
                     </div>
-                    }
+                    <button mat-flat-button type="button" (click)="openProductSelector()"><mat-icon>inventory_2</mat-icon>Seleccionar producto</button>
                 </div>
                 }
 
                 @if (canSellServices()) {
-                <div class="lookup-panel">
-                    <h3>Servicio pendiente</h3>
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Solicitud, servicio, nombre o documento</mat-label>
-                        <input matInput formControlName="servicioSearch" placeholder="Ej. SS2026-000027">
-                        <mat-icon matSuffix>church</mat-icon>
-                    </mat-form-field>
-                    @if (store.serviceLoading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
-                    @if (store.serviceResults().length > 0) {
-                    <div class="search-results compact">
-                        @for (service of store.serviceResults(); track service.idSolicitudServicio) {
-                        <button type="button" class="search-result" [class.search-result-disabled]="!service.puedeCobrar" (click)="selectService(service)">
-                            <span>
-                                <strong>{{ service.codSolicitudServicio }} · {{ service.nombreServicio }}</strong>
-                                <small>{{ service.nombreCompleto || 'Sin persona' }} · {{ service.cantidad }} ud. × S/ {{ service.importe.toFixed(2) }} = S/ {{ service.importeTotal.toFixed(2) }}</small>
-                                @if (service.requiereRegistroSacramental) {
-                                    <small>{{ service.tieneRegistroSacramental ? ((service.nombreRegistroSacramental || '') + ' · Libro ' + (service.numeroLibroRegistro || '—') + ' · Folio ' + (service.numeroFolioRegistro || '—') + ' · Partida ' + (service.numeroPartidaRegistro || '—')) : (service.motivoNoCobrable || 'Pendiente de asociar registro sacramental') }}</small>
-                                }
-                            </span>
-                            <mat-icon>{{ service.puedeCobrar ? 'add_circle_outline' : 'link_off' }}</mat-icon>
-                        </button>
-                        }
+                <div class="lookup-panel selector-panel">
+                    <div>
+                        <h3>Servicio pendiente</h3>
+                        <p>Busca una solicitud pendiente por código, servicio, persona o documento.</p>
                     </div>
-                    }
+                    <button mat-flat-button type="button" (click)="openServiceSelector()"><mat-icon>church</mat-icon>Seleccionar servicio</button>
                 </div>
                 }
             </div>

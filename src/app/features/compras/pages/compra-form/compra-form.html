@@ -20,20 +20,16 @@
                         <button mat-stroked-button type="button" (click)="clearProveedor()"><mat-icon>close</mat-icon>Cambiar</button>
                     </div>
                 } @else {
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Buscar proveedor</mat-label><mat-icon matPrefix>search</mat-icon>
-                        <input matInput formControlName="proveedorSearch" autocomplete="off" placeholder="Ej. San José, RUC o PRV2026...">
-                        <mat-hint>Escribe al menos 2 caracteres.</mat-hint>
-                    </mat-form-field>
-                    @if (store.proveedorLoading()) { <mat-progress-bar mode="indeterminate" /> }
-                    @if (store.proveedorResults().length > 0) {
-                        <div class="search-results">
-                            @for (proveedor of store.proveedorResults(); track proveedor.idProveedor) {
-                                <button type="button" class="search-result" (click)="selectProveedor(proveedor)"><span><strong>{{ proveedor.razonSocial }}</strong><small>{{ proveedor.codProveedor }} @if (proveedor.numeroDocumento) { · {{ proveedor.numeroDocumento }} }</small></span><mat-icon>add_circle_outline</mat-icon></button>
-                            }
-                        </div>
+                    <div class="selector-action">
+                        <button mat-flat-button type="button" (click)="openProveedorSelector()">
+                            <mat-icon>search</mat-icon>
+                            Seleccionar proveedor
+                        </button>
+                        <span>Se mostrará la lista completa de proveedores activos.</span>
+                    </div>
+                    @if (form.controls.idProveedor.touched && form.controls.idProveedor.invalid) {
+                        <div class="field-error">Selecciona un proveedor.</div>
                     }
-                    @if (form.controls.idProveedor.touched && form.controls.idProveedor.invalid) { <div class="field-error">Selecciona un proveedor.</div> }
                 }
             </div>
         </section>
@@ -51,15 +47,14 @@
         <section class="form-card">
             <header class="section-header"><div class="section-icon"><mat-icon>inventory_2</mat-icon></div><div><h2>Detalle de compra</h2><p>El costo sugerido viene del producto y puede ajustarse para esta compra.</p></div></header>
             <div class="section-body">
-                <mat-form-field appearance="outline" class="full-width"><mat-label>Buscar producto</mat-label><mat-icon matPrefix>search</mat-icon><input matInput formControlName="productoSearch" autocomplete="off" placeholder="Código, SKU o nombre"><mat-hint>Escribe al menos 2 caracteres.</mat-hint></mat-form-field>
-                @if (store.productoLoading()) { <mat-progress-bar mode="indeterminate" /> }
-                @if (store.productoResults().length > 0) {
-                    <div class="search-results product-results">
-                        @for (producto of store.productoResults(); track producto.idProducto) {
-                            <button type="button" class="search-result" (click)="addProduct(producto)"><span><strong>{{ producto.nombre }}</strong><small>{{ producto.codProducto }} @if (producto.sku) { · {{ producto.sku }} } · {{ producto.nombreCategoria }}</small></span><mat-icon>add_circle_outline</mat-icon></button>
-                        }
+                <div class="selector-action">
+                    <div>
+                        <strong>Selecciona los productos visualmente</strong>
+                        <span>Busca por código, SKU o nombre y confirma el producto antes de agregarlo.</span>
                     </div>
-                }
+                    <button mat-flat-button type="button" (click)="openProductSelector()"><mat-icon>search</mat-icon>Seleccionar producto</button>
+                </div>
+                @if (store.productoLoading()) { <mat-progress-bar mode="indeterminate" /> }
 
                 @if (store.items().length === 0) {
                     <div class="empty-detail"><mat-icon>shopping_cart</mat-icon><span>Agrega al menos un producto a la compra.</span></div>

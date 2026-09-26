@@ -23,7 +23,7 @@
                 <ng-container matColumnDef="movimiento"><th mat-header-cell *matHeaderCellDef>Movimiento</th><td mat-cell *matCellDef="let item"><span class="type-badge" [class.output]="item.naturaleza === 'S'">{{ item.nombreTipoMovimiento }}</span></td></ng-container>
                 <ng-container matColumnDef="cantidad"><th mat-header-cell *matHeaderCellDef>Cantidad</th><td mat-cell *matCellDef="let item"><strong>{{ item.naturaleza === 'E' ? '+' : '-' }}{{ item.cantidad }}</strong></td></ng-container>
                 <ng-container matColumnDef="stock"><th mat-header-cell *matHeaderCellDef>Stock</th><td mat-cell *matCellDef="let item">{{ item.stockAnterior }} → <strong>{{ item.stockNuevo }}</strong></td></ng-container>
-                <ng-container matColumnDef="costo"><th mat-header-cell *matHeaderCellDef>Costo unit.</th><td mat-cell *matCellDef="let item">{{ item.costoUnitario == null ? '—' : (item.costoUnitario | currency:'PEN':'symbol':'1.2-2') }}</td></ng-container>
+                <ng-container matColumnDef="costo"><th mat-header-cell *matHeaderCellDef>Costo unit.</th><td mat-cell *matCellDef="let item">{{ item.costoUnitario == null ? '—' : (item.costoUnitario | currency:'PEN':'S/':'1.2-2') }}</td></ng-container>
                 <ng-container matColumnDef="motivo"><th mat-header-cell *matHeaderCellDef>Motivo</th><td mat-cell *matCellDef="let item">{{ item.motivo || '—' }}</td></ng-container>
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
             </table></div>

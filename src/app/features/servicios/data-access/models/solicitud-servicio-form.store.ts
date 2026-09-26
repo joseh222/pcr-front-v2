@@ -1,5 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { catchError, forkJoin, of } from 'rxjs';
+﻿import { Injectable, inject, signal } from '@angular/core';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../../personas/data-access/models/persona-api.models';
 import { SolicitudServicioApiService } from '../solicitud-servicio-api.service';
@@ -66,6 +66,33 @@ export class SolicitudServicioFormStore {
                 this.errorSignal.set(getApiErrorMessage(error, 'No se pudo cargar el formulario de solicitud.'));
             }
         });
+    }
+
+    loadServices(): Observable<readonly ServicioLookupItem[]> {
+        return this.loadAllPages(pageNumber => this.api.getServiciosPage(pageNumber, 100))
+            .pipe(map(items => items.filter(item => item.codigo.trim().toUpperCase() !== 'MISA')));
+    }
+
+    private loadAllPages<T>(
+        loadPage: (pageNumber: number) => Observable<{ readonly items: readonly T[]; readonly totalPages: number; }>
+    ): Observable<readonly T[]> {
+        return loadPage(1).pipe(
+            switchMap(first => {
+                if (first.totalPages <= 1) return of(first.items);
+
+                const requests = Array.from(
+                    { length: first.totalPages - 1 },
+                    (_, index) => loadPage(index + 2)
+                );
+
+                return forkJoin(requests).pipe(
+                    map(pages => [
+                        ...first.items,
+                        ...pages.flatMap(page => page.items)
+                    ])
+                );
+            })
+        );
     }
 
     searchServices(search: string): void {

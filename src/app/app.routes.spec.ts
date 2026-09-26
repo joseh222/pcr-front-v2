@@ -31,6 +31,9 @@ import { ProveedorApiService } from './features/proveedores/data-access/proveedo
 import { ProveedorStatusService } from './features/proveedores/data-access/proveedor-status.service';
 import { CompraApiService } from './features/compras/data-access/compra-api.service';
 import { ConfiguracionInicialStore } from './features/configuracion/data-access/configuracion-inicial.store';
+import { ConfiguracionParroquiaIdentidadStore } from './features/configuracion/data-access/configuracion-parroquia-identidad.store';
+import { ModuleStore } from './features/configuracion/data-access/module.store';
+import { ConstanciaApiService } from './features/sacramentos/constancias/data-access/constancia-api.service';
 
 describe('Application routes', () => {
     const preference = signal<ThemePreference>('system');
@@ -184,6 +187,45 @@ describe('Application routes', () => {
                 items: []
             })
         ),
+        getCalendar: vi.fn(() => of({
+            fechaInicio: '2026-08-01',
+            fechaFin: '2026-09-11',
+            items: []
+        })),
+        getPersonalDayDocumentStatus: vi.fn(() => of({
+            fecha: '2026-08-01',
+            cantidadMisas: 0,
+            cantidadProgramaciones: 0,
+            cantidadProgramacionesListas: 0,
+            cantidadPendientesCierre: 0,
+            cantidadProgramacionesGeneradas: 0,
+            totalDesactualizados: 0,
+            puedeGenerar: false,
+            todoGenerado: false
+        })),
+        getProgramStatus: vi.fn(() => of({
+            idProgramacion: null,
+            fecha: '2026-08-30',
+            hora: '18:00:00',
+            estadoProgramacion: 'ABIERTA',
+            versionActual: 0,
+            totalMisas: 0,
+            totalPersonales: 0,
+            totalComunitarias: 0,
+            totalConformes: 0,
+            totalPendientesPago: 0,
+            totalSolicitudInvalida: 0,
+            totalPagoInvalido: 0,
+            programacionCerrada: false,
+            programacionCelebrada: false,
+            puedeCerrar: false,
+            puedeReabrir: false,
+            ultimaReaperturaUtc: null,
+            motivoUltimaReapertura: null,
+            codigo: 'PROGRAMACION_ABIERTA',
+            mensaje: 'Programación abierta.',
+            pendientes: []
+        })),
 
         getById: vi.fn(() => of({
             idMisa: 15,
@@ -242,6 +284,7 @@ describe('Application routes', () => {
 
     const servicioApiMock = {
         getCategorias: vi.fn(() => of([{ idCategoriaServicio: 1, codigo: 'LITURGICO', nombre: 'Litúrgicos', descripcion: null, isActive: true, rowVersion: 'A' }])),
+        getTiposSacramento: vi.fn(() => of([])),
         getList: vi.fn(() => of({ items: [], pageNumber: 1, pageSize: 20, totalRecords: 0, totalPages: 0 })),
         getById: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', idCategoriaServicio: 1, codigoCategoria: 'LITURGICO', nombreCategoria: 'Litúrgicos', categoriaIsActive: true, nombre: 'Constancia', descripcion: null, modoPrecio: 'FIJO', precioBase: 15, isActive: true, createdUtc: '2026-08-20T00:00:00Z', updatedUtc: null, createdById: 1, updatedById: null, rowVersion: 'A' })),
         create: vi.fn(() => of({ idServicio: 5, codigo: 'CONSTANCIA', rowVersion: 'A', mensaje: 'OK' })),
@@ -263,7 +306,7 @@ describe('Application routes', () => {
     const proveedorStatusMock = { change: vi.fn(() => of(null)) };
     const compraApiMock = {
         getEstados: vi.fn(() => of([{ idEstadoCompra: 1, codigo: 'REGISTRADA', nombre: 'Registrada', isActive: true }])),
-        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true }])),
+        getTiposComprobante: vi.fn(() => of([{ idTipoComprobanteCompra: 1, codigo: 'FACTURA', nombre: 'Factura', requiereSerie: true, requiereNumero: true, isActive: true, esPredeterminado: false }])),
         getList: vi.fn(() => of({ pageNumber: 1, pageSize: 20, totalRows: 0, totalPages: 0, items: [] })),
         getById: vi.fn(() => of({
             idCompra: 5, codCompra: 'CMP2026-000005', fechaCompra: '2026-08-25', idProveedor: 2, tipoDocumentoProveedor: 'RUC', numeroDocumentoProveedor: '20123456789', razonSocialProveedor: 'Distribuidora San José SAC', nombreComercialProveedor: 'San José', idTipoComprobanteCompra: 1, codigoTipoComprobante: 'FACTURA', nombreTipoComprobante: 'Factura', serieComprobante: 'F001', numeroComprobante: '000123', idEstadoCompra: 1, codigoEstadoCompra: 'REGISTRADA', nombreEstadoCompra: 'Registrada', moneda: 'PEN', total: 55, cantidadDetalles: 1, cantidadTotal: 10, observaciones: null, motivoAnulacion: null, anuladaUtc: null, anuladaById: null, createdUtc: '2026-08-25T20:00:00Z', createdById: 9, puedeAnular: true, rowVersion: 'A', detalles: [{ idCompraDetalle: 10, idProducto: 8, codigoProducto: 'P2026-000008', sku: 'VEL-001', descripcion: 'Vela blanca', cantidad: 10, costoUnitario: 5.5, subTotal: 55 }]
@@ -288,6 +331,23 @@ describe('Application routes', () => {
         cancel: vi.fn(() => of({ idSolicitudServicio: 10, codSolicitudServicio: 'SS2026-00010', estadoSolicitud: 'ANULADA', rowVersion: 'B', mensaje: 'OK' }))
     };
     const solicitudCancellationMock = { cancel: vi.fn(() => of(null)) };
+    const constanciaApiMock = {
+        getBySolicitud: vi.fn(() => of(null))
+    };
+
+    const identidadStoreMock = {
+        load: vi.fn(async () => ({ nombreParroquia: 'PARROQUIA DEMO' })),
+        nombreParroquia: signal('PARROQUIA DEMO').asReadonly()
+    };
+
+    const moduleState = signal({ licenciaValida: true, modulos: [] } as any);
+    const moduleStoreMock = {
+        state: moduleState.asReadonly(),
+        load: vi.fn(async () => moduleState()),
+        hasAll: vi.fn((_modules: readonly string[]) => true),
+        isEnabled: vi.fn((_module: string) => true)
+    };
+
     const configuracionInicialStoreMock = {
         state: signal(null).asReadonly(),
         loading: signal(false).asReadonly(),
@@ -337,6 +397,8 @@ describe('Application routes', () => {
                 },
                 { provide: AuthStore, useValue: authStoreMock },
                 { provide: ConfiguracionInicialStore, useValue: configuracionInicialStoreMock },
+                { provide: ConfiguracionParroquiaIdentidadStore, useValue: identidadStoreMock },
+                { provide: ModuleStore, useValue: moduleStoreMock },
                 { provide: MisaApiService, useValue: misaApiMock },
                 { provide: PersonaApiService, useValue: personaApiMock },
                 { provide: PersonaStatusService, useValue: personaStatusMock },
@@ -352,7 +414,8 @@ describe('Application routes', () => {
                 { provide: ProveedorStatusService, useValue: proveedorStatusMock },
                 { provide: CompraApiService, useValue: compraApiMock },
                 { provide: SolicitudServicioApiService, useValue: solicitudServicioApiMock },
-                { provide: SolicitudServicioCancellationService, useValue: solicitudCancellationMock }
+                { provide: SolicitudServicioCancellationService, useValue: solicitudCancellationMock },
+                { provide: ConstanciaApiService, useValue: constanciaApiMock }
             ]
         });
     });
@@ -366,7 +429,7 @@ describe('Application routes', () => {
         expect(router.url).toBe('/dashboard');
         expect(harness.routeNativeElement?.textContent).toContain('Dashboard');
         expect(harness.routeNativeElement?.textContent).toContain(
-            'Bienvenido al Sistema de Gestión Parroquial.'
+            'Dashboard en construcción'
         );
     });
     it('should load the not found page for an unknown route', async () => {

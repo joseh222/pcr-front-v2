@@ -1,7 +1,7 @@
-import { HttpErrorResponse } from '@angular/common/http';
+﻿import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { vi } from 'vitest';
 
 import { RuntimeConfigService } from '../../../../core/config/runtime-config.service';
@@ -34,6 +34,12 @@ describe('LoginPage', () => {
         navigateByUrl: vi.fn()
     };
 
+    const activatedRouteMock = {
+        snapshot: {
+            queryParamMap: convertToParamMap({})
+        }
+    };
+
     const runtimeConfigMock = {
         config: {
             apiBaseUrl: 'https://localhost:9001/api',
@@ -50,6 +56,7 @@ describe('LoginPage', () => {
         isAuthenticating.set(false);
         mustChangePassword.set(false);
         themePreference.set('system');
+        activatedRouteMock.snapshot.queryParamMap = convertToParamMap({});
 
         authStoreMock.login.mockReset();
         themeServiceMock.setPreference.mockClear();
@@ -74,12 +81,26 @@ describe('LoginPage', () => {
                 {
                     provide: Router,
                     useValue: routerMock
+                },
+                {
+                    provide: ActivatedRoute,
+                    useValue: activatedRouteMock
                 }
             ]
         }).compileComponents();
 
         fixture = TestBed.createComponent(LoginPage);
         fixture.detectChanges();
+    });
+
+    it('should request browser credential saving and autofill to stay disabled', () => {
+        const formElement = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+        const username = fixture.nativeElement.querySelector('[data-testid="login-username"]') as HTMLInputElement;
+        const password = fixture.nativeElement.querySelector('[data-testid="login-password"]') as HTMLInputElement;
+
+        expect(formElement.getAttribute('autocomplete')).toBe('off');
+        expect(username.getAttribute('autocomplete')).toBe('off');
+        expect(password.getAttribute('autocomplete')).toBe('off');
     });
 
     it('should not login when the form is invalid', async () => {
@@ -137,6 +158,17 @@ describe('LoginPage', () => {
 
         expect(error?.textContent).toContain('Credenciales inválidas.');
         expect(routerMock.navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('should display a message when the previous session expired', () => {
+        fixture.destroy();
+        activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ sessionExpired: '1' });
+        fixture = TestBed.createComponent(LoginPage);
+        fixture.detectChanges();
+
+        const message = fixture.nativeElement.querySelector('[data-testid="session-expired"]');
+        expect(message?.textContent).toContain('Tu sesión ha finalizado');
+        expect(message?.textContent).toContain('Vuelve a iniciar sesión');
     });
 
     it('should redirect to change-password when password change is required', async () => {

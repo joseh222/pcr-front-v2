@@ -25,10 +25,10 @@
 
     @if (report(); as data) {
         <section class="kpi-grid" aria-label="Indicadores de compras">
-            <article class="kpi-card primary"><span class="kpi-label">Total comprado</span><strong>{{ data.totalComprado | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Compras vigentes del periodo</small></article>
+            <article class="kpi-card primary"><span class="kpi-label">Total comprado</span><strong>{{ data.totalComprado | currency:'PEN':'S/':'1.2-2' }}</strong><small>Compras vigentes del periodo</small></article>
             <article class="kpi-card"><span class="kpi-label">Compras realizadas</span><strong>{{ data.cantidadCompras | number }}</strong><small>Sin considerar anuladas</small></article>
-            <article class="kpi-card"><span class="kpi-label">Compra promedio</span><strong>{{ data.compraPromedio | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Promedio por compra vigente</small></article>
-            <article class="kpi-card warning"><span class="kpi-label">Compras anuladas</span><strong>{{ data.cantidadAnuladas | number }}</strong><small>{{ data.totalAnulado | currency:'PEN':'symbol':'1.2-2' }} anulados</small></article>
+            <article class="kpi-card"><span class="kpi-label">Compra promedio</span><strong>{{ data.compraPromedio | currency:'PEN':'S/':'1.2-2' }}</strong><small>Promedio por compra vigente</small></article>
+            <article class="kpi-card warning"><span class="kpi-label">Compras anuladas</span><strong>{{ data.cantidadAnuladas | number }}</strong><small>{{ data.totalAnulado | currency:'PEN':'S/':'1.2-2' }} anulados</small></article>
         </section>
 
         <div class="report-grid two-columns">
@@ -37,7 +37,7 @@
                 @if (data.proveedores.length === 0) { <p class="empty-state">No hay compras vigentes para el periodo seleccionado.</p> }
                 @for (item of data.proveedores; track item.idProveedor) {
                     <div class="bar-row">
-                        <div class="bar-label"><span>{{ item.nombreProveedor }}</span><strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                        <div class="bar-label"><span>{{ item.nombreProveedor }}</span><strong>{{ item.total | currency:'PEN':'S/':'1.2-2' }}</strong></div>
                         <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxProveedor())"></span></div>
                         <small>{{ item.cantidadCompras }} compra{{ item.cantidadCompras === 1 ? '' : 's' }}</small>
                     </div>
@@ -49,7 +49,7 @@
                 @if (data.productos.length === 0) { <p class="empty-state">No hay productos comprados para el periodo seleccionado.</p> }
                 @for (item of data.productos; track item.idProducto) {
                     <div class="bar-row">
-                        <div class="bar-label"><span>{{ item.descripcionProducto }}</span><strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                        <div class="bar-label"><span>{{ item.descripcionProducto }}</span><strong>{{ item.total | currency:'PEN':'S/':'1.2-2' }}</strong></div>
                         <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxProducto())"></span></div>
                         <small>{{ item.cantidad | number:'1.0-2' }} und. · {{ item.codigoProducto }}</small>
                     </div>
@@ -64,7 +64,7 @@
                 <div class="trend-row">
                     <span>{{ formatDate(item.fecha) }}</span>
                     <div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.total, maxDia())"></span></div>
-                    <strong>{{ item.total | currency:'PEN':'symbol':'1.2-2' }}</strong>
+                    <strong>{{ item.total | currency:'PEN':'S/':'1.2-2' }}</strong>
                     <small>{{ item.cantidadCompras }} compra{{ item.cantidadCompras === 1 ? '' : 's' }}</small>
                 </div>
             }

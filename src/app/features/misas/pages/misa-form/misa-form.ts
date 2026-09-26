@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { MisaFormStore } from '../../data-access/models/misa-form.store';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -38,7 +38,6 @@ type MisaIntentionFormGroup = FormGroup<{ idIntencion: FormControl<number>; nomb
         MatProgressBarModule,
         MatSelectModule,
         MatAutocompleteModule,
-        RouterLink,
         MatCheckboxModule,
         MatDialogModule],
     providers: [MisaFormStore],

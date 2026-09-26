@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
 import { VentaMetodoPago, VentaTipoComprobante } from './models/venta-catalog.models';
 import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente } from './models/venta-lookup.models';
+import { ProductoListQuery, ProductoPagedResponse } from '../../productos/data-access/models/producto-read.models';
+import { SolicitudServicioListQuery, SolicitudServicioPagedResponse } from '../../servicios/data-access/models/solicitud-servicio-read.models';
 import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
 import { VentaDetailResponse, VentaListFilters, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
 import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
@@ -26,6 +28,24 @@ export class VentaApiService {
 
     getRazonesAnulacion(): Observable<readonly VentaRazonAnulacion[]> {
         return this.http.get<readonly VentaRazonAnulacion[]>(`${this.ventaUrl}/razones-anulacion`);
+    }
+
+    getProductosSelector(query: ProductoListQuery): Observable<ProductoPagedResponse> {
+        let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.idCategoriaProducto != null) params = params.set('idCategoriaProducto', query.idCategoriaProducto);
+        if (query.idMarcaProducto != null) params = params.set('idMarcaProducto', query.idMarcaProducto);
+        if (query.isActive != null) params = params.set('isActive', query.isActive);
+        return this.http.get<ProductoPagedResponse>(`${this.ventaUrl}/productos`, { params });
+    }
+
+    getSolicitudesPendientesSelector(query: SolicitudServicioListQuery): Observable<SolicitudServicioPagedResponse> {
+        let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.idServicio != null) params = params.set('idServicio', query.idServicio);
+        if (query.fechaInicio) params = params.set('fechaInicio', query.fechaInicio);
+        if (query.fechaFin) params = params.set('fechaFin', query.fechaFin);
+        return this.http.get<SolicitudServicioPagedResponse>(`${this.ventaUrl}/solicitudes/pendientes/lista`, { params });
     }
 
     searchServiciosPendientes(search: string, top = 20): Observable<readonly VentaSolicitudPendiente[]> {

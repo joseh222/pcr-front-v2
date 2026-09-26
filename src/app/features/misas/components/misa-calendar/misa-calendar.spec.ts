@@ -64,6 +64,7 @@ describe('MisaCalendarComponent', () => {
                 { provide: MatDialog, useValue: dialog }
             ]
         });
+        TestBed.overrideProvider(MatDialog, { useValue: dialog });
     });
 
     it('loads the calendar workspace', () => {

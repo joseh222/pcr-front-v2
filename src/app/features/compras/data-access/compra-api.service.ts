@@ -6,8 +6,8 @@ import { EstadoCompra, TipoComprobanteCompra } from './models/compra-catalog.mod
 import { CompraCancelRequest, CompraCancelResponse } from './models/compra-cancel.models';
 import { CompraDetailResponse, CompraListFilters, CompraListQuery, CompraPagedResponse } from './models/compra-read.models';
 import { CompraCreateRequest, CompraCreateResponse } from './models/compra-write.models';
-import { ProveedorSearchItem } from '../../proveedores/data-access/models/proveedor-read.models';
-import { ProductoDetail, ProductoSearchItem } from '../../productos/data-access/models/producto-read.models';
+import { ProveedorListQuery, ProveedorPagedResponse, ProveedorSearchItem } from '../../proveedores/data-access/models/proveedor-read.models';
+import { ProductoDetail, ProductoListQuery, ProductoPagedResponse, ProductoSearchItem } from '../../productos/data-access/models/producto-read.models';
 
 @Injectable({ providedIn: 'root' })
 export class CompraApiService {
@@ -29,6 +29,23 @@ export class CompraApiService {
 
     exportPdf(filters: CompraListFilters): Observable<Blob> {
         return this.http.get(`${this.url}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
+
+    getProveedoresSelector(query: ProveedorListQuery): Observable<ProveedorPagedResponse> {
+        let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.idTipoDocumento != null) params = params.set('idTipoDocumento', query.idTipoDocumento);
+        if (query.isActive != null) params = params.set('isActive', query.isActive);
+        return this.http.get<ProveedorPagedResponse>(`${this.url}/proveedores`, { params });
+    }
+
+    getProductosSelector(query: ProductoListQuery): Observable<ProductoPagedResponse> {
+        let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.idCategoriaProducto != null) params = params.set('idCategoriaProducto', query.idCategoriaProducto);
+        if (query.idMarcaProducto != null) params = params.set('idMarcaProducto', query.idMarcaProducto);
+        if (query.isActive != null) params = params.set('isActive', query.isActive);
+        return this.http.get<ProductoPagedResponse>(`${this.url}/productos`, { params });
     }
 
     searchProveedores(search: string, top = 10): Observable<readonly ProveedorSearchItem[]> { const params = new HttpParams().set('search', search).set('top', top); return this.http.get<readonly ProveedorSearchItem[]>(`${this.url}/proveedores/search`, { params }); }

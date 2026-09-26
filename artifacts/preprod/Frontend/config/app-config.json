@@ -1,0 +1,11 @@
+﻿{
+    "apiBaseUrl":  "/backend/api",
+    "applicationName":  "PCR",
+    "environmentName":  "PREPROD",
+    "locale":  "es-PE",
+    "currency":  "PEN",
+    "defaultPageSize":  10,
+    "featureFlags":  {
+
+                     }
+}

@@ -42,11 +42,11 @@
                 <table class="detail-table">
                     <thead><tr><th>Código</th><th>SKU</th><th>Producto</th><th>Cantidad</th><th>Costo unit.</th><th>Subtotal</th></tr></thead>
                     <tbody>@for (item of compra.detalles; track item.idCompraDetalle) {
-                        <tr><td>{{ item.codigoProducto || '—' }}</td><td>{{ item.sku || '—' }}</td><td>{{ item.descripcion }}</td><td>{{ item.cantidad }}</td><td>{{ item.costoUnitario | currency:'PEN':'symbol':'1.2-2' }}</td><td><strong>{{ item.subTotal | currency:'PEN':'symbol':'1.2-2' }}</strong></td></tr>
+                        <tr><td>{{ item.codigoProducto || '—' }}</td><td>{{ item.sku || '—' }}</td><td>{{ item.descripcion }}</td><td>{{ item.cantidad }}</td><td>{{ item.costoUnitario | currency:'PEN':'S/':'1.2-2' }}</td><td><strong>{{ item.subTotal | currency:'PEN':'S/':'1.2-2' }}</strong></td></tr>
                     }</tbody>
                 </table>
             </div>
-            <div class="totals"><div><span>Productos</span><strong>{{ compra.cantidadDetalles }}</strong></div><div><span>Unidades</span><strong>{{ compra.cantidadTotal }}</strong></div><div class="grand-total"><span>Total</span><strong>{{ compra.total | currency:'PEN':'symbol':'1.2-2' }}</strong></div></div>
+            <div class="totals"><div><span>Productos</span><strong>{{ compra.cantidadDetalles }}</strong></div><div><span>Unidades</span><strong>{{ compra.cantidadTotal }}</strong></div><div class="grand-total"><span>Total</span><strong>{{ compra.total | currency:'PEN':'S/':'1.2-2' }}</strong></div></div>
         </article>
 
         @if (compra.observaciones) {

@@ -66,11 +66,12 @@
                         </div>
                     </div>
 
-                    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+                    <form [formGroup]="form" (ngSubmit)="submit()" autocomplete="off" novalidate>
                         <mat-form-field appearance="outline" class="w-full">
                             <mat-label>Usuario</mat-label>
 
-                            <input matInput type="text" formControlName="username" autocomplete="username"
+                            <input matInput type="text" formControlName="username" autocomplete="off"
+                                autocapitalize="none" spellcheck="false"
                                 maxlength="100" data-testid="login-username">
 
                             @if (form.controls.username.hasError('required')) {
@@ -90,7 +91,7 @@
                             <mat-label>Contraseña</mat-label>
 
                             <input matInput [type]="showPassword() ? 'text' : 'password'" formControlName="password"
-                                autocomplete="current-password" maxlength="256" data-testid="login-password">
+                                autocomplete="off" maxlength="256" data-testid="login-password">
 
                             @if (form.controls.password.hasError('required')) {
                             <mat-error>
@@ -111,6 +112,13 @@
                                 {{ showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña' }}
                             </button>
                         </div>
+
+                        @if (sessionExpired) {
+                        <div class="mb-5 rounded-xl border border-[var(--mat-sys-tertiary)] bg-[var(--mat-sys-tertiary-container)] p-4 text-sm text-[var(--mat-sys-on-tertiary-container)]"
+                            role="alert" data-testid="session-expired">
+                            Tu sesión ha finalizado. Vuelve a iniciar sesión para continuar.
+                        </div>
+                        }
 
                         @if (errorMessage()) {
                         <div class="mb-5 rounded-xl border border-[var(--mat-sys-error)] bg-[var(--mat-sys-error-container)] p-4 text-sm text-[var(--mat-sys-on-error-container)]"

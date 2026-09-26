@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { FeedbackService } from '../../../../../core/feedback/feedback.service';
@@ -9,7 +9,8 @@ import { LibroSacramentalFormPage } from './libro-form';
 
 describe('LibroSacramentalFormPage', () => {
     const api = { getTiposSacramento: vi.fn(() => of([{ idTipoSacramento: 1, codigo: 'BAUTISMO', nombre: 'Bautismo', orden: 10 }])), getEstadosFisicos: vi.fn(() => of([{ idEstadoLibroFisico: 1, codigo: 'DISPONIBLE', nombre: 'Disponible', orden: 10 }])), getById: vi.fn(), create: vi.fn(() => of({ idLibroSacramental: 7, rowVersion: 'A', mensaje: 'Libro creado' })), update: vi.fn() };
+    const routerMock = { navigate: vi.fn(() => Promise.resolve(true)), navigateByUrl: vi.fn(() => Promise.resolve(true)) };
     const feedback = { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() };
-    beforeEach(() => { Object.values(api).forEach(mock => mock.mockClear()); TestBed.configureTestingModule({ imports: [LibroSacramentalFormPage], providers: [provideRouter([]), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}) } } }, { provide: LibroSacramentalApiService, useValue: api }, { provide: FeedbackService, useValue: feedback }, { provide: SacramentalTextCaseService, useValue: { forzarMayusculas: () => true, ensureLoaded: vi.fn() } }] }); });
+    beforeEach(() => { TestBed.overrideProvider(Router, { useValue: routerMock }); Object.values(api).forEach(mock => mock.mockClear()); TestBed.configureTestingModule({ imports: [LibroSacramentalFormPage], providers: [provideRouter([]), { provide: Router, useValue: routerMock }, { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({}) } } }, { provide: LibroSacramentalApiService, useValue: api }, { provide: FeedbackService, useValue: feedback }, { provide: SacramentalTextCaseService, useValue: { forzarMayusculas: () => true, ensureLoaded: vi.fn() } }] }); });
     it('should validate folio sequence and create a book', () => { const fixture = TestBed.createComponent(LibroSacramentalFormPage); fixture.detectChanges(); fixture.componentInstance.form.setValue({ idTipoSacramento: 1, numeroLibro: '11', folioInicial: 1, folioFinal: 300, codigoEstadoFisico: 'DISPONIBLE', fechaAperturaFisica: null, fechaCierreFisica: null, ubicacionFisica: 'Archivo', observaciones: '' }); expect(fixture.componentInstance['validFolios']()).toBe(true); fixture.componentInstance['save'](); expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ idTipoSacramento: 1, numeroLibro: '11', folioInicial: 1, folioFinal: 300, codigoEstadoFisico: 'DISPONIBLE' })); });
 });

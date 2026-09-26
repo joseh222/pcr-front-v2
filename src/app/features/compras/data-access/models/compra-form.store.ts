@@ -1,5 +1,6 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+﻿import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { getApiErrorMessage } from '../../../../core/feedback/api-error-message';
 import { ProductoSearchItem } from '../../../productos/data-access/models/producto-read.models';
 import { ProveedorSearchItem } from '../../../proveedores/data-access/models/proveedor-read.models';
@@ -69,6 +70,55 @@ export class CompraFormStore {
     selectProveedor(proveedor: ProveedorSearchItem): void { this.selectedProveedorSignal.set(proveedor); this.proveedorResultsSignal.set([]); }
     clearProveedor(): void { this.selectedProveedorSignal.set(null); this.proveedorResultsSignal.set([]); }
 
+    loadProveedores(): Observable<readonly ProveedorSearchItem[]> {
+        return this.loadAllPages(pageNumber =>
+            this.api.getProveedoresSelector({
+                pageNumber,
+                pageSize: 100,
+                search: null,
+                idTipoDocumento: null,
+                isActive: true
+            })
+        ).pipe(map(items => items.map(item => ({
+            idProveedor: item.idProveedor,
+            codProveedor: item.codProveedor,
+            idTipoDocumento: item.idTipoDocumento,
+            codigoTipoDocumento: item.codigoTipoDocumento,
+            numeroDocumento: item.numeroDocumento,
+            razonSocial: item.razonSocial,
+            nombreComercial: item.nombreComercial,
+            telefono: item.telefono,
+            email: item.email,
+            isActive: item.isActive
+        }))));
+
+    }
+
+    loadProducts(): Observable<readonly ProductoSearchItem[]> {
+        return this.loadAllPages(pageNumber =>
+            this.api.getProductosSelector({
+                pageNumber,
+                pageSize: 100,
+                search: null,
+                idCategoriaProducto: null,
+                idMarcaProducto: null,
+                isActive: true
+            })
+        ).pipe(map(items => items.map(item => ({
+            idProducto: item.idProducto,
+            codProducto: item.codProducto,
+            nombre: item.nombre,
+            sku: item.sku,
+            idCategoriaProducto: item.idCategoriaProducto,
+            nombreCategoria: item.nombreCategoria,
+            idMarcaProducto: item.idMarcaProducto,
+            nombreMarca: item.nombreMarca,
+            precioVenta: item.precioVenta,
+            stockActual: item.stockActual
+        }))));
+
+    }
+
     searchProductos(search: string): void {
         const term = search.trim(); const version = ++this.productoSearchVersion;
         this.productoErrorSignal.set(null);
@@ -133,5 +183,27 @@ export class CompraFormStore {
     }
 
     clearSaveResult(): void { this.saveResultSignal.set(null); }
+    private loadAllPages<T>(
+        loadPage: (pageNumber: number) => Observable<{ readonly items: readonly T[]; readonly totalPages: number; }>
+    ): Observable<readonly T[]> {
+        return loadPage(1).pipe(
+            switchMap(first => {
+                if (first.totalPages <= 1) return of(first.items);
+
+                const requests = Array.from(
+                    { length: first.totalPages - 1 },
+                    (_, index) => loadPage(index + 2)
+                );
+
+                return forkJoin(requests).pipe(
+                    map(pages => [
+                        ...first.items,
+                        ...pages.flatMap(page => page.items)
+                    ])
+                );
+            })
+        );
+    }
+
     private round(value: number): number { return Math.round(value * 100) / 100; }
 }

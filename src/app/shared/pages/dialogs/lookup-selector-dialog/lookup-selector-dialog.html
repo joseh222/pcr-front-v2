@@ -1,0 +1,81 @@
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>{{ data.icon }}</mat-icon>
+    <span>{{ data.title }}</span>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+    <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ data.searchLabel }}</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+            matInput
+            [formControl]="searchControl"
+            autocomplete="off"
+            [placeholder]="data.placeholder || ''">
+        @if (data.hint) { <mat-hint>{{ data.hint }}</mat-hint> }
+    </mat-form-field>
+
+    @if (!loading() && !error()) {
+        <div class="list-summary">
+            <span>{{ results().length }} de {{ totalCount() }} registro(s)</span>
+            @if (searchControl.value.trim()) {
+                <button mat-button type="button" (click)="searchControl.setValue('')">
+                    <mat-icon>close</mat-icon>
+                    Limpiar filtro
+                </button>
+            }
+        </div>
+    }
+
+    @if (loading()) {
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <div class="state"><mat-icon>hourglass_top</mat-icon><span>Cargando lista...</span></div>
+    }
+
+    @if (error()) {
+        <div class="state error">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ error() }}</span>
+        </div>
+    }
+
+    @if (!loading() && !error() && results().length === 0) {
+        <div class="state empty">
+            <mat-icon>search_off</mat-icon>
+            <span>{{ data.emptyText || 'No se encontraron opciones.' }}</span>
+        </div>
+    }
+
+    @if (!loading() && !error() && results().length > 0) {
+        <div class="result-list">
+            @for (item of results(); track item.id) {
+                <button
+                    type="button"
+                    class="result-card"
+                    [class.selected]="selected()?.id === item.id"
+                    [class.disabled]="item.disabled"
+                    [disabled]="item.disabled"
+                    (click)="select(item)">
+                    <span class="result-main">
+                        <strong>{{ item.title }}</strong>
+                        @if (item.subtitle) { <small>{{ item.subtitle }}</small> }
+                        @if (item.detail) { <small>{{ item.detail }}</small> }
+                        @if (item.disabledReason) { <small class="disabled-reason">{{ item.disabledReason }}</small> }
+                    </span>
+
+                    <span class="result-side">
+                        @if (item.badge) { <span class="result-badge">{{ item.badge }}</span> }
+                        <mat-icon>
+                            {{ selected()?.id === item.id ? 'check_circle' : (item.disabled ? 'block' : 'radio_button_unchecked') }}
+                        </mat-icon>
+                    </span>
+                </button>
+            }
+        </div>
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-stroked-button [mat-dialog-close]="undefined">Cancelar</button>
+    <button mat-flat-button type="button" [disabled]="!selected()" (click)="confirm()">Aceptar</button>
+</mat-dialog-actions>

@@ -25,9 +25,9 @@
 
     @if (report(); as data) {
         <section class="kpi-grid" aria-label="Indicadores económicos">
-            <article class="kpi-card primary"><span class="kpi-label">Ingresos</span><strong>{{ data.totalIngresos | currency:'PEN':'symbol':'1.2-2' }}</strong><small>{{ data.cantidadVentas | number }} venta{{ data.cantidadVentas === 1 ? '' : 's' }} emitida{{ data.cantidadVentas === 1 ? '' : 's' }}</small></article>
-            <article class="kpi-card"><span class="kpi-label">Egresos</span><strong>{{ data.totalEgresos | currency:'PEN':'symbol':'1.2-2' }}</strong><small>{{ data.cantidadCompras | number }} compra{{ data.cantidadCompras === 1 ? '' : 's' }} registrada{{ data.cantidadCompras === 1 ? '' : 's' }}</small></article>
-            <article class="kpi-card" [class.warning]="data.saldoPeriodo < 0"><span class="kpi-label">Saldo del periodo</span><strong>{{ data.saldoPeriodo | currency:'PEN':'symbol':'1.2-2' }}</strong><small>Ingresos menos egresos</small></article>
+            <article class="kpi-card primary"><span class="kpi-label">Ingresos</span><strong>{{ data.totalIngresos | currency:'PEN':'S/':'1.2-2' }}</strong><small>{{ data.cantidadVentas | number }} venta{{ data.cantidadVentas === 1 ? '' : 's' }} emitida{{ data.cantidadVentas === 1 ? '' : 's' }}</small></article>
+            <article class="kpi-card"><span class="kpi-label">Egresos</span><strong>{{ data.totalEgresos | currency:'PEN':'S/':'1.2-2' }}</strong><small>{{ data.cantidadCompras | number }} compra{{ data.cantidadCompras === 1 ? '' : 's' }} registrada{{ data.cantidadCompras === 1 ? '' : 's' }}</small></article>
+            <article class="kpi-card" [class.warning]="data.saldoPeriodo < 0"><span class="kpi-label">Saldo del periodo</span><strong>{{ data.saldoPeriodo | currency:'PEN':'S/':'1.2-2' }}</strong><small>Ingresos menos egresos</small></article>
             <article class="kpi-card"><span class="kpi-label">Saldo / ingresos</span><strong>{{ data.saldoSobreIngresosPorcentaje | number:'1.2-2' }}%</strong><small>Indicador operativo, no margen contable</small></article>
         </section>
 
@@ -36,14 +36,14 @@
                 <div class="card-heading"><div><p class="card-eyebrow">Ingresos</p><h2>Por método de pago</h2></div><mat-icon>payments</mat-icon></div>
                 @if (data.metodosPago.length === 0) { <p class="empty-state">No hay ventas emitidas para el periodo seleccionado.</p> }
                 @for (item of data.metodosPago; track item.idMetodoPago) {
-                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreMetodoPago }}</span><strong>{{ item.totalIngresos | currency:'PEN':'symbol':'1.2-2' }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.totalIngresos, maxMetodoPago())"></span></div><small>{{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small></div>
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.nombreMetodoPago }}</span><strong>{{ item.totalIngresos | currency:'PEN':'S/':'1.2-2' }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.totalIngresos, maxMetodoPago())"></span></div><small>{{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small></div>
                 }
             </section>
             <section class="report-card">
                 <div class="card-heading"><div><p class="card-eyebrow">Composición</p><h2>Detalle vendido</h2></div><mat-icon>category</mat-icon></div>
                 @if (data.composicionVentas.length === 0) { <p class="empty-state">No hay detalle vendido para el periodo seleccionado.</p> }
                 @for (item of data.composicionVentas; track item.tipoItem) {
-                    <div class="bar-row"><div class="bar-label"><span>{{ item.tipoItem }}</span><strong>{{ item.totalDetalle | currency:'PEN':'symbol':'1.2-2' }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.totalDetalle, maxComposicion())"></span></div><small>{{ item.cantidadItems | number:'1.0-3' }} ítems · {{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small></div>
+                    <div class="bar-row"><div class="bar-label"><span>{{ item.tipoItem }}</span><strong>{{ item.totalDetalle | currency:'PEN':'S/':'1.2-2' }}</strong></div><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.totalDetalle, maxComposicion())"></span></div><small>{{ item.cantidadItems | number:'1.0-3' }} ítems · {{ item.cantidadVentas }} venta{{ item.cantidadVentas === 1 ? '' : 's' }}</small></div>
                 }
             </section>
         </div>
@@ -53,9 +53,9 @@
             @if (data.flujoDiario.length === 0) { <p class="empty-state">No hay movimientos económicos para el periodo seleccionado.</p> }
             @for (item of data.flujoDiario; track item.fecha) {
                 <div class="flow-day">
-                    <div class="flow-heading"><time>{{ formatDate(item.fecha) }}</time><strong>Saldo {{ item.saldo | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
-                    <div class="flow-line"><span>Ingresos</span><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.ingresos, maxFlujo())"></span></div><strong>{{ item.ingresos | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
-                    <div class="flow-line"><span>Egresos</span><div class="bar-track"><span class="bar-fill expense" [style.width.%]="percentage(item.egresos, maxFlujo())"></span></div><strong>{{ item.egresos | currency:'PEN':'symbol':'1.2-2' }}</strong></div>
+                    <div class="flow-heading"><time>{{ formatDate(item.fecha) }}</time><strong>Saldo {{ item.saldo | currency:'PEN':'S/':'1.2-2' }}</strong></div>
+                    <div class="flow-line"><span>Ingresos</span><div class="bar-track"><span class="bar-fill" [style.width.%]="percentage(item.ingresos, maxFlujo())"></span></div><strong>{{ item.ingresos | currency:'PEN':'S/':'1.2-2' }}</strong></div>
+                    <div class="flow-line"><span>Egresos</span><div class="bar-track"><span class="bar-fill expense" [style.width.%]="percentage(item.egresos, maxFlujo())"></span></div><strong>{{ item.egresos | currency:'PEN':'S/':'1.2-2' }}</strong></div>
                 </div>
             }
         </section>

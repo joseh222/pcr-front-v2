@@ -1,5 +1,6 @@
 import { ApplicationConfig, importProvidersFrom, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
     
     importProvidersFrom(MatSnackBarModule),
     
+    { provide: DATE_PIPE_DEFAULT_OPTIONS, useValue: { timezone: '-0500' } },
     provideRouter(routes),
     provideHttpClient(withInterceptors([
       authTokenInterceptor,

@@ -10,33 +10,20 @@ import { MatDialog } from '@angular/material/dialog';
 import { EMPTY, of } from 'rxjs';
 import { AuthStore } from '../../../auth/data-access/auth.store';
 import { MisaApiService } from '../../data-access/misa-api.service';
+import { MisaProgramStatus } from '../../data-access/models/misa-calendar.models';
 
-const authStoreMock = { hasPermission: vi.fn(() => true) };
+const DEFAULT_PROGRAM_STATUS: MisaProgramStatus = {
+    idProgramacion: null, fecha: '2026-09-09', hora: '18:00:00', estadoProgramacion: 'ABIERTA', versionActual: 0,
+    totalMisas: 0, totalPersonales: 0, totalComunitarias: 0, totalConformes: 0, totalPendientesPago: 0,
+    totalSolicitudInvalida: 0, totalPagoInvalido: 0, programacionCerrada: false, programacionCelebrada: false,
+    puedeCerrar: false, puedeReabrir: false, ultimaReaperturaUtc: null, motivoUltimaReapertura: null,
+    codigo: 'NOT_FOUND', mensaje: 'No existen Misas.', pendientes: []
+};
+
+const authStoreMock = { hasPermission: vi.fn<AuthStore['hasPermission']>(() => true) };
 
 const misaApiMock = {
-    getProgramStatus: vi.fn(() => of({
-        idProgramacion: null,
-        fecha: '2026-09-09',
-        hora: '18:00:00',
-        estadoProgramacion: 'ABIERTA',
-        versionActual: 0,
-        totalMisas: 0,
-        totalPersonales: 0,
-        totalComunitarias: 0,
-        totalConformes: 0,
-        totalPendientesPago: 0,
-        totalSolicitudInvalida: 0,
-        totalPagoInvalido: 0,
-        programacionCerrada: false,
-        programacionCelebrada: false,
-        puedeCerrar: false,
-        puedeReabrir: false,
-        ultimaReaperturaUtc: null,
-        motivoUltimaReapertura: null,
-        codigo: 'NOT_FOUND',
-        mensaje: 'No existen Misas.',
-        pendientes: []
-    }))
+    getProgramStatus: vi.fn<MisaApiService['getProgramStatus']>(() => of(DEFAULT_PROGRAM_STATUS))
 };
 
 describe('MisaFormPage', () => {
@@ -140,7 +127,8 @@ describe('MisaFormPage', () => {
         dialogMock.open.mockClear();
         dialogMock.open.mockReturnValue({ afterClosed: () => EMPTY });
         authStoreMock.hasPermission.mockReturnValue(true);
-        misaApiMock.getProgramStatus.mockClear();
+        misaApiMock.getProgramStatus.mockReset();
+        misaApiMock.getProgramStatus.mockReturnValue(of(DEFAULT_PROGRAM_STATUS));
     });
 
     it('should initialize create mode', async () => {
@@ -346,7 +334,7 @@ describe('MisaFormPage', () => {
 
 
     it('should block save when selected date and time belong to a closed program', async () => {
-        misaApiMock.getProgramStatus.mockReturnValueOnce(of({
+        misaApiMock.getProgramStatus.mockReturnValue(of({
             idProgramacion: 10, fecha: '2026-09-09', hora: '18:00:00',
             estadoProgramacion: 'CERRADA', versionActual: 1,
             totalMisas: 2, totalPersonales: 1, totalComunitarias: 1, totalConformes: 2,

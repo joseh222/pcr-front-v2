@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -68,12 +68,13 @@ export class ConfiguracionInicialPage implements OnInit {
             description:'Nombre, lugar de expedición y datos institucionales.',
             ok:s.datosParroquiaOk,
             detail:s.datosParroquiaOk?'Datos generales completos':'Obligatorio para finalizar',
-            route:'/configuracion/mantenimientos',
+            route:'/configuracion/mantenimientos#datos-parroquia',
             icon:'church',
             required:true
         });
 
         const sales=this.modules.isEnabled(MODULE_CODE.SALES);
+        const purchases=this.modules.isEnabled(MODULE_CODE.PURCHASES);
         const services=this.modules.isEnabled(MODULE_CODE.SERVICES);
         const masses=this.modules.isEnabled(MODULE_CODE.MASSES);
         const inventory=this.modules.isEnabled(MODULE_CODE.INVENTORY);
@@ -81,21 +82,35 @@ export class ConfiguracionInicialPage implements OnInit {
 
         if(sales){
             result.push(
-                { id:'payments', title:'Métodos de pago',description:'Define cómo podrá cobrar la parroquia.',ok:s.metodosPagoOk,detail:`${s.cantidadMetodosPagoActivos} método(s) activo(s)`,route:'/configuracion/mantenimientos',icon:'payments',required:false },
-                { id:'receipts', title:'Comprobantes y series',description:'Tipos de comprobante y su serie predeterminada.',ok:s.comprobantesSeriesOk,detail:`${s.cantidadTiposComprobanteActivos} tipo(s), ${s.cantidadSeriesPredeterminadasActivas} serie(s) lista(s)`,route:'/configuracion/mantenimientos',icon:'receipt_long',required:false }
+                { id:'payments', title:'Métodos de pago',description:'Define cómo podrá cobrar la parroquia.',ok:s.metodosPagoOk,detail:`${s.cantidadMetodosPagoActivos} método(s) activo(s)`,route:'/configuracion/mantenimientos#metodos-pago',icon:'payments',required:false },
+                { id:'sale-receipts', title:'Tipos de comprobante de venta',description:'Documentos que PCR puede emitir en una venta.',ok:s.tiposComprobanteVentaOk,detail:`${s.cantidadTiposComprobanteActivos} tipo(s) activo(s)`,route:'/configuracion/mantenimientos#comprobantes-venta',icon:'receipt_long',required:false },
+                { id:'sale-series', title:'Series y correlativos',description:'Series activas y predeterminadas utilizadas para emitir comprobantes.',ok:s.seriesComprobanteOk,detail:`${s.cantidadSeriesPredeterminadasActivas} serie(s) predeterminada(s) activa(s)`,route:'/configuracion/mantenimientos#series-correlativos',icon:'tag',required:false }
             );
         }
 
+        if(purchases){
+            result.push({
+                id:'purchase-receipts',
+                title:'Tipos de comprobante de compra',
+                description:'Documentos que la parroquia puede recibir de sus proveedores.',
+                ok:s.comprobantesCompraOk,
+                detail:`${s.cantidadTiposComprobanteCompraActivos} tipo(s) activo(s)`,
+                route:'/configuracion/mantenimientos#comprobantes-compra',
+                icon:'shopping_cart_checkout',
+                required:false
+            });
+        }
+
         if(services){
-            result.push({ id:'services', title:'Servicios parroquiales',description:'Servicios, precios y requisitos utilizados por las solicitudes.',ok:s.serviciosOk,detail:`${s.cantidadServiciosActivos} servicio(s) activo(s)`,route:'/catalogos/servicios',icon:'design_services',required:false });
+            result.push({ id:'services', title:'Servicios parroquiales',description:'Servicios, precios y requisitos utilizados por las solicitudes.',ok:s.serviciosOk,detail:`${s.cantidadServiciosActivos} servicio(s) activo(s)`,route:'/configuracion/mantenimientos#servicios-parroquiales',icon:'design_services',required:false });
         }
 
         if(masses){
-            result.push({ id:'mass-prices', title:'Tarifas de Misas',description:'Precios vigentes por modalidad y tipo de Misa.',ok:s.preciosMisaOk,detail:`${s.cantidadPreciosMisaActivos} tarifa(s) activa(s)`,route:'/configuracion/mantenimientos',icon:'volunteer_activism',required:false });
+            result.push({ id:'mass-prices', title:'Tarifas de Misas',description:'Precios vigentes por modalidad y tipo de Misa.',ok:s.preciosMisaOk,detail:`${s.cantidadPreciosMisaActivos} tarifa(s) activa(s)`,route:'/configuracion/mantenimientos#precios-misas',icon:'volunteer_activism',required:false });
         }
 
         if(inventory){
-            result.push({ id:'inventory-catalogs', title:'Categorías y marcas de productos',description:'Catálogos base para registrar y organizar productos.',ok:s.catalogosProductoOk,detail:`${s.cantidadCategoriasProductoActivas} categoría(s), ${s.cantidadMarcasProductoActivas} marca(s)`,route:'/configuracion/mantenimientos',icon:'category',required:false });
+            result.push({ id:'inventory-catalogs', title:'Categorías y marcas de productos',description:'Catálogos base para registrar y organizar productos.',ok:s.catalogosProductoOk,detail:`${s.cantidadCategoriasProductoActivas} categoría(s), ${s.cantidadMarcasProductoActivas} marca(s)`,route:'/configuracion/mantenimientos#catalogos-productos',icon:'category',required:false });
         }
 
         if(sales){
