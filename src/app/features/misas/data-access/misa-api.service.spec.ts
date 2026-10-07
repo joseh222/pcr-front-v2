@@ -1,0 +1,492 @@
+import { provideHttpClient } from '@angular/common/http';
+import {
+    HttpTestingController,
+    provideHttpClientTesting
+} from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+
+import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
+import { MisaApiService } from './misa-api.service';
+import {
+    MisaCreateRequest,
+    MisaUpdateRequest
+} from './models/misa-write.models';
+
+describe('MisaApiService', () => {
+    let service: MisaApiService;
+    let httpTesting: HttpTestingController;
+
+    const apiUrl = 'https://localhost:7002/api/Misa';
+
+    const runtimeConfigMock = {
+        config: {
+            apiBaseUrl: 'https://localhost:7002/api'
+        }
+    };
+
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            providers: [
+                MisaApiService,
+                provideHttpClient(),
+                provideHttpClientTesting(),
+                {
+                    provide: RuntimeConfigService,
+                    useValue: runtimeConfigMock
+                }
+            ]
+        });
+
+        service = TestBed.inject(MisaApiService);
+        httpTesting = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => {
+        httpTesting.verify();
+    });
+
+    it('should request the paginated misa list with filters', () => {
+        service.getList({
+            fechaInicio: '2026-08-01',
+            fechaFin: '2026-08-31',
+            idModalidad: 1,
+            idTipo: 2,
+            idEstado: 3,
+            estadoPago: 'PENDIENTE',
+            texto: 'JUAN',
+            pagina: 2,
+            tamanoPagina: 20
+        }).subscribe();
+
+        const request = httpTesting.expectOne(req =>
+            req.url === apiUrl
+        );
+
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-01');
+        expect(request.request.params.get('fechaFin')).toBe('2026-08-31');
+        expect(request.request.params.get('idModalidad')).toBe('1');
+        expect(request.request.params.get('idTipo')).toBe('2');
+        expect(request.request.params.get('idEstado')).toBe('3');
+        expect(request.request.params.get('estadoPago')).toBe('PENDIENTE');
+        expect(request.request.params.get('texto')).toBe('JUAN');
+        expect(request.request.params.get('pagina')).toBe('2');
+        expect(request.request.params.get('tamanoPagina')).toBe('20');
+
+        request.flush({
+            pagina: 2,
+            tamanoPagina: 20,
+            totalRegistros: 0,
+            totalPaginas: 0,
+            items: []
+        });
+    });
+
+    it('should omit empty optional filters from the misa list', () => {
+        service.getList({
+            fechaInicio: null,
+            fechaFin: null,
+            idModalidad: null,
+            idTipo: null,
+            idEstado: null,
+            estadoPago: '',
+            texto: '   ',
+            pagina: 1,
+            tamanoPagina: 20
+        }).subscribe();
+
+        const request = httpTesting.expectOne(req =>
+            req.url === apiUrl
+        );
+
+        expect(request.request.params.keys()).toEqual([
+            'pagina',
+            'tamanoPagina'
+        ]);
+
+        request.flush({
+            pagina: 1,
+            tamanoPagina: 20,
+            totalRegistros: 0,
+            totalPaginas: 0,
+            items: []
+        });
+    });
+
+    it('should request the calendar without pagination', () => {
+        service.getCalendar('2026-08-31', '2026-10-11').subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/calendario`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-31');
+        expect(request.request.params.get('fechaFin')).toBe('2026-10-11');
+        expect(request.request.params.has('pagina')).toBe(false);
+        request.flush({ fechaInicio: '2026-08-31', fechaFin: '2026-10-11', items: [] });
+    });
+
+
+    it('should request the exact program status for a date and hour', () => {
+        service.getProgramStatus('2026-09-09', '18:00:00').subscribe();
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/programaciones/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+        expect(request.request.params.get('hora')).toBe('18:00:00');
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', totalMisas: 2, puedeCerrar: true, pendientes: [] });
+    });
+
+    it('should close a program by date and hour', () => {
+        service.closeProgram('2026-09-09', '18:00:00').subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/cerrar`);
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'CERRADA', mensaje: 'Programación cerrada correctamente.' });
+    });
+
+    it('should reopen a program with a reason', () => {
+        service.reopenProgram({ fecha: '2026-09-09', hora: '18:00:00', motivo: 'Misa adicional del sacerdote' }).subscribe();
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/reabrir`);
+        expect(request.request.method).toBe('PATCH');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00', motivo: 'Misa adicional del sacerdote' });
+        request.flush({ fecha: '2026-09-09', hora: '18:00:00', cantidadMisas: 2, estado: 'ABIERTA', versionActual: 1, mensaje: 'Programación reabierta correctamente.' });
+    });
+
+
+    it('should request celebrant document status for the exact schedule', () => {
+        service.getCelebrantDocumentStatus('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/programaciones/documentos/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+        expect(request.request.params.get('hora')).toBe('18:00:00');
+
+        request.flush({
+            fecha: '2026-09-09',
+            hora: '18:00:00',
+            estadoProgramacion: 'CERRADA',
+            versionActual: 1,
+            totalDesactualizados: 0,
+            personal: { tipoDocumento: 'PERSONAL', cantidadMisas: 4, generado: false, generadoUtc: null, numeroGeneraciones: 0 },
+            comunitaria: { tipoDocumento: 'COMUNITARIA', cantidadMisas: 8, generado: false, generadoUtc: null, numeroGeneraciones: 0 }
+        });
+    });
+
+    it('should request the personal day document status', () => {
+        service.getPersonalDayDocumentStatus('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(req => req.url === `${apiUrl}/documentos/personales-dia/estado`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('fecha')).toBe('2026-09-09');
+
+        request.flush({
+            fecha: '2026-09-09',
+            cantidadMisas: 3,
+            cantidadProgramaciones: 3,
+            cantidadProgramacionesListas: 3,
+            cantidadPendientesCierre: 0,
+            cantidadProgramacionesGeneradas: 0,
+            totalDesactualizados: 0,
+            puedeGenerar: true,
+            todoGenerado: false
+        });
+    });
+
+    it('should request the personal day preview as PDF blob', () => {
+        service.previewPersonalDayDocument('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/personales-dia/vista-previa`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09' });
+
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
+    it('should request the community preview for the exact schedule', () => {
+        service.previewCommunityDocument('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/documentos/COMUNITARIA/vista-previa`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+
+        request.flush(new Blob(['pdf'], { type: 'application/pdf' }));
+    });
+
+
+    it('should enqueue the personal day document for physical printing', () => {
+        service.printPersonalDayDocument('2026-09-09').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/personales-dia/imprimir`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09' });
+
+        request.flush({
+            idTrabajo: 101,
+            tipoDocumento: 'MISA_CELEBRANTE_PERSONAL',
+            estado: 'PENDIENTE',
+            impresora: 'L4260 Series(Network)',
+            codigo: 'QUEUED',
+            mensaje: 'En cola'
+        });
+    });
+
+    it('should enqueue the community document for the exact schedule', () => {
+        service.printCommunityDocument('2026-09-09', '18:00:00').subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/programaciones/documentos/COMUNITARIA/imprimir`);
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual({ fecha: '2026-09-09', hora: '18:00:00' });
+
+        request.flush({
+            idTrabajo: 102,
+            tipoDocumento: 'MISA_CELEBRANTE_COMUNITARIA',
+            estado: 'PENDIENTE',
+            impresora: 'L4260 Series(Network)',
+            codigo: 'QUEUED',
+            mensaje: 'En cola'
+        });
+    });
+
+    it('should request the physical print job status', () => {
+        service.getCelebrantPrintJob(101).subscribe();
+
+        const request = httpTesting.expectOne(`${apiUrl}/documentos/impresion/101`);
+        expect(request.request.method).toBe('GET');
+
+        request.flush({
+            idTrabajo: 101,
+            tipoDocumento: 'MISA_CELEBRANTE_PERSONAL',
+            estado: 'COMPLETADO',
+            impresora: 'L4260 Series(Network)',
+            intentos: 1,
+            maxIntentos: 3,
+            fechaCreacionUtc: '2026-09-09T18:00:00Z',
+            fechaActualizacionUtc: '2026-09-09T18:00:02Z',
+            fechaFinalizacionUtc: '2026-09-09T18:00:02Z',
+            ultimoDetalle: 'OK'
+        });
+    });
+
+    it('should request a misa by id', () => {
+        service.getById(15).subscribe();
+
+        const request = httpTesting.expectOne(
+            `${apiUrl}/15`
+        );
+
+        expect(request.request.method).toBe('GET');
+
+        request.flush({
+            idMisa: 15,
+            intenciones: [],
+            puedeEditar: true,
+            puedeEliminar: true,
+            puedeCobrar: false
+        });
+    });
+
+    it('should request misa catalogs', () => {
+        service.getModalidades().subscribe();
+        service.getTipos().subscribe();
+        service.getSantos().subscribe();
+        service.getEstados().subscribe();
+
+        const modalidades = httpTesting.expectOne(
+            `${apiUrl}/modalidades`
+        );
+        const tipos = httpTesting.expectOne(
+            `${apiUrl}/tipos`
+        );
+        const santos = httpTesting.expectOne(
+            `${apiUrl}/santos`
+        );
+        const estados = httpTesting.expectOne(
+            `${apiUrl}/estados`
+        );
+
+        expect(modalidades.request.method).toBe('GET');
+        expect(tipos.request.method).toBe('GET');
+        expect(santos.request.method).toBe('GET');
+        expect(estados.request.method).toBe('GET');
+
+        modalidades.flush([]);
+        tipos.flush([]);
+        santos.flush([]);
+        estados.flush([]);
+    });
+
+    it('should request the misa price calculation', () => {
+        service.getPrecioCalculo(2, 1).subscribe();
+
+        const request = httpTesting.expectOne(req =>
+            req.url === `${apiUrl}/precio-calculo`
+        );
+
+        expect(request.request.method).toBe('GET');
+        expect(request.request.params.get('idTipo')).toBe('2');
+        expect(request.request.params.get('idModalidad')).toBe('1');
+
+        request.flush({
+            idTipo: 2,
+            codigoTipo: 'DIFUNTO',
+            nombreTipo: 'Difunto',
+            idModalidad: 1,
+            nombreModalidad: 'Personal',
+            modoCalculo: 'FIJO',
+            precioBase: 30,
+            fechaVigencia: '2026-01-01T00:00:00'
+        });
+    });
+
+
+    it('should use misa-scoped person lookups', () => {
+        service.getPersonaTiposDocumento().subscribe(); let request = httpTesting.expectOne(`${apiUrl}/personas/tipos-documento`); request.flush([]);
+        service.searchPersonas('jose', 10).subscribe(); request = httpTesting.expectOne(req => req.url === `${apiUrl}/personas/search`); expect(request.request.params.get('search')).toBe('jose'); request.flush([]);
+        service.getPersonaByDocument(1, '12345678').subscribe(); request = httpTesting.expectOne(req => req.url === `${apiUrl}/personas/by-document`); request.flush(null);
+    });
+
+    it('should create a misa', () => {
+        const body = createRequest();
+
+        service.create(body).subscribe();
+
+        const request = httpTesting.expectOne(apiUrl);
+
+        expect(request.request.method).toBe('POST');
+        expect(request.request.body).toEqual(body);
+
+        request.flush(
+            {
+                idMisa: 20,
+                codMisa: 'M2026-00020',
+                idSolicitudServicio: 50,
+                codSolicitudServicio: 'SOL-000050',
+                requierePago: true,
+                importe: 30,
+                estadoPago: 'PENDIENTE',
+                mensaje: 'Misa registrada correctamente.'
+            },
+            {
+                status: 201,
+                statusText: 'Created'
+            }
+        );
+    });
+
+    it('should update a misa without sending idMisa in the body', () => {
+        const body = updateRequest();
+
+        service.update(20, body).subscribe();
+
+        const request = httpTesting.expectOne(
+            `${apiUrl}/20`
+        );
+
+        expect(request.request.method).toBe('PUT');
+        expect(request.request.body).toEqual(body);
+        expect(request.request.body).not.toHaveProperty('idMisa');
+
+        request.flush({
+            idMisa: 20,
+            codMisa: 'M2026-00020',
+            idSolicitudServicio: 50,
+            codSolicitudServicio: 'SOL-000050',
+            requierePago: true,
+            importe: 30,
+            estadoPago: 'PENDIENTE',
+            mensaje: 'Misa actualizada correctamente.'
+        });
+    });
+
+    it('should delete a misa', () => {
+        service.delete(20).subscribe();
+
+        const request = httpTesting.expectOne(
+            `${apiUrl}/20`
+        );
+
+        expect(request.request.method).toBe('DELETE');
+        expect(request.request.body).toBeNull();
+
+        request.flush({
+            idMisa: 20,
+            idSolicitudServicio: 50,
+            codSolicitudServicio: 'SOL-000050',
+            estadoSolicitud: 'ANULADA',
+            mensaje: 'Misa eliminada correctamente.'
+        });
+    });
+
+    function createRequest(): MisaCreateRequest {
+        return {
+            modalidad: { idModalidad: 1 },
+            tipo: { idTipo: 2 },
+            solicitante: {
+                idPersona: 10,
+                idTipoDocumento: 1,
+                numeroDocumento: '12345678',
+                nombre: 'JUAN PEREZ',
+                telefono: '999999999'
+            },
+            intenciones: [
+                {
+                    nombre: 'MARIA PEREZ',
+                    observacion: null
+                }
+            ],
+            fecha: '2026-08-30',
+            hora: '18:00:00',
+            observaciones: null,
+            requierePago: true,
+            motivoNoPago: null,
+            motivo: null,
+            ofrecen: null,
+            celular: null,
+            devotos: null,
+            santo: null
+        };
+    }
+
+    function updateRequest(): MisaUpdateRequest {
+        return {
+            ...createRequest(),
+            intenciones: [
+                {
+                    idIntencion: 5,
+                    nombre: 'MARIA PEREZ',
+                    observacion: null
+                }
+            ]
+        };
+    }
+
+    it('should correct existing intentions without full misa update', () => {
+        const payload = { intenciones: [{ idIntencion: 10, nombre: 'JUAN CORREGIDO', observacion: null }] };
+        service.correctIntenciones(5, payload).subscribe();
+        const req = httpTesting.expectOne(`${apiUrl}/5/intenciones`);
+        expect(req.request.method).toBe('PATCH');
+        expect(req.request.body).toEqual(payload);
+        req.flush({ idMisa: 5, codMisa: 'M2026-0005', cantidadCorregida: 1, mensaje: 'OK' });
+    });
+    it('should export misas without pagination and with applied filters', () => {
+        const filters = { fechaInicio: '2026-08-01', fechaFin: '2026-08-31', idModalidad: 1, idTipo: 2, idEstado: 3, estadoPago: 'PAGADO', texto: 'JUAN' };
+
+        service.exportExcel(filters).subscribe();
+        let request = httpTesting.expectOne(req => req.url === `${apiUrl}/exportar/excel`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.get('fechaInicio')).toBe('2026-08-01');
+        expect(request.request.params.get('estadoPago')).toBe('PAGADO');
+        expect(request.request.params.get('texto')).toBe('JUAN');
+        expect(request.request.params.has('pagina')).toBe(false);
+        expect(request.request.params.has('tamanoPagina')).toBe(false);
+        request.flush(new Blob());
+
+        service.exportPdf(filters).subscribe();
+        request = httpTesting.expectOne(req => req.url === `${apiUrl}/exportar/pdf`);
+        expect(request.request.method).toBe('GET');
+        expect(request.request.responseType).toBe('blob');
+        expect(request.request.params.has('pagina')).toBe(false);
+        request.flush(new Blob());
+    });
+
+});

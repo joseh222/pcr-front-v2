@@ -1,0 +1,69 @@
+<div class="page-shell">
+    <header class="page-header">
+        <div><p class="eyebrow">CATÁLOGOS · PROVEEDORES</p><h1>{{ pageTitle() }}</h1><p>{{ pageDescription() }}</p></div>
+        <a mat-stroked-button routerLink="/catalogos/proveedores"><mat-icon>arrow_back</mat-icon>Volver</a>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.loadError()) {
+        <div class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudo cargar el proveedor.</strong><p>{{ store.loadError() }}</p></div></div>
+    } @else {
+        <form class="proveedor-form" [formGroup]="form" (ngSubmit)="save()">
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>badge</mat-icon></div><div><h2>Identificación</h2><p>El documento es opcional; si se registra, tipo y número deben ir juntos.</p></div></header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Tipo de documento</mat-label>
+                        <mat-select formControlName="idTipoDocumento">
+                            <mat-option [value]="null">Sin documento</mat-option>
+                            @for (tipo of store.tiposDocumento(); track tipo.idTipoDocumento) { <mat-option [value]="tipo.idTipoDocumento">{{ tipo.nombre }}</mat-option> }
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Número de documento</mat-label>
+                        <input matInput formControlName="numeroDocumento" maxlength="20" (blur)="normalizeDocument()">
+                        <mat-hint>{{ documentHint() }}</mat-hint>
+                        @if (form.controls.numeroDocumento.touched && form.controls.numeroDocumento.hasError('required')) { <mat-error>Ingresa el número de documento.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('minlength') || form.controls.numeroDocumento.hasError('maxlength')) { <mat-error>La longitud del documento no es válida.</mat-error> }
+                        @if (form.controls.numeroDocumento.hasError('pattern')) { <mat-error>Este documento admite solo números.</mat-error> }
+                    </mat-form-field>
+                    @if (form.touched && form.hasError('documentPair')) { <div class="form-error full-width"><mat-icon>error_outline</mat-icon>Tipo y número de documento deben indicarse juntos.</div> }
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Razón social / nombre</mat-label>
+                        <input matInput formControlName="razonSocial" maxlength="200" placeholder="Ej. Distribuidora San José SAC o Juan Pérez">
+                        @if (form.controls.razonSocial.touched && form.controls.razonSocial.hasError('required')) { <mat-error>La razón social o nombre es obligatorio.</mat-error> }
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Nombre comercial</mat-label><input matInput formControlName="nombreComercial" maxlength="150" placeholder="Opcional">
+                    </mat-form-field>
+                </div>
+            </section>
+
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>contact_phone</mat-icon></div><div><h2>Contacto</h2><p>Información opcional para coordinar futuras compras.</p></div></header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Teléfono</mat-label><input matInput formControlName="telefono" maxlength="20">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Email</mat-label><input matInput type="email" formControlName="email" maxlength="150">
+                        <mat-hint>Opcional.</mat-hint>
+                        @if (form.controls.email.hasError('email')) { <mat-error>Ingresa un correo válido.</mat-error> }
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Dirección</mat-label><input matInput formControlName="direccion" maxlength="250">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Observaciones</mat-label><textarea matInput rows="4" maxlength="500" formControlName="observaciones"></textarea><mat-hint align="end">{{ form.controls.observaciones.value.length }}/500</mat-hint>
+                    </mat-form-field>
+                </div>
+            </section>
+
+            @if (isEditMode() && store.detail(); as detail) {
+                <section class="provider-note"><mat-icon>info</mat-icon><div><strong>{{ detail.codProveedor }}</strong><span>El código se genera automáticamente y no cambia durante la vida del proveedor.</span></div></section>
+            }
+
+            <div class="form-actions"><a mat-stroked-button routerLink="/catalogos/proveedores">Cancelar</a><button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Registrar proveedor') }}</button></div>
+        </form>
+    }
+</div>

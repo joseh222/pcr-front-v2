@@ -1,0 +1,40 @@
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>lock_open</mat-icon>
+    <span>Reabrir programación</span>
+</h2>
+
+<mat-dialog-content>
+    <div class="program-summary">
+        <strong>{{ data.fechaLabel }} · {{ data.hora }}</strong>
+        <span>Versión cerrada actual: {{ data.versionActual }}</span>
+    </div>
+
+    <div class="warning-box">
+        <mat-icon>warning</mat-icon>
+        <div>
+            <strong>La programación volverá a quedar abierta.</strong>
+            <p>Si ya imprimiste hojas de intenciones, esas hojas dejarán de representar la programación vigente. Después de los cambios deberás cerrar nuevamente e imprimir la nueva versión.</p>
+        </div>
+    </div>
+
+    <form [formGroup]="form">
+        <mat-form-field appearance="outline">
+            <mat-label>Motivo de reapertura</mat-label>
+            <textarea matInput rows="4" maxlength="250" formControlName="motivo"
+                placeholder="Ej. Misa adicional solicitada por el sacerdote celebrante."></textarea>
+            <mat-hint align="end">{{ form.controls.motivo.value.length }}/250</mat-hint>
+
+            @if (form.controls.motivo.hasError('required')) {
+                <mat-error>El motivo es obligatorio.</mat-error>
+            }
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-stroked-button [mat-dialog-close]="undefined">Cancelar</button>
+    <button mat-flat-button type="button" [disabled]="form.invalid" (click)="confirm()">
+        <mat-icon>lock_open</mat-icon>
+        Reabrir programación
+    </button>
+</mat-dialog-actions>

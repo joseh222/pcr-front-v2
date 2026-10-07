@@ -1,0 +1,129 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { RuntimeConfigService } from '../../../core/config/runtime-config.service';
+import { VentaMetodoPago, VentaTipoComprobante } from './models/venta-catalog.models';
+import { VentaProductoBusqueda, VentaSolicitudDetalle, VentaSolicitudPendiente } from './models/venta-lookup.models';
+import { ProductoListQuery, ProductoPagedResponse } from '../../productos/data-access/models/producto-read.models';
+import { SolicitudServicioListQuery, SolicitudServicioPagedResponse } from '../../servicios/data-access/models/solicitud-servicio-read.models';
+import { VentaCreateRequest, VentaCreateResponse } from './models/venta-write.models';
+import { VentaDetailResponse, VentaListFilters, VentaListQuery, VentaPagedResponse } from './models/venta-read.models';
+import { VentaCancelRequest, VentaCancelResponse, VentaRazonAnulacion } from './models/venta-cancel.models';
+import { DocumentoImpresionEjecucionResponse, DocumentoImpresionResponse, VentaDocumentoTipo, VentaDocumentosResponse, VentaImpresionModoResponse } from './models/venta-document.models';
+import { PersonaCreateRequest, PersonaCreateResponse, PersonaLookup, PersonaSearchItem, PersonaTipoDocumento } from '../../personas/data-access/models/persona-api.models';
+
+@Injectable({ providedIn: 'root' })
+export class VentaApiService {
+    private readonly http = inject(HttpClient);
+    private readonly runtimeConfig = inject(RuntimeConfigService);
+
+    getMetodosPago(): Observable<readonly VentaMetodoPago[]> {
+        return this.http.get<readonly VentaMetodoPago[]>(`${this.ventaUrl}/metodos-pago`);
+    }
+
+    getTiposComprobante(): Observable<readonly VentaTipoComprobante[]> {
+        return this.http.get<readonly VentaTipoComprobante[]>(`${this.ventaUrl}/tipos-comprobante`);
+    }
+
+    getRazonesAnulacion(): Observable<readonly VentaRazonAnulacion[]> {
+        return this.http.get<readonly VentaRazonAnulacion[]>(`${this.ventaUrl}/razones-anulacion`);
+    }
+
+    getProductosSelector(query: ProductoListQuery): Observable<ProductoPagedResponse> {
+        let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.idCategoriaProducto != null) params = params.set('idCategoriaProducto', query.idCategoriaProducto);
+        if (query.idMarcaProducto != null) params = params.set('idMarcaProducto', query.idMarcaProducto);
+        if (query.isActive != null) params = params.set('isActive', query.isActive);
+        return this.http.get<ProductoPagedResponse>(`${this.ventaUrl}/productos`, { params });
+    }
+
+    getSolicitudesPendientesSelector(query: SolicitudServicioListQuery): Observable<SolicitudServicioPagedResponse> {
+        let params = new HttpParams().set('pageNumber', query.pageNumber).set('pageSize', query.pageSize);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.idServicio != null) params = params.set('idServicio', query.idServicio);
+        if (query.fechaInicio) params = params.set('fechaInicio', query.fechaInicio);
+        if (query.fechaFin) params = params.set('fechaFin', query.fechaFin);
+        return this.http.get<SolicitudServicioPagedResponse>(`${this.ventaUrl}/solicitudes/pendientes/lista`, { params });
+    }
+
+    searchServiciosPendientes(search: string, top = 20): Observable<readonly VentaSolicitudPendiente[]> {
+        const params = new HttpParams().set('search', search).set('top', top);
+        return this.http.get<readonly VentaSolicitudPendiente[]>(`${this.ventaUrl}/solicitudes/pendientes`, { params });
+    }
+
+    getSolicitudById(idSolicitudServicio: number): Observable<VentaSolicitudDetalle> {
+        return this.http.get<VentaSolicitudDetalle>(`${this.ventaUrl}/solicitudes/${idSolicitudServicio}`);
+    }
+
+    searchProductos(search: string, top = 10): Observable<readonly VentaProductoBusqueda[]> {
+        const params = new HttpParams().set('search', search).set('top', top);
+        return this.http.get<readonly VentaProductoBusqueda[]>(`${this.ventaUrl}/productos/search`, { params });
+    }
+
+
+    getPersonaTiposDocumento(): Observable<readonly PersonaTipoDocumento[]> { return this.http.get<readonly PersonaTipoDocumento[]>(`${this.ventaUrl}/personas/tipos-documento`); }
+    getPersonaByDocument(idTipoDocumento: number, numeroDocumento: string): Observable<PersonaLookup | null> {
+        const params = new HttpParams().set('idTipoDocumento', idTipoDocumento).set('numeroDocumento', numeroDocumento);
+        return this.http.get<PersonaLookup | null>(`${this.ventaUrl}/personas/by-document`, { params });
+    }
+    searchPersonas(search: string, top = 10): Observable<readonly PersonaSearchItem[]> {
+        const params = new HttpParams().set('search', search).set('top', top);
+        return this.http.get<readonly PersonaSearchItem[]>(`${this.ventaUrl}/personas/search`, { params });
+    }
+    getPersonaById(idPersona: number): Observable<PersonaLookup> { return this.http.get<PersonaLookup>(`${this.ventaUrl}/personas/${idPersona}`); }
+    
+    createPersona(request: PersonaCreateRequest): Observable<PersonaCreateResponse> { return this.http.post<PersonaCreateResponse>(`${this.ventaUrl}/personas`, request); }
+    
+    create(request: VentaCreateRequest): Observable<VentaCreateResponse> {
+        return this.http.post<VentaCreateResponse>(this.ventaUrl, request);
+    }
+
+    getById(idVenta: number): Observable<VentaDetailResponse> {
+        return this.http.get<VentaDetailResponse>(`${this.ventaUrl}/${idVenta}`);
+    }
+
+    getTicket(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/ticket`, { responseType: 'blob' }); }
+    getDocuments(idVenta: number): Observable<VentaDocumentosResponse> { return this.http.get<VentaDocumentosResponse>(`${this.ventaUrl}/${idVenta}/documentos`); }
+    getDocumentsPdf(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/documentos/pdf`, { responseType: 'blob' }); }
+    getMisasTicket(idVenta: number): Observable<Blob> { return this.http.get(`${this.ventaUrl}/${idVenta}/documentos/misas`, { responseType: 'blob' }); }
+    requestPrint(idVenta: number, tipoDocumento: VentaDocumentoTipo): Observable<DocumentoImpresionResponse> { return this.http.post<DocumentoImpresionResponse>(`${this.ventaUrl}/${idVenta}/documentos/${tipoDocumento}/solicitudes-impresion`, null); }
+    getPrintMode(): Observable<VentaImpresionModoResponse> { return this.http.get<VentaImpresionModoResponse>(`${this.ventaUrl}/impresion/configuracion`); }
+    printDocument(idVenta: number, tipoDocumento: VentaDocumentoTipo): Observable<DocumentoImpresionEjecucionResponse> { return this.http.post<DocumentoImpresionEjecucionResponse>(`${this.ventaUrl}/${idVenta}/documentos/${tipoDocumento}/imprimir`, null); }
+
+    cancel(idVenta: number, request: VentaCancelRequest): Observable<VentaCancelResponse> {
+        return this.http.patch<VentaCancelResponse>(`${this.ventaUrl}/${idVenta}/anular`, request);
+    }
+
+    getList(query: VentaListQuery): Observable<VentaPagedResponse> {
+        return this.http.get<VentaPagedResponse>(this.ventaUrl, {
+            params: this.buildFilterParams(query)
+                .set('pagina', query.pagina)
+                .set('tamanoPagina', query.tamanoPagina)
+        });
+    }
+
+    exportExcel(filters: VentaListFilters): Observable<Blob> {
+        return this.http.get(`${this.ventaUrl}/exportar/excel`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
+
+    exportPdf(filters: VentaListFilters): Observable<Blob> {
+        return this.http.get(`${this.ventaUrl}/exportar/pdf`, { params: this.buildFilterParams(filters), responseType: 'blob' });
+    }
+
+    private buildFilterParams(filters: VentaListFilters): HttpParams {
+        let params = new HttpParams();
+
+        if (filters.fechaInicio) params = params.set('fechaInicio', filters.fechaInicio);
+        if (filters.fechaFin) params = params.set('fechaFin', filters.fechaFin);
+        if (filters.idMetodoPago != null) params = params.set('idMetodoPago', filters.idMetodoPago);
+        if (filters.idTipoComprobante != null) params = params.set('idTipoComprobante', filters.idTipoComprobante);
+        if (filters.tipoItem) params = params.set('tipoItem', filters.tipoItem);
+        if (filters.texto?.trim()) params = params.set('texto', filters.texto.trim());
+
+        return params;
+    }
+
+    private get ventaUrl(): string { return `${this.runtimeConfig.config.apiBaseUrl}/Venta`; }
+}

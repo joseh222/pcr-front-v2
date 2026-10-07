@@ -1,0 +1,39 @@
+<h2 mat-dialog-title class="dialog-title">
+    <mat-icon>cancel</mat-icon>
+    <span>Anular venta {{ data.codVenta }}</span>
+</h2>
+
+<mat-dialog-content>
+    <p class="warning-text">
+        La anulación revertirá el stock de los productos y devolverá los servicios cobrados al estado pendiente.
+    </p>
+
+    <form [formGroup]="form" class="dialog-form">
+        <mat-form-field appearance="outline">
+            <mat-label>Razón de anulación</mat-label>
+            <mat-select formControlName="idRazonAnulacion">
+                @for (razon of data.razones; track razon.idRazonAnulacion) {
+                <mat-option [value]="razon.idRazonAnulacion">{{ razon.nombre }}</mat-option>
+                }
+            </mat-select>
+
+            @if (form.controls.idRazonAnulacion.hasError('required')) {
+            <mat-error>Selecciona una razón.</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Motivo{{ requiresDetail() ? ' *' : '' }}</mat-label>
+            <textarea matInput rows="3" maxlength="500" formControlName="motivoAnulacion"></textarea>
+
+            @if (form.controls.motivoAnulacion.hasError('required')) {
+            <mat-error>Indica el detalle de la anulación.</mat-error>
+            }
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-stroked-button [mat-dialog-close]="undefined">Cancelar</button>
+    <button mat-flat-button type="button" [disabled]="form.invalid" (click)="confirm()">Anular venta</button>
+</mat-dialog-actions>

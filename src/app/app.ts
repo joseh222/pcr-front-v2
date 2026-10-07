@@ -1,12 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { ThemeService } from './core/theme/theme.service';
 
 @Component({
   selector: 'pcr-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, MatButtonModule, MatCardModule],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('PCR_FrontV2');
+  protected readonly title = 'PCR Front V2';
+  protected readonly theme = inject(ThemeService);
 }

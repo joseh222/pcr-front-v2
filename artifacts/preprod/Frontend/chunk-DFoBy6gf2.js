@@ -1,0 +1,1 @@
+var t=[{path:``,title:`Iniciar sesión | PCR Front V2`,loadComponent:()=>import(`./chunk-Br7OB_f72.js`).then(o=>o.LoginPage)}];export{t as AUTH_ROUTES};

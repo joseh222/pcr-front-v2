@@ -1,0 +1,38 @@
+<button mat-icon-button type="button" [matMenuTriggerFor]="themeMenu" aria-label="Cambiar tema"
+    data-testid="theme-menu-trigger">
+
+    <mat-icon>
+        {{ themeService.resolvedTheme() === 'dark' ? 'dark_mode' : 'light_mode' }}
+    </mat-icon>
+</button>
+
+<mat-menu #themeMenu="matMenu" xPosition="before">
+
+    <button mat-menu-item type="button" data-testid="theme-light" (click)="setTheme('light')">
+
+        <mat-icon>
+            {{ themeService.preference() === 'light' ? 'radio_button_checked' : 'light_mode' }}
+        </mat-icon>
+
+        <span>Claro</span>
+    </button>
+
+    <button mat-menu-item type="button" data-testid="theme-dark" (click)="setTheme('dark')">
+
+        <mat-icon>
+            {{ themeService.preference() === 'dark' ? 'radio_button_checked' : 'dark_mode' }}
+        </mat-icon>
+
+        <span>Oscuro</span>
+    </button>
+
+    <button mat-menu-item type="button" data-testid="theme-system" (click)="setTheme('system')">
+
+        <mat-icon>
+            {{ themeService.preference() === 'system' ? 'radio_button_checked' : 'computer' }}
+        </mat-icon>
+
+        <span>Sistema</span>
+    </button>
+
+</mat-menu>

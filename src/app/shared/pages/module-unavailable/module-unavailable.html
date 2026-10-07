@@ -1,0 +1,13 @@
+<section class="module-unavailable" data-testid="module-unavailable">
+    <mat-icon class="lock-icon">lock</mat-icon>
+    <p class="eyebrow">PCR · Licenciamiento</p>
+    <h1>Módulo no habilitado</h1>
+    <p>Esta instalación no tiene habilitado el módulo requerido: <strong>{{ modules() }}</strong>.</p>
+    <p>Los datos existentes no se eliminan. Para utilizarlo, debe actualizarse la licencia de esta instalación.</p>
+    <div class="actions">
+        <a mat-stroked-button routerLink="/dashboard"><mat-icon>home</mat-icon> Ir al inicio</a>
+        @if (canViewLicense()) {
+            <a mat-flat-button routerLink="/configuracion/licencia"><mat-icon>vpn_key</mat-icon> Ver licencia</a>
+        }
+    </div>
+</section>

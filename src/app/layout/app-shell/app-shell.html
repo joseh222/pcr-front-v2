@@ -1,0 +1,22 @@
+<div class="app-layout" [class.app-layout-sidebar-collapsed]="sidebarCollapsed()" data-testid="app-shell">
+    @if (sidebarOpen()) {
+        <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" data-testid="sidebar-backdrop"
+            (click)="closeSidebar()">
+        </button>
+    }
+
+    <pcr-sidebar [open]="sidebarOpen()" [collapsed]="sidebarCollapsed()" />
+
+    <div class="app-content">
+        <pcr-topbar [sidebarCollapsed]="sidebarCollapsed()" (mobileMenuRequested)="toggleSidebar()"
+            (desktopMenuRequested)="toggleDesktopSidebar()" />
+
+        <div class="app-page">
+            <main class="app-main" data-testid="app-main">
+                <router-outlet />
+            </main>
+
+            <pcr-footer />
+        </div>
+    </div>
+</div>

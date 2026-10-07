@@ -1,0 +1,52 @@
+<aside class="app-sidebar" [class.app-sidebar-open]="open()" [class.app-sidebar-collapsed]="collapsed()"
+    data-testid="app-sidebar">
+
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <mat-icon>church</mat-icon>
+        </div>
+
+        <div class="min-w-0">
+            <p class="font-semibold leading-tight">PCR</p>
+            <p class="truncate text-xs opacity-60">
+                Sistema Parroquial
+            </p>
+        </div>
+    </div>
+
+    <nav class="sidebar-navigation" aria-label="Menú principal">
+
+        @for (section of navigationSections(); track section.id) {
+        <section class="sidebar-section" [attr.data-testid]="'nav-section-' + section.id">
+
+            <p class="sidebar-section-title">
+                {{ section.label }}
+            </p>
+
+            @for (item of section.items; track item.id) {
+                @if (item.disabled) {
+                    <div class="sidebar-item sidebar-item-disabled" aria-disabled="true" [attr.data-testid]="'nav-' + item.id">
+                        <mat-icon>{{ item.icon }}</mat-icon>
+                        <span>{{ item.label }}</span>
+                        <small>Próximamente</small>
+                    </div>
+                } @else {
+                    <a class="sidebar-item" [routerLink]="item.route" routerLinkActive="sidebar-item-active"
+                        [routerLinkActiveOptions]="{ exact: item.exact ?? false }" ariaCurrentWhenActive="page"
+                        [attr.data-testid]="'nav-' + item.id" (click)="navigate()">
+                        <mat-icon>{{ item.icon }}</mat-icon>
+                        <span>{{ item.label }}</span>
+                        @if (item.badge) { <small class="sidebar-item-badge">{{ item.badge }}</small> }
+                    </a>
+                }
+            }
+        </section>
+        }
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <p>{{ identidadStore.nombreParroquia() }}</p>
+    </div>
+
+</aside>

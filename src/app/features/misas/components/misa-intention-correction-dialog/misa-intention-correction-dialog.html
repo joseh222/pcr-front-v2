@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Corregir intenciones</h2>
+<mat-dialog-content>
+    <p>Esta corrección no modifica el pago ni la venta. El registro de Misas se regenerará con los nombres actualizados.</p>
+    @if (saving()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (error()) { <p class="error"><mat-icon>error_outline</mat-icon>{{ error() }}</p> }
+    @for (misa of misas; track misa.idMisa) {
+    <section class="misa-block">
+        <header><strong>{{ misa.codMisa }}</strong><span>{{ misa.modalidad || '—' }} · {{ misa.tipo || '—' }}</span></header>
+        @for (intencion of misa.intenciones; track intencion.idIntencion) {
+        <div class="intention-grid">
+            <mat-form-field appearance="outline"><mat-label>Nombre de intención</mat-label><input matInput [(ngModel)]="intencion.nombre" maxlength="100"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Observación</mat-label><input matInput [(ngModel)]="intencion.observacion" maxlength="200"></mat-form-field>
+        </div>
+        }
+        @if (misa.intenciones.length === 0) { <p class="empty">Esta Misa no tiene intenciones nominales para corregir.</p> }
+    </section>
+    }
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-button mat-dialog-close [disabled]="saving()">Cancelar</button><button mat-flat-button type="button" (click)="save()" [disabled]="saving()"><mat-icon>save</mat-icon>Guardar correcciones</button></mat-dialog-actions>

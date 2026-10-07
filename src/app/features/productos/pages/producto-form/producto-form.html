@@ -1,0 +1,32 @@
+<div class="page-shell">
+    <header class="page-header">
+        <div><p class="eyebrow">PRODUCTOS</p><h1>{{ pageTitle() }}</h1><p>{{ pageDescription() }}</p></div>
+        <a mat-stroked-button routerLink="/productos"><mat-icon>arrow_back</mat-icon>Volver</a>
+    </header>
+
+    @if (store.loading()) { <mat-progress-bar mode="indeterminate"></mat-progress-bar> }
+    @if (store.loadError()) {
+        <div class="state-card error-state"><mat-icon>error_outline</mat-icon><div><strong>No se pudo cargar el producto.</strong><p>{{ store.loadError() }}</p></div></div>
+    } @else {
+        <form class="producto-form" [formGroup]="form" (ngSubmit)="save()">
+            <section class="form-card">
+                <header class="section-header"><div class="section-icon"><mat-icon>inventory_2</mat-icon></div><div><h2>Información del producto</h2><p>Define los datos con los que el producto será identificado y vendido.</p></div></header>
+                <div class="section-body form-grid">
+                    <mat-form-field appearance="outline"><mat-label>Categoría</mat-label><mat-select formControlName="idCategoriaProducto">@for (categoria of store.categorias(); track categoria.idCategoriaProducto) { <mat-option [value]="categoria.idCategoriaProducto">{{ categoria.nombre }}</mat-option> }</mat-select>@if (form.controls.idCategoriaProducto.touched && form.controls.idCategoriaProducto.hasError('required')) { <mat-error>La categoría es obligatoria.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Marca</mat-label><mat-select formControlName="idMarcaProducto"><mat-option [value]="null">Sin marca</mat-option>@for (marca of store.marcas(); track marca.idMarcaProducto) { <mat-option [value]="marca.idMarcaProducto">{{ marca.nombre }}</mat-option> }</mat-select></mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width"><mat-label>Nombre</mat-label><input matInput formControlName="nombre" maxlength="150">@if (form.controls.nombre.touched && form.controls.nombre.hasError('required')) { <mat-error>El nombre es obligatorio.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>SKU</mat-label><input matInput formControlName="sku" maxlength="50" placeholder="Ej. VEL-001" (blur)="normalizeSku()"><mat-hint>Opcional y único. Se guardará sin espacios y en mayúsculas.</mat-hint></mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Precio de compra referencial</mat-label><span matTextPrefix>S/&nbsp;</span><input matInput type="number" min="0" step="0.01" formControlName="precioCompra">@if (form.controls.precioCompra.hasError('min')) { <mat-error>No puede ser negativo.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline"><mat-label>Precio de venta</mat-label><span matTextPrefix>S/&nbsp;</span><input matInput type="number" min="0" step="0.01" formControlName="precioVenta">@if (form.controls.precioVenta.touched && form.controls.precioVenta.hasError('required')) { <mat-error>El precio de venta es obligatorio.</mat-error> } @if (form.controls.precioVenta.hasError('min')) { <mat-error>No puede ser negativo.</mat-error> }</mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width"><mat-label>Descripción</mat-label><textarea matInput rows="4" maxlength="500" formControlName="descripcion"></textarea><mat-hint align="end">{{ form.controls.descripcion.value.length }}/500</mat-hint></mat-form-field>
+                </div>
+            </section>
+
+            @if (isEditMode() && store.detail(); as detail) {
+                <section class="stock-info"><mat-icon>inventory</mat-icon><div><span>Stock actual</span><strong>{{ detail.stockActual }}</strong><small>El stock no se modifica desde Producto. Se administrará desde el módulo de Inventario.</small></div></section>
+            }
+
+            <div class="form-actions"><a mat-stroked-button routerLink="/productos">Cancelar</a><button mat-flat-button type="submit" [disabled]="form.invalid || store.saving()"><mat-icon>save</mat-icon>{{ store.saving() ? 'Guardando...' : (isEditMode() ? 'Guardar cambios' : 'Registrar producto') }}</button></div>
+        </form>
+    }
+</div>
